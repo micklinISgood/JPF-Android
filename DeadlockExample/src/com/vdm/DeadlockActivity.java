@@ -4,6 +4,14 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+/**
+ * Very basic Android application containing only DeadlockActivity. The Activity
+ * starts two Async tasks. These Async tasks will deadlock when both Friends bow
+ * waiting for the other to bow back.
+ * 
+ * @author Heila van der Merwe
+ * 
+ */
 public class DeadlockActivity extends Activity {
 	final Friend alphonse = new Friend("Alphonse");
 	final Friend gaston = new Friend("Gaston");
@@ -16,7 +24,7 @@ public class DeadlockActivity extends Activity {
 		// Button button1 = (Button) findViewById(R.id.button1);
 		// button1.setOnClickListener(new View.OnClickListener() {
 		// public void onClick(View v) {
-		// new Task2().execute("ss");
+		// new Task().execute(alphonse, gaston);
 		// }
 		// });
 
@@ -43,6 +51,12 @@ public class DeadlockActivity extends Activity {
 		}
 	}
 
+	/**
+	 * This is used to compile the code and is also used as a main entry point
+	 * to the application.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		DeadlockActivity ac = new DeadlockActivity();
 		ac.onCreate(null);
