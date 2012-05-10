@@ -5,13 +5,19 @@ import android.os.Bundle;
 public class Activity {
 
 	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
+	
+	/**
+	 * Creates the view three
+	 * @param id
+	 */
 	public void setContentView(int id){
 		
 	}
+	
 	
 }
 
