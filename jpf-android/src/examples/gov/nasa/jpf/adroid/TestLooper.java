@@ -8,6 +8,9 @@ import android.os.Handler.Callback;
 public class TestLooper {
 
 	public static void main(String[] args) {
+		
+		
+		
 		Looper.prepare();
 		final Handler H = new Handler(new Callback() {
 			public boolean handleMessage(Message msg) {
