@@ -1,8 +1,5 @@
 package android.os;
 
-import java.io.PrintWriter;
-
-import android.util.Log;
 import android.util.PrefixPrinter;
 import android.util.Printer;
 
@@ -81,54 +78,32 @@ public class Looper {
 		// final long ident = Binder.clearCallingIdentity();
 
 		while (true) {
+			// This must be in a local variable, in case a UI event sets the
+			// logger
+			Printer logging = me.mLogging;
 			Message msg = queue.next(); // might block
 			if (msg != null) {
 				if (msg.target == null) {
 					// No target is a magic identifier for the quit message.
-					System.out.println("STOPPPING");
+					if (logging != null) {
+						logging.println(">>>>> Stopping loop " + msg.target
+								+ " " + msg.callback + ": " + msg.what);
+
+					}
 					return;
 				}
 
-				long wallStart = 0;
-				long threadStart = 0;
-
-				// This must be in a local variable, in case a UI event sets the
-				// logger
-				Printer logging = me.mLogging;
 				if (logging != null) {
 					logging.println(">>>>> Dispatching to " + msg.target + " "
 							+ msg.callback + ": " + msg.what);
-					//wallStart = SystemClock.currentTimeMicro();
-					//threadStart = SystemClock.currentThreadTimeMicro();
 				}
 
 				msg.target.dispatchMessage(msg);
 
 				if (logging != null) {
-					long wallTime = SystemClock.currentTimeMicro() - wallStart;
-					long threadTime = SystemClock.currentThreadTimeMicro()
-							- threadStart;
-
 					logging.println("<<<<< Finished to " + msg.target + " "
 							+ msg.callback);
-					if (logging instanceof Profiler) {
-						((Profiler) logging).profile(msg, wallStart, wallTime,
-								threadStart, threadTime);
-					}
 				}
-
-				// Make sure that during the course of dispatching the
-				// identity of the thread wasn't corrupted.
-				// final long newIdent = Binder.clearCallingIdentity();
-				// if (ident != newIdent) {
-				// Log.wtf(TAG,
-				// "Thread identity changed from 0x"
-				// + Long.toHexString(ident) + " to 0x"
-				// + Long.toHexString(newIdent)
-				// + " while dispatching to "
-				// + msg.target.getClass().getName() + " "
-				// + msg.callback + " what=" + msg.what);
-				// }
 
 				msg.recycle();
 			}

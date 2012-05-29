@@ -1,9 +1,16 @@
 package android.app;
 
+import java.util.HashMap;
+import java.util.List;
+
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
+import android.util.Log;
+import android.util.LogPrinter;
+import android.view.Window;
 
 /**
  * This manages the execution of the main thread in an application process,
@@ -13,9 +20,68 @@ import android.os.MessageQueue;
  * {@hide}
  */
 public final class ActivityThread {
-	Looper mLooper;
-	H mH;
-	Activity currentActivity;
+	public static final String TAG = "ActivityThread";
+	public static boolean DEBUG = true;
+
+	final Looper mLooper = Looper.myLooper();
+	final H mH = new H();
+	final HashMap<String, Activity> mActivities = new HashMap<String, Activity>();
+
+	ActivityClientRecord currentActivity;
+
+	static final class ActivityClientRecord {
+		// IBinder token;
+		int ident;
+		// Intent intent;
+		// Bundle state;
+		Activity activity;
+		Window window;
+		Activity parent;
+		String embeddedID;
+		// Activity.NonConfigurationInstances lastNonConfigurationInstances;
+		boolean paused;
+		boolean stopped;
+
+		// boolean hideForNow;
+		// Configuration newConfig;
+		// Configuration createdConfig;
+		// ActivityClientRecord nextIdle;
+
+		// String profileFile;
+		// ParcelFileDescriptor profileFd;
+		// boolean autoStopProfiler;
+
+		// ActivityInfo activityInfo;
+		// CompatibilityInfo compatInfo;
+		// LoadedApk packageInfo;
+
+		// List<ResultInfo> pendingResults;
+		// List<Intent> pendingIntents;
+
+		// boolean startsNotResumed;
+		// boolean isForward;
+		// int pendingConfigChanges;
+		// boolean onlyLocalRequest;
+
+		// View mPendingRemoveWindow;
+		// WindowManager mPendingRemoveWindowManager;
+
+		ActivityClientRecord() {
+			parent = null;
+			embeddedID = null;
+			paused = false;
+			stopped = false;
+			// hideForNow = false;
+			// nextIdle = null;
+		}
+
+		public String toString() {
+			// ComponentName componentName = intent.getComponent();
+			return "ActivityRecord{"
+					+ (activity == null ? "no component name" : activity
+							.getClass().getName()) + "}";
+		}
+	}
 
 	private void queueOrSendMessage(int what, Object obj, int arg1, int arg2) {
 		synchronized (this) {
@@ -29,8 +95,8 @@ public final class ActivityThread {
 	}
 
 	private class H extends Handler {
-		public H(MessageQueue q) {
-			//super(q);
+		public H() {
+			// super(q);
 
 		}
 
@@ -48,39 +114,33 @@ public final class ActivityThread {
 		}
 	}
 
-	
-	
-	
-	
-	
-	
-//	
-//	public ActivityThread(Activity main) {
-//		mLooper = new Looper();
-//		// Activities = new HashMap<String, Activity>();
-//		this.mH = new H(mLooper.getMessageQueue());
-//		queueOrSendMessage(H.LAUNCH_ACTIVITY, main, 0, 0);
-//
-//		mLooper.start();
-//	}
-//
-//	public static void main(String[] args) {
-//		Looper.prepareMainLooper();
-//		if (sMainThreadHandler == null) {
-//			sMainThreadHandler = new Handler();
-//		}
-//
-//		ActivityThread thread = new ActivityThread();
-//		thread.attach(false);
-//
-//		if (false) {
-//			Looper.myLooper().setMessageLogging(
-//					new LogPrinter(Log.DEBUG, "ActivityThread"));
-//		}
-//
-//		Looper.loop();
-//
-//		throw new RuntimeException("Main thread loop unexpectedly exited");
-//	}
+	private void attach() {
+		// parse manifest to get Activities/Services
+		parseApplicationStructure(mActivities);
+
+		// parse ui files to get UI models
+
+	}
+
+	private native void parseApplicationStructure(
+			HashMap<String, Activity> activities);
+
+	public ActivityThread() {
+	}
+
+	public static void main(String[] args) {
+		Looper.prepareMainLooper();
+
+		ActivityThread thread = new ActivityThread();
+		thread.attach();
+
+		if (DEBUG) {
+			Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
+		}
+
+		Looper.loop();
+
+		throw new RuntimeException("Main thread loop unexpectedly exited");
+	}
 
 }
