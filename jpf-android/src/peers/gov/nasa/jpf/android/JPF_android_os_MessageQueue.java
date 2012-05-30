@@ -1,19 +1,283 @@
 package gov.nasa.jpf.android;
 
+import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.jvm.DirectCallStackFrame;
+import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.MethodInfo;
+import gov.nasa.jpf.jvm.StackFrame;
+import gov.nasa.jpf.jvm.SystemState;
+import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.jvm.bytecode.Instruction;
+import gov.nasa.jpf.util.script.ESParser;
+import gov.nasa.jpf.util.script.Event;
 
+import java.io.FileNotFoundException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JPF_android_os_MessageQueue {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-	public static boolean processScriptAction(MJIEnv env, int objRef) {
-		boolean v = false;
-		log.info("Native is cool!");
-		return v;
+	// do we want to process all UIActionCGs regardless of state matching
+	static boolean forceActionStates = false;
+	static int counter; // the number of UIActionCGs generated so far
+
+	// static UIActionGeneratorFactory cgFactory;
+	static UIScriptEnvironment scriptEnv;
+
+	static MethodInfo getMethodInfo(ClassInfo ci, UIAction action) {
+		// <2do> this does not work - we can't deduce the exact method signature
+		// from
+		// the UI action because of the missing return type and the lossy
+		// parameter
+		// parsing (numbers are all stored as Double). We have to reverse match
+		String methodName = action.getMethodName();
+		MethodInfo mi = ci.getMethod(methodName, true);
+
+		return mi;
 	}
-	
-	
+
+	/**
+	 * this is called from the EventDispatchThread run, i.e. before each
+	 * application run
+	 */
+	public static void init____V(MJIEnv env, int objref) {
+		Config conf = env.getConfig();
+
+		counter = 0;
+		forceActionStates = conf.getBoolean("awt.force_states", true);
+
+		String scriptName = conf.getString("awt.script");
+		if (scriptName == null) {
+			scriptName = conf.getString("inspect.script");
+
+			if (scriptName == null) {
+				log.severe("no \"awt.script\" or \"inspect.script\" property");
+			}
+		}
+		try {
+			scriptEnv = new UIScriptEnvironment(scriptName);
+			scriptEnv.registerListener(env.getJPF());
+			scriptEnv.parseScript();
+		} catch (FileNotFoundException fnfx) {
+			log.severe("script file not found: " + scriptName);
+		} catch (ESParser.Exception e) {
+			log.severe(e.toString());
+		}
+	}
+
+	static MethodInfo miTransferFocus;
+
+	static MethodInfo getTransferFocusMethod(MJIEnv env) {
+		if (miTransferFocus == null) {
+			ClassInfo ci = ClassInfo
+					.tryGetResolvedClassInfo("android.view.View");
+			assert ci != null : "android.view.View not loaded yet"; // should
+																		// have
+																		// been
+																		// initialized
+
+			MethodInfo mi = ci.getMethod("transferFocus()V", true);
+			assert mi != null : "no android.view.View.transferFocus() method found (check model class)";
+
+			miTransferFocus = mi.createDirectCallStub("transferFocus");
+		}
+
+		return miTransferFocus;
+	}
+
+	static final String UIACTION = "[UIAction]";
+
+	/**
+	 * this is called from within the EventDispatcher loop. If we return false,
+	 * it means there is nothing else to check and we are done
+	 */
+	public static boolean processScriptAction(MJIEnv env, int objref) {
+
+		ThreadInfo ti = env.getThreadInfo();
+		SystemState ss = env.getSystemState();
+		Instruction insn = ti.getPC();
+
+		if (scriptEnv == null) { // that should have caused a warning during
+									// initialization
+			log.warning("no UIScriptEnvironment, terminating");
+			return false;
+		}
+
+		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // this is executed
+														// before state matching
+
+			if (!ti.isFirstStepInsn()) { // first time around, get the next
+											// UIActionCG
+				UIActionGenerator cg = scriptEnv.getNext("processScriptAction");
+				if (cg != null) {
+					counter++;
+					if (forceActionStates) {
+						env.setIntField(objref, "forceNewState", counter);
+					}
+
+					ss.setNextChoiceGenerator(cg);
+					// ti.skipInstructionLogging();
+					log.info("ProcessAction");
+					env.repeatInvocation();
+					return true; // doesn't really matter
+				} else {
+					return false;
+				}
+
+			} else { // we should already have a cg (with at least one choice
+						// left), retrieve it
+				UIActionGenerator cg = ss.getCurrentChoiceGenerator(
+						"processScriptAction", UIActionGenerator.class);
+				assert (cg != null) : "no UIActionGenerator";
+
+				if (log.isLoggable(Level.INFO)) {
+					log.info("processing UIAction: " + cg);
+				}
+
+				runAction(env, cg.getNextChoice());
+				env.repeatInvocation();
+			}
+		}
+
+		return true;
+	}
+
+	private static void runAction(MJIEnv env, UIAction action) {
+		log.info("ProcessAction: " + action.toString());
+		if (!action.isNone()) {
+			int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
+
+			if (tgtRef == MJIEnv.NULL) {
+				log.warning("no view found for UIAction: " + action);
+
+			} else if (!viewEnabled(env, tgtRef)) {
+				log.warning("view NOT enabled for UIAction: " + action);
+
+			} else {
+
+				ElementInfo ei = env.getElementInfo(tgtRef);
+				ClassInfo ci = ei.getClassInfo();
+				if (!ci.isInstanceOf("android.view.View")) {
+					log.warning("UIAction target reference for : " + action
+							+ " is not a android.view.View: " + ei);
+				} else {
+
+					MethodInfo mi = getMethodInfo(ci, action);
+
+					if (mi == null) {
+						log.warning("UIAction " + action
+								+ " refers to unknown method " + action
+								+ "() in class " + ci.getName());
+
+					} else {
+						if (log.isLoggable(Level.FINER)) {
+							log.finer("calling UIAction: " + action + " : "
+									+ ei + "." + mi.getUniqueName());
+						}
+						// Ok, now we can finally make the (direct) call
+						MethodInfo stub = mi.createDirectCallStub(UIACTION);
+						DirectCallStackFrame frame = new DirectCallStackFrame(
+								stub);
+
+						if (!mi.isStatic()) {
+							frame.push(tgtRef, true);
+						}
+
+						Object[] args = action.getArguments();
+						if (args != null) {
+							byte[] argTypes = mi.getArgumentTypes();
+							for (int i = 0; i < args.length; i++) {
+								pushArg(env, args[i], argTypes[i], frame);
+							}
+						}
+
+						ThreadInfo ti = env.getThreadInfo();
+						ti.pushFrame(frame);
+
+						// if the event included a focus transfer directive, do
+						// this
+						// before invoking the action, to ensure proper
+						// invocation of
+						// FocusListeners
+						if (action.transferFocus()) {
+							stub = getTransferFocusMethod(env);
+							frame = new DirectCallStackFrame(stub);
+							frame.pushRef(tgtRef);
+							ti.pushFrame(frame);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// TODO: move all checks here
+	private static boolean viewEnabled(MJIEnv env, int tgtRef) {
+
+		int listRef = env.getStaticReferenceField("android.view.Window",
+				"modalDialogs");
+		int arrayRef = env.getReferenceField(listRef, "elementData");
+
+		int arrayLength = env.getStaticIntField("android.view.Window",
+				"numModalDialogs");
+
+		if (arrayLength > 0) {
+			int topModalDialogRef = env.getReferenceArrayElement(arrayRef,
+					arrayLength - 1);
+			// follow references upwards until no parent, get top-level window
+			// for current view
+			int parentRef = env.getReferenceField(tgtRef, "parent");
+
+			ElementInfo ei = env.getElementInfo(parentRef);
+			log.fine("Parent :" + ei);
+
+			while (parentRef != MJIEnv.NULL) {
+				parentRef = env.getReferenceField(parentRef, "parent");
+
+				ei = env.getElementInfo(parentRef);
+				log.fine("Parent :" + ei);
+				// found a match
+				if (parentRef == topModalDialogRef) {
+					return true;
+				}
+			}
+			log.warning("action does not belong to top modal dialog");
+			return false;
+		}
+		// no modal dialogs, no restrictions
+		return true;
+	}
+
+	// <2do> very simplistic argument handling for now
+	static void pushArg(MJIEnv env, Object arg, byte typeCode, StackFrame frame) {
+		if (arg == null) {
+			frame.push(MJIEnv.NULL, false);
+		} else if (arg instanceof String) {
+			int sRef = env.newString((String) arg);
+			frame.push(sRef, true);
+		} else if (arg instanceof Double) {
+			frame.doublePush(((Double) arg).doubleValue());
+		} else if (arg instanceof Integer) {
+			frame.push(((Integer) arg).intValue(), false);
+		} else if (arg instanceof Boolean) {
+			frame.push(((Boolean) arg).booleanValue() ? 1 : 0, false);
+		} else {
+			throw new UnsupportedOperationException(
+					"argument type not supported: " + arg);
+		}
+	}
+
+	private static UIActionGenerator createRequestFocusCG(UIAction a) {
+		String requestFocusActionId = a.getTarget() + ".requestFocus";
+		Event requestFocusEvent = new Event(null, requestFocusActionId, null,
+				a.getLine());
+		UIAction requestFocusAction = new UIAction(requestFocusEvent);
+		return new UIActionSingleChoice("requestFocusScriptAction",
+				requestFocusAction);
+	}
 
 }
