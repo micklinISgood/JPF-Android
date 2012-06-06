@@ -2,7 +2,7 @@ target = com.vdm.DeadlockActivity
 classpath=/home/heila/Repos/DeadlockExample/bin/classes/;${jpf-android}/build/classes
 sourcepath=/home/heila/Repos/DeadlockExample/src;
 search.class = .search.heuristic.BFSHeuristic
-# deadlock analyzer is a property-specific trace report generator
+# deadlock analyzer is a property-specific trace report generator 
 listener=.listener.DeadlockAnalyzer
 deadlock.format=essential
 
