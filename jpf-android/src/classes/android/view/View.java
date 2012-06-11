@@ -15,7 +15,7 @@ public class View {
 	/** ID defined in R file */
 	int mID = -1;
 
-	protected ViewParent mParent;
+	protected ViewGroup mParent = null;
 
 	boolean enabled;
 
@@ -120,7 +120,7 @@ public class View {
 	 *            The id to search for.
 	 * @return The view that has the given id in the hierarchy or null
 	 */
-	public final View findViewById(int id) {
+	public View findViewById(int id) {
 		if (id < 0) {
 			return null;
 		}
@@ -135,14 +135,6 @@ public class View {
 		this.mID = mID;
 	}
 
-	public ViewParent getParent() {
-		return mParent;
-	}
-
-	public void setParent(ViewParent mParent) {
-		this.mParent = mParent;
-	}
-
 	public boolean isVisible() {
 		return isVisible;
 	}
@@ -152,6 +144,8 @@ public class View {
 	}
 
 	public ListenerInfo getListenerInfo() {
+		if (mListenerInfo == null)
+			mListenerInfo = new ListenerInfo();
 		return mListenerInfo;
 	}
 
@@ -234,6 +228,15 @@ public class View {
 	 */
 	public void setOnClickListener(OnClickListener l) {
 		getListenerInfo().mOnClickListener = l;
+		l.onClick(this);
+		System.out.println("setOnclick " + this);
+	}
+
+	public OnClickListener getOnClickListener() {
+		System.out.println("getOnclick " + this);
+		ListenerInfo li = mListenerInfo;
+		System.out.println(li);
+		return mListenerInfo.mOnClickListener;
 	}
 
 	/**
@@ -266,14 +269,14 @@ public class View {
 	 * @return True there was an assigned OnClickListener that was called, false
 	 *         otherwise is returned.
 	 */
-	public boolean performClick() {
-		ListenerInfo li = mListenerInfo;
-		if (li != null && li.mOnClickListener != null) {
-			li.mOnClickListener.onClick(this);
-			return true;
+	public void onClick() {
+		System.out.println("Onclick");
+		OnClickListener li = getOnClickListener();
+		if (li != null) {
+			System.out.println("Onclick2");
+			li.onClick(this);
 		}
 
-		return false;
 	}
 
 	/**
@@ -323,7 +326,7 @@ public class View {
 	 * @return True if the event was handled, false otherwise.
 	 */
 	public boolean onTouchEvent(MotionEvent event) {
-		performClick();
+		onClick();
 		return true;
 	}
 

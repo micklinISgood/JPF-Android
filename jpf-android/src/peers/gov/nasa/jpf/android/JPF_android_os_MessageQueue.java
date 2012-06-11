@@ -35,7 +35,9 @@ public class JPF_android_os_MessageQueue {
 		// parameter
 		// parsing (numbers are all stored as Double). We have to reverse match
 		String methodName = action.getMethodName();
+		System.out.println("Getting method: " + methodName);
 		MethodInfo mi = ci.getMethod(methodName, true);
+		System.out.println(mi);
 
 		return mi;
 	}
@@ -76,9 +78,9 @@ public class JPF_android_os_MessageQueue {
 			ClassInfo ci = ClassInfo
 					.tryGetResolvedClassInfo("android.view.View");
 			assert ci != null : "android.view.View not loaded yet"; // should
-																		// have
-																		// been
-																		// initialized
+																	// have
+																	// been
+																	// initialized
 
 			MethodInfo mi = ci.getMethod("transferFocus()V", true);
 			assert mi != null : "no android.view.View.transferFocus() method found (check model class)";
@@ -147,7 +149,7 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void runAction(MJIEnv env, UIAction action) {
-		log.info("ProcessAction: " + action.toString());
+		log.info("ProcessAction: " + action.action + " on " + action.target);
 		if (!action.isNone()) {
 			int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
 
@@ -160,6 +162,7 @@ public class JPF_android_os_MessageQueue {
 			} else {
 
 				ElementInfo ei = env.getElementInfo(tgtRef);
+				System.out.println("ElementInfo " + ei);
 				ClassInfo ci = ei.getClassInfo();
 				if (!ci.isInstanceOf("android.view.View")) {
 					log.warning("UIAction target reference for : " + action
@@ -183,9 +186,9 @@ public class JPF_android_os_MessageQueue {
 						DirectCallStackFrame frame = new DirectCallStackFrame(
 								stub);
 
-						if (!mi.isStatic()) {
+						//if (!mi.isStatic()) {
 							frame.push(tgtRef, true);
-						}
+						//}
 
 						Object[] args = action.getArguments();
 						if (args != null) {
@@ -203,12 +206,12 @@ public class JPF_android_os_MessageQueue {
 						// before invoking the action, to ensure proper
 						// invocation of
 						// FocusListeners
-						if (action.transferFocus()) {
-							stub = getTransferFocusMethod(env);
-							frame = new DirectCallStackFrame(stub);
-							frame.pushRef(tgtRef);
-							ti.pushFrame(frame);
-						}
+						// if (action.transferFocus()) {
+						//stub = getTransferFocusMethod(env);
+						///frame = new DirectCallStackFrame(stub);
+						//frame.pushRef(tgtRef);
+						//ti.pushFrame(frame);
+						// }
 					}
 				}
 			}
@@ -218,35 +221,36 @@ public class JPF_android_os_MessageQueue {
 	// TODO: move all checks here
 	private static boolean viewEnabled(MJIEnv env, int tgtRef) {
 
-		int listRef = env.getStaticReferenceField("android.view.Window",
-				"modalDialogs");
-		int arrayRef = env.getReferenceField(listRef, "elementData");
+		// int listRef = env.getStaticReferenceField("android.view.Window",
+		// "modalDialogs");
+		// int arrayRef = env.getReferenceField(listRef, "elementData");
+		//
+		// int arrayLength = env.getStaticIntField("android.view.Window",
+		// "numModalDialogs");
 
-		int arrayLength = env.getStaticIntField("android.view.Window",
-				"numModalDialogs");
-
-		if (arrayLength > 0) {
-			int topModalDialogRef = env.getReferenceArrayElement(arrayRef,
-					arrayLength - 1);
-			// follow references upwards until no parent, get top-level window
-			// for current view
-			int parentRef = env.getReferenceField(tgtRef, "parent");
-
-			ElementInfo ei = env.getElementInfo(parentRef);
-			log.fine("Parent :" + ei);
-
-			while (parentRef != MJIEnv.NULL) {
-				parentRef = env.getReferenceField(parentRef, "parent");
-
-				ei = env.getElementInfo(parentRef);
-				log.fine("Parent :" + ei);
-				// found a match
-				if (parentRef == topModalDialogRef) {
-					return true;
-				}
-			}
-			log.warning("action does not belong to top modal dialog");
-			return false;
+		if (false) {// (arrayLength > 0) {
+			// int topModalDialogRef = env.getReferenceArrayElement(arrayRef,
+			// arrayLength - 1);
+			// // follow references upwards until no parent, get top-level
+			// window
+			// // for current view
+			// int parentRef = env.getReferenceField(tgtRef, "parent");
+			//
+			// ElementInfo ei = env.getElementInfo(parentRef);
+			// log.fine("Parent :" + ei);
+			//
+			// while (parentRef != MJIEnv.NULL) {
+			// parentRef = env.getReferenceField(parentRef, "parent");
+			//
+			// ei = env.getElementInfo(parentRef);
+			// log.fine("Parent :" + ei);
+			// // found a match
+			// if (parentRef == topModalDialogRef) {
+			// return true;
+			// }
+			// }
+			// log.warning("action does not belong to top modal dialog");
+			// return false;
 		}
 		// no modal dialogs, no restrictions
 		return true;

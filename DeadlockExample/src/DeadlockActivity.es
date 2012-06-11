@@ -1,1 +1,1 @@
-$Send.doClick()
+$button1.onClick

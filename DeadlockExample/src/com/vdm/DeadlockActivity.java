@@ -22,9 +22,10 @@ public class DeadlockActivity extends Activity {
 	// @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// setContentView(R.layout.main);
 
 		Button b = new Button(this);
+		
+		b.setID(Integer.parseInt("0x7f050000".substring(2), 16));
 		b.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -33,9 +34,11 @@ public class DeadlockActivity extends Activity {
 
 			}
 		});
-		LinearLayout l = new LinearLayout(this);
-		l.addView(b);
-		setContentView(l);
+
+		LinearLayout L = new LinearLayout(this);
+		L.addView(b);
+
+		setContentView(L);
 
 		// final Friend alphonse = new Friend("Alphonse");
 		// final Friend gaston = new Friend("Gaston");
@@ -106,7 +109,7 @@ public class DeadlockActivity extends Activity {
 	public static void main(String[] args) {
 
 		// build android framework using this tree and generate events for this
-		DeadlockActivity ac = new DeadlockActivity();
+		ActivityThread.main(null);
 		// ac.onCreate(null);
 
 	}

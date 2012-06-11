@@ -1,5 +1,7 @@
 package android.os;
 
+import java.util.List;
+
 import android.util.PrefixPrinter;
 import android.util.Printer;
 
@@ -14,7 +16,8 @@ public class Looper {
 
 	// sThreadLocal.get() will return null unless you've called prepare().
 	static final ThreadLocal<Looper> sThreadLocal = new ThreadLocal<Looper>();
-
+	
+	//List<Handler> handlers; Keep reference to all handlers
 	final MessageQueue mQueue;
 	final Thread mThread;
 	volatile boolean mRun;

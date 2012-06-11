@@ -17,11 +17,13 @@ public class MessageQueue {
 
 	private boolean mQuiting;
 	boolean mQuitAllowed = true;
+	int forceNewState;
 
 	native boolean processScriptAction();
 
 	public MessageQueue() {
 		// nothing
+		init();
 	}
 
 	/**
@@ -86,5 +88,7 @@ public class MessageQueue {
 	public Message getMessage(int i) {
 		return mMessages.get(i);
 	}
+	
+	native void init();
 
 }
