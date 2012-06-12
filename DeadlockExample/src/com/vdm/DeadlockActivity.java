@@ -19,26 +19,47 @@ import android.widget.LinearLayout;
  */
 public class DeadlockActivity extends Activity {
 
-	// @Override
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		Button b = new Button(this);
+		super.onCreate(savedInstanceState); // not used currently
+		setContentView(R.layout.main);
 		
-		b.setID(Integer.parseInt("0x7f050000".substring(2), 16));
+		
+		Button b = (Button)findViewById(R.id.button1);
 		b.setOnClickListener(new OnClickListener() {
-
+			
 			@Override
 			public void onClick(View v) {
-				System.out.println("Hallo!!!");
-
+			System.out.println("hoop dit werk");
+				
 			}
 		});
-
-		LinearLayout L = new LinearLayout(this);
-		L.addView(b);
-
-		setContentView(L);
+//		Button b = new Button(this);
+//
+//		b.setID(Integer.parseInt("0x7f050000".substring(2), 16)); // temporarily
+//																	// until
+//																	// this gets
+//																	// set by
+//																	// the
+//																	// layout
+//																	// xml
+//																	// parser
+//		b.setOnClickListener(new OnClickListener() {
+//
+//			@Override
+//			public void onClick(View v) {
+//				System.out.println("Hallo!!!");
+//
+//			}
+//		});
+//
+//		LinearLayout L = new LinearLayout(this);
+//		L.addView(b);
+//
+//		setContentView(L); // This will be converted back to the
+							// setContentView(int resourceId as soon as the
+							// layout inflator is implemented to lookup the
+							// layout resource)
 
 		// final Friend alphonse = new Friend("Alphonse");
 		// final Friend gaston = new Friend("Gaston");
@@ -101,17 +122,12 @@ public class DeadlockActivity extends Activity {
 	}
 
 	/**
-	 * This is used to compile the code and is also used as a main entry point
-	 * to the application.
+	 * The main entry point to the application
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
-		// build android framework using this tree and generate events for this
 		ActivityThread.main(null);
-		// ac.onCreate(null);
-
 	}
 
 }

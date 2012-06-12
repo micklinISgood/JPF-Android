@@ -11,39 +11,38 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+import android.os.MessageQueue;
+
 /**
- * some native methods we need to keep track of toplevels to analyze
+ * Implements the native methods of the Window class. The main function of the
+ * window is to keep a list of all the view-components of this window. Their
+ * id's and names are looked up in the R.java file an d kept as a map
+ * componenntMap and componentIdMap.
+ * 
+ * The componenntMap contains {@link ComponentEntry} objects. They also keep a
+ * reference to the actual view objects in memory.
+ * 
+ * This componenntMap is mainly used to look up the reference of a object by the
+ * {@link MessageQueue} 's processScriptAction() method.
+ * 
+ * The componentIdMap is used to lookup the {@link ComponentEntry} of a view
+ * object when the object is create. The reference to the object is then stored
+ * in the objects {@link ComponentEntry}.
  */
 public class JPF_android_view_Window {
-
-	static final char ORDINAL_PREFIX = '#';
-	static final char NAME_PREFIX = '$';
-
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-	static class ComponentEntry {
-		int id;
-		String name;
-		int componentRef;
-		int toplevelRef;
+	static final char ORDINAL_PREFIX = '#';
+	static final char NAME_PREFIX = '$'; // put is front of view object's names
+											// stored in the componentMap
 
-		public ComponentEntry() {
-		}
+	// this is what we use to map script actions to Components
+	static HashMap<Integer, String> componentIdMap = new HashMap<Integer, String>();
+	static HashMap<String, ComponentEntry> componentMap = new HashMap<String, ComponentEntry>();
 
-		ComponentEntry(String name, int toplevelRef, int componentRef) {
-			this.name = name;
-			this.componentRef = componentRef;
-			this.toplevelRef = toplevelRef;
-		}
-
-		ComponentEntry(String name, int id, int toplevelRef, int componentRef) {
-			this.id = id;
-			this.name = name;
-			this.componentRef = componentRef;
-			this.toplevelRef = toplevelRef;
-		}
-
-	}
+	// this is what we use to map script actions to Components
+	// static HashMap<Integer, ComponentEntry> layoutMap = new HashMap<String,
+	// ComponentEntry>();
 
 	/**
 	 * Parse .xml files for gui and R file for id-name pairs
@@ -51,14 +50,17 @@ public class JPF_android_view_Window {
 	 * @param env
 	 * @param objref
 	 */
-	public static void init____V(MJIEnv env, int objref) {
+	public static void init0____V(MJIEnv env, int cref) {
 		Config conf = env.getConfig();
 		String rPath = conf.getString("rpath"); // TODO if specified in
-												// site.properties???
+		parseRFile(rPath);
+
+	}
+
+	private static void parseRFile(String rPath) {
 		if (rPath == null) {
 			log.severe("no R-file");
 		}
-
 		Scanner scanner = null;
 		try {
 			String next;
@@ -130,36 +132,6 @@ public class JPF_android_view_Window {
 
 	}
 
-	// public static void setContentView(MJIEnv env, int objref, int layoutId,
-	// int rootref) {
-	// ComponentEntry layout = layoutMap.get(layoutId);
-	// ViewGroup v = env.get
-	//
-	// //lookup path+name of layout file
-	// //open file and retrieve the contents
-	// // build list of attributes
-	//
-	// static int createJPFFile(MJIEnv env, File file) {
-	// int newFileRef = env.newObject("java.io.File");
-	// ElementInfo fileEI = env.getElementInfo(newFileRef);
-	//
-	// int fileNameRef = env.newString(file.getPath());
-	// fileEI.setReferenceField("filename", fileNameRef);
-	//
-	// return newFileRef;
-	// }
-	//
-	// }
-
-	// this is what we use to map script actions to Components
-	static HashMap<Integer, String> componentIdMap = new HashMap<Integer, String>();
-	static HashMap<String, ComponentEntry> componentMap = new HashMap<String, ComponentEntry>();
-	// this is what we use to map script actions to Components
-	// static HashMap<Integer, ComponentEntry> layoutMap = new HashMap<String,
-	// ComponentEntry>();
-	// this is what we use to map script actions to Components
-	static HashMap<String, ComponentEntry> activityMap = new HashMap<String, ComponentEntry>();
-
 	/**
 	 * a toplevel window becomes visible - create and store its component map
 	 * (id -> ref). This of course means our constraint is that Windows don't
@@ -176,15 +148,6 @@ public class JPF_android_view_Window {
 
 			}
 		}
-	}
-
-	public static void setTitle0__Ljava_lang_String_2Ljava_lang_String_2__V(
-			MJIEnv env, int objref, int oldTitleRef, int newTitleRef) {
-		String oldTitle = env.getStringObject(oldTitleRef);
-		String newTitle = env.getStringObject(newTitleRef);
-
-		// <2do> we don't deal with this yet - not sure if we should change the
-		// component ids
 	}
 
 	public static void dispose0__Ljava_lang_String_2__V(MJIEnv env, int objref,
@@ -276,68 +239,26 @@ public class JPF_android_view_Window {
 		}
 	}
 
+	/**
+	 * Returns the name field of an object. If the name field is null, a name is
+	 * generated.
+	 * 
+	 * @param env
+	 * @param objref
+	 * @return
+	 */
 	static String getName(MJIEnv env, int objref) {
 		String name = null;
-
 		if (env.isInstanceOf(objref, "android.view.View")) {
-
-			// 'id' field has precedence
-			int id = env.getIntField(objref, "mID");
-			System.out.println("IDIDIDIDDIDI: " + id);
-			name = componentIdMap.get(id);
+			name = env.getStringField(objref, "name");
 			System.out.println("Name " + name);
-			// if we don't have a name, try to deduce it from type specific
-			// fields
-			// if (id == null) { // This component is not referenced so it has
-			// no id field
-			// // <2do> we need to support a lot more
-			// if (env.isInstanceOf(objref, "javax.swing.JFrame")) {
-			// id = env.getStringField(objref, "title");
-			//
-			// } else if (env.isInstanceOf(objref, "javax.swing.JLabel")) {
-			// id = env.getStringField(objref, "text");
-			//
-			// } else if (env.isInstanceOf(objref,
-			// "javax.swing.AbstractButton")) {
-			// id = env.getStringField(objref, "text");
-			//
-			// } else if (env.isInstanceOf(objref,
-			// "javax.swing.text.JTextComponent")) {
-			// int lblRef = env.getReferenceField(objref, "labeledBy");
-			// if (lblRef != MJIEnv.NULL) {
-			// id = env.getStringField(lblRef, "text");
-			// id += ":input";
-			// } else {
-			// id = "input";
-			// }
-			//
-			// } else if (env.isInstanceOf(objref, "javax.swing.JList")) {
-			// id = "list";
-			//
-			// } else if (env.isInstanceOf(objref, "javax.swing.JTable")) {
-			// id = "table";
-			//
-			// } else if (env.isInstanceOf(objref, "javax.swing.JComponent")) {
-			//
-			// // <2do> we might check this for JLists and JTables too
-			// int borderRef = env.getReferenceField(objref, "border");
-			// if (borderRef != MJIEnv.NULL
-			// && env.isInstanceOf(borderRef,
-			// "javax.swing.border.TitledBorder")) {
-			// id = env.getStringField(borderRef, "title");
-			// }
-			// }
-			// }
-			//
-			// if (id != null) {
-			// id = id.replace(' ', '_');
-			// }
-			if (name == null) { // word nie ge-refence nie
+			if (name == null) { // assume this view is not referenced form code
+								// so generate new name
 				name = Integer.toString(count) + "_";
+				env.setReferenceField(objref, "name", env.newString(name));
 				count++;
 			}
 		}
-
 		return name;
 	}
 

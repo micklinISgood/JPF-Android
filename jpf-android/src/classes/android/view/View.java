@@ -14,6 +14,7 @@ import android.util.AttributeSet;
 public class View {
 	/** ID defined in R file */
 	int mID = -1;
+	String name = null;
 
 	protected ViewGroup mParent = null;
 
@@ -548,6 +549,10 @@ public class View {
 		 *            The view that was detached
 		 */
 		public void onViewDetachedFromWindow(View v);
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }
