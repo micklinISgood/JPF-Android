@@ -3,8 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/jpf-android"/>
 	<classpathentry kind="lib" path="/home/heila/Android/android-sdk-linux/sources/android-15"/>
-	<classpathentry kind="lib" path="/jpf-android/lib/javaparser-1.0.8.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

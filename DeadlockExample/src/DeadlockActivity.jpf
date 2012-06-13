@@ -2,6 +2,7 @@ target = com.vdm.DeadlockActivity
 classpath=/home/heila/GSoC-Repos/DeadlockExample/bin/classes/;${jpf-android}/build/classes
 sourcepath=/home/heila/GSoC-Repos/DeadlockExample/src;
 rpath=/home/heila/GSoC-Repos/DeadlockExample/gen/com/vdm/R.java
+lpath=/home/heila/GSoC-Repos/DeadlockExample/res/layout/
 
 #--- which script to run
 awt.script=${config_path}/DeadlockActivity.es

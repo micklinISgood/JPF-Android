@@ -29,40 +29,44 @@ public class Window extends ViewGroup {
 	 */
 	private ViewGroup mContentParent;
 
-	//static private HashMap<String, Integer> layoutIdMap; // lookup id from name
+	// static private HashMap<String, Integer> layoutIdMap; // lookup id from
+	// name
 	static private HashMap<Integer, View> layoutMap = new HashMap<Integer, View>(); // get
 																					// view
 																					// hierarchy
 
-	public Window(Context context) {	
+	public Window(Context context) {
 		super(context);
 		System.out.println("New Layout inflator");
 		super.mID = 0; // temp solution teh Window must not be a view If you
 						// look at view hierarchy the farameview is the base
 		mContext = context;
-		if (mLayoutInflater == null)
+		if (mLayoutInflater == null) {
 			mLayoutInflater = new LayoutInflater(mContext);
-		
-		init();
+			init();
+		}
 	}
 
 	/**
 	 * inflates the layouts
 	 */
 	private void init() {
-		// build layout map and + component map
-		int resId = -1;
-		while ((resId = processLayout()) != -1) {
-			layoutMap.put(resId, mLayoutInflater.inflate(resId, null));
-		}
 		init0(); // build component map
+		// build layout map and + component map
+		int[] layouts = getLayouts();
+		for (int i = 0; i < layouts.length; i++) {
+			layoutMap
+					.put(layouts[i], mLayoutInflater.inflate(layouts[i], null));
+		}
 
 	}
 
-	private static int processLayout() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	/**
+	 * Returns a list of the int id's of the layout resources
+	 * 
+	 * @return
+	 */
+	static native int[] getLayouts();
 
 	/**
 	 * Set the Callback interface for this window, used to intercept key events

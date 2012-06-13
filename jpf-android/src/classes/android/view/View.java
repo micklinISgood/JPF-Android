@@ -18,6 +18,14 @@ public class View {
 
 	protected ViewGroup mParent = null;
 
+	public ViewGroup getmParent() {
+		return mParent;
+	}
+
+	public void setmParent(ViewGroup mParent) {
+		this.mParent = mParent;
+	}
+
 	boolean enabled;
 
 	private boolean isVisible = true;

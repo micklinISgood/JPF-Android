@@ -12,6 +12,7 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 import android.os.MessageQueue;
+import android.view.Window;
 
 /**
  * Implements the native methods of the Window class. The main function of the
@@ -32,17 +33,16 @@ import android.os.MessageQueue;
 public class JPF_android_view_Window {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-	static final char ORDINAL_PREFIX = '#';
 	static final char NAME_PREFIX = '$'; // put is front of view object's names
 											// stored in the componentMap
 
 	// this is what we use to map script actions to Components
-	static HashMap<Integer, String> componentIdMap = new HashMap<Integer, String>();
+	// static HashMap<Integer, String> componentIdMap = new HashMap<Integer,
+	// String>();
 	static HashMap<String, ComponentEntry> componentMap = new HashMap<String, ComponentEntry>();
 
 	// this is what we use to map script actions to Components
-	// static HashMap<Integer, ComponentEntry> layoutMap = new HashMap<String,
-	// ComponentEntry>();
+	static HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
 
 	/**
 	 * Parse .xml files for gui and R file for id-name pairs
@@ -79,36 +79,32 @@ public class JPF_android_view_Window {
 						c = new ComponentEntry();
 
 						c.id = Integer.parseInt(list[1].substring(2), 16);
-						System.out.println("id = " + list[1] + " " + c.id);
 						c.name = list[0];
 						componentMap.put("$" + list[0], c);
-						componentIdMap.put(c.id, c.name);
 						System.out.println("insertign in map " + c.id + " "
 								+ c.name);
 
 					}
 				}
-				//
-				// if (next.equals("public static final class layout {")) {
-				// while (scanner.hasNextLine()) {
-				// next = scanner.nextLine().trim();
-				// if (next.equals("}"))
-				// break;
-				// list = getFields(next);
-				// c = new ComponentEntry();
-				// c.id = Integer.parseInt(list[1].substring(2), 16);
-				// c.name = list[0];
-				// componentIdMap.put(c.id, c.name);
-				// componentMap.put("%" + list[0], c);
-				//
-				// }
-				// }
+
+				if (next.equals("public static final class layout {")) {
+					while (scanner.hasNextLine()) {
+						next = scanner.nextLine().trim();
+						if (next.equals("}"))
+							break;
+						list = getFields(next);
+						c = new ComponentEntry();
+						c.id = Integer.parseInt(list[1].substring(2), 16);
+						c.name = list[0];
+						layoutMap.put(c.id, c.name);
+
+					}
+				}
 
 			}
 			c = new ComponentEntry();
 			c.id = 0;
 			c.name = "window";
-			componentIdMap.put(c.id, c.name);
 			componentMap.put("$" + c.name, c);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -122,14 +118,30 @@ public class JPF_android_view_Window {
 	private static String[] getFields(String next) {
 		String[] list;
 		next = next.substring(0, next.length() - 1); // gooi ; weg
-		System.out.println("next " + next);
 		list = next.split(" ");
 		next = list[list.length - 1]; // last item in list
 		list = next.split("=");
 
-		System.out.println(list[0] + "_" + list[1]);
+		System.out.println("Parsed from R " +  list[0] + " " + list[1]);
 		return list;
 
+	}
+
+	/**
+	 * Called from Window's init. used by layout inflator to inflate layouts
+	 * 
+	 * @param env
+	 * @param objref
+	 * @return
+	 */
+	public static int getLayouts(MJIEnv env, int objref) {
+		int[] keys = new int[layoutMap.size()];
+		int index = 0;
+		for (Integer i : layoutMap.keySet()) {
+			keys[index] = i;
+			index++;
+		}
+		return env.newIntArray(keys);
 	}
 
 	/**
@@ -143,34 +155,55 @@ public class JPF_android_view_Window {
 		if (isVisible) {
 			String title = env.getStringObject(titleRef);
 			if (!componentMap.containsKey(title)) {
-				System.out.println("updating map");
+				System.out
+						.println("Inserting component referneces into componentMap");
 				updateComponentMap(env, objref, objref, 0, 0, componentMap);
 
 			}
 		}
 	}
 
-	public static void dispose0__Ljava_lang_String_2__V(MJIEnv env, int objref,
-			int titleRef) {
-		String title = Integer.toString(env.getIntegerObject(titleRef), 16);
-		for (ComponentEntry e : componentMap.values()) {
-			if (e.toplevelRef == objref) {
-				componentMap.remove(e.id);
-			}
-		}
-	}
+	// public static void dispose0__Ljava_lang_String_2__V(MJIEnv env, int
+	// objref,
+	// int titleRef) {
+	// String title = Integer.toString(env.getIntegerObject(titleRef), 16);
+	// for (ComponentEntry e : componentMap.values()) {
+	// if (e.toplevelRef == objref) {
+	// componentMap.remove(e.id);
+	// }
+	// }
+	// }
 
+	/**
+	 * Used by MessageQueue to get the reference the an object
+	 * 
+	 * @param name
+	 * @return
+	 */
 	static int getViewRef(String name) {
 		log.info("NAME:" + name);
-
 		ComponentEntry e = componentMap.get(name);
 		if (e != null) {
 			int cref = e.componentRef;
-			System.out.println("@@@ " + name + " => " + cref);
+			log.fine("Getting reference to view " + name + " => " + cref);
 			return cref;
 		}
 
 		return MJIEnv.NULL;
+	}
+
+	/**
+	 * Used by setContentView(int resId) method in {@link Window} to resolve the
+	 * id of a layout the the name of the layout file.
+	 * 
+	 * @param id
+	 *            the id of the layout as defined in the file R.java
+	 * @return
+	 */
+	static String getLayoutName(int id) {
+		String name = layoutMap.get(id);
+		log.fine("Getting the name of Layout " + id + ": " + name);
+		return name;
 	}
 
 	static void updateComponentMap(MJIEnv env, int topref, int objref,
@@ -178,13 +211,10 @@ public class JPF_android_view_Window {
 		assert env.isInstanceOf(objref, "android.view.View");
 
 		ClassInfo ci = env.getClassInfo(objref);
-		String id = Integer.toString(map.size());
-		// storeComponentId(env, map, id, topref, objref, ORDINAL_PREFIX);
+		storeComponent(env, topref, objref, map);
 
-		storeComponentIds(env, topref, objref, map);
-		// System.out.println("classinfo " + ci);
 		if (ci.isInstanceOf("android.view.ViewGroup")) {
-			System.out.println("is viewgroup ****************");
+			System.out.println("is  a viewgroup ****************");
 			int aref = env.getReferenceField(objref, "mChildren");
 			if (aref != MJIEnv.NULL) {
 				int len = env.getArrayLength(aref);
@@ -197,51 +227,31 @@ public class JPF_android_view_Window {
 		}
 	}
 
-	static void storeComponentIds(MJIEnv env, int topref, int objref,
+	static void storeComponent(MJIEnv env, int topref, int objref,
 			HashMap<String, ComponentEntry> map) {
 
-		String id = getName(env, objref);
-		if (id != null) {
-			storeComponentId(env, map, id, topref, objref, NAME_PREFIX);
+		String name = NAME_PREFIX + getName(env, objref);
 
-			// int parentRef = env.getReferenceField(objref, "mParent");
-			// while (parentRef != MJIEnv.NULL) {
-			// String pid = getName(env, parentRef);
-			// if (pid != null) {
-			// id = pid + ':' + id;
-			// storeComponentId(env, map, id, topref, objref, NAME_PREFIX);
-			// }
-			// parentRef = env.getReferenceField(parentRef, "mParent");
-			// }
-		}
-	}
-
-	static void storeComponentId(MJIEnv env,
-			HashMap<String, ComponentEntry> map, String id, int topref,
-			int objref, char prefix) {
-		id = prefix + id;
-		id = id.replace(' ', '_');
-		//
-		// if (log.isLoggable(Level.INFO)) {
-		// log.info("mapping component: " + id + " => "
-		// + env.getElementInfo(objref));
-		// }
-		System.out.println("@@@ mapping component: " + id + " => "
-				+ env.getElementInfo(objref));
-
-		ComponentEntry e = new ComponentEntry(id, topref, objref);
-		if (!map.containsKey(id)) {
-			map.put(id, e);
+		if (!map.containsKey(name)) {
+			ComponentEntry e = new ComponentEntry(name, Integer.parseInt(name
+					.substring(1, name.length() - 1)), topref, objref);
+			map.put(name, e);
+			log.fine("Adding component to map NAME: " + name + " => "
+					+ env.getElementInfo(objref));
 		} else {
-			ComponentEntry c = map.get(id);
+			ComponentEntry c = map.get(name);
+			// id is set when R-file is parsed
 			c.toplevelRef = topref;
 			c.componentRef = objref;
+			log.fine("updating component to map NAME: " + name + " ID " + c.id
+					+ " => " + env.getElementInfo(objref));
 		}
+
 	}
 
 	/**
-	 * Returns the name field of an object. If the name field is null, a name is
-	 * generated.
+	 * Returns the name field of the object. If the name field is null, a name
+	 * is generated.
 	 * 
 	 * @param env
 	 * @param objref
@@ -249,18 +259,29 @@ public class JPF_android_view_Window {
 	 */
 	static String getName(MJIEnv env, int objref) {
 		String name = null;
+		int id = -1;
 		if (env.isInstanceOf(objref, "android.view.View")) {
 			name = env.getStringField(objref, "name");
-			System.out.println("Name " + name);
-			if (name == null) { // assume this view is not referenced form code
-								// so generate new name
+			id = env.getIntField(objref, "mID");
+			if (name == null || name.trim().equals("")) { // assume this view is
+															// notreferenced
+															// from code so
+															// generate new name
 				name = Integer.toString(count) + "_";
 				env.setReferenceField(objref, "name", env.newString(name));
-				count++;
 			}
+
+			if (id < 0) {
+				System.out.println("Changing id from " + id + "to " + count);
+				id = count;
+				env.setIntField(objref, "mID", id);
+
+			}
+			count = count + 1;
+			System.out.println("Name: " + name + " ID: " + id);
 		}
 		return name;
 	}
 
-	static private int count = 0;
+	static private int count = 1;
 }

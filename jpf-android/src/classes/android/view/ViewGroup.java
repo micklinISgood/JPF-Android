@@ -169,4 +169,25 @@ public class ViewGroup extends View {
 		}
 		return mChildren[index];
 	}
+
+	public ViewGroup findViewGroupByName(String name) {
+		if (name == this.name) {
+			return this;
+		}
+
+		final View[] where = mChildren;
+		final int len = mChildrenCount;
+
+		for (int i = 0; i < len; i++) {
+			View v = where[i];
+			if (v instanceof ViewGroup)
+				v = ((ViewGroup) v).findViewGroupByName(name);
+
+			if (v != null) {
+				return (ViewGroup) v;
+			}
+		}
+
+		return null;
+	}
 }
