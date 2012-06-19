@@ -18,6 +18,12 @@ public class ViewGroup extends View {
 	// Child views of this ViewGroup
 	private View[] mChildren = new View[ARRAY_INITIAL_CAPACITY];
 
+	
+	
+	public View[] getChildren() {
+		return mChildren;
+	}
+
 	@Override
 	protected View findViewTraversal(int id) {
 		if (id == mID) {

@@ -12,123 +12,171 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 import android.os.MessageQueue;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.Window;
 
 /**
- * Implements the native methods of the Window class. The main function of the
- * window is to keep a list of all the view-components of this window. Their
- * id's and names are looked up in the R.java file an d kept as a map
- * componenntMap and componentIdMap.
+ * Implements the native methods of the {@link Window} class. The main function
+ * of this class is to keep a list of all the {@link View}-objects of the
+ * application. Their id's and names are looked up in the R.java file and stored
+ * as a map: <code>componentMap</code>.
  * 
- * The componenntMap contains {@link ComponentEntry} objects. They also keep a
- * reference to the actual view objects in memory.
+ * The componentMap contains {@link ViewEntry} objects. They keep a reference to
+ * the actual {@link View}-objects in memory.
  * 
- * This componenntMap is mainly used to look up the reference of a object by the
- * {@link MessageQueue} 's processScriptAction() method.
+ * This componentMap is mainly used to look up the reference of an object by the
+ * {@link MessageQueue} 's processScriptAction() method. This method calls the
+ * appropriate method on the {@link View}-object according to the action script.
  * 
- * The componentIdMap is used to lookup the {@link ComponentEntry} of a view
- * object when the object is create. The reference to the object is then stored
- * in the objects {@link ComponentEntry}.
  */
 public class JPF_android_view_Window {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-	static final char NAME_PREFIX = '$'; // put is front of view object's names
-											// stored in the componentMap
+	private static String ID_HEADER = "public static final class id {";
+	private static String LAYOUT_HEADER = "public static final class layout {";
+	private static String FOOTER = "}";
 
-	// this is what we use to map script actions to Components
-	// static HashMap<Integer, String> componentIdMap = new HashMap<Integer,
-	// String>();
-	static HashMap<String, ComponentEntry> componentMap = new HashMap<String, ComponentEntry>();
-
-	// this is what we use to map script actions to Components
-	static HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
+	private static final char NAME_PREFIX = '$'; // put is front of view
+													// object's names
+	/**
+	 * Maps script actions to {@link View} objects. The key is the name of the
+	 * {@link View}-object as defined in the R.java file. The value keeps a
+	 * reference to the actual {@link View}-object. This map contains all the
+	 * components of the application. The R.java file requires that these names
+	 * be unique.
+	 */
+	private static HashMap<String, ViewEntry> componentMap = new HashMap<String, ViewEntry>();
 
 	/**
-	 * Parse .xml files for gui and R file for id-name pairs
+	 * Maps the resource ID of a layout to the name of the layout file. This
+	 * information is read from the R.java class and stored as a map fir quick
+	 * lookup by the {@link LayoutInflater}.
+	 */
+	private static HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
+
+	/**
+	 * Sets up the environment for the {@link Window} class. Creates
+	 * componentMap and layoutMap.
 	 * 
 	 * @param env
-	 * @param objref
+	 * @param cref
 	 */
 	public static void init0____V(MJIEnv env, int cref) {
 		Config conf = env.getConfig();
-		String rPath = conf.getString("rpath"); // TODO if specified in
+		String rPath = conf.getString("rpath"); // TODO get this path without it
+												// being specified in the config
 		parseRFile(rPath);
 
 	}
 
+	/**
+	 * Parse the R.java file and builds the componentMap and layoutMap.
+	 * 
+	 * 
+	 * @param rPath
+	 *            the path to the R.java file on disk
+	 */
 	private static void parseRFile(String rPath) {
-		if (rPath == null) {
+		if (rPath == null || rPath.equals("")) {
 			log.severe("no R-file");
 		}
+
 		Scanner scanner = null;
+		String nextLine;
 		try {
-			String next;
-			String[] list;
 			scanner = new Scanner(new FileInputStream(rPath));
-			ComponentEntry c;
 			while (scanner != null && scanner.hasNextLine()) {
-				next = scanner.nextLine().trim();
-
-				if (next.equals("public static final class id {")) {
-					while (scanner.hasNextLine()) {
-						next = scanner.nextLine().trim();
-						if (next.equals("}"))
-							break;
-						list = getFields(next);
-						c = new ComponentEntry();
-
-						c.id = Integer.parseInt(list[1].substring(2), 16);
-						c.name = list[0];
-						componentMap.put("$" + list[0], c);
-						System.out.println("insertign in map " + c.id + " "
-								+ c.name);
-
-					}
+				nextLine = scanner.nextLine().trim();
+				if (nextLine.equals(ID_HEADER)) {
+					parseViews(scanner);
 				}
-
-				if (next.equals("public static final class layout {")) {
-					while (scanner.hasNextLine()) {
-						next = scanner.nextLine().trim();
-						if (next.equals("}"))
-							break;
-						list = getFields(next);
-						c = new ComponentEntry();
-						c.id = Integer.parseInt(list[1].substring(2), 16);
-						c.name = list[0];
-						layoutMap.put(c.id, c.name);
-
-					}
+				if (nextLine.equals(LAYOUT_HEADER)) {
+					parseLayouts(scanner);
 				}
-
 			}
-			c = new ComponentEntry();
-			c.id = 0;
-			c.name = "window";
-			componentMap.put("$" + c.name, c);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-
+			log.severe("R.java file not found.");
 		} finally {
 			scanner.close();
 		}
 
 	}
 
-	private static String[] getFields(String next) {
+	/**
+	 * Parse the name and ID's of the {@link View} objects in the R.java file.
+	 * 
+	 * @param scanner
+	 */
+	private static void parseViews(Scanner scanner) {
+		String next = "";
 		String[] list;
-		next = next.substring(0, next.length() - 1); // gooi ; weg
-		list = next.split(" ");
-		next = list[list.length - 1]; // last item in list
-		list = next.split("=");
+		ViewEntry c;
+		while (scanner.hasNextLine()) {
+			next = scanner.nextLine().trim();
+			if (next.equals(FOOTER))
+				break;
+			list = getFields(next);
+			c = new ViewEntry();
 
-		System.out.println("Parsed from R " +  list[0] + " " + list[1]);
+			c.setId(Integer.parseInt(list[1].substring(2), 16));
+			c.setName(list[0]);
+			componentMap.put("$" + list[0], c);
+			System.out.println("insertign in map " + c.getId() + " "
+					+ c.getName());
+
+		}
+		// TODO Add window to the componentMap to catch window events
+		c = new ViewEntry();
+		c.setId(0);
+		c.setName("window");
+		componentMap.put("$" + c.getName(), c);
+
+	}
+
+	/**
+	 * Parse the name and ID's of the layout file in the R.java file.
+	 * 
+	 * @param scanner
+	 */
+	private static void parseLayouts(Scanner scanner) {
+		String next = "";
+		String[] list;
+		ViewEntry c;
+		while (scanner.hasNextLine()) {
+			next = scanner.nextLine().trim();
+			if (next.equals(FOOTER))
+				break;
+			list = getFields(next);
+			c = new ViewEntry();
+			c.setId(Integer.parseInt(list[1].substring(2), 16));
+			c.setName(list[0]);
+			layoutMap.put(c.getId(), c.getName());
+
+		}
+
+	}
+
+	/**
+	 * Returns the NAME and ID of an object given its declaration.
+	 * 
+	 * @param line
+	 * @return
+	 */
+	private static String[] getFields(String line) {
+		String[] list;
+		line = line.substring(0, line.length() - 1); // throw ';' away
+		list = line.split(" ");
+		line = list[list.length - 1]; // last item in list
+		list = line.split("=");
+		log.fine("Parsed from R.java NAME: " + list[0] + " ID: " + list[1]);
 		return list;
 
 	}
 
 	/**
-	 * Called from Window's init. used by layout inflator to inflate layouts
+	 * Called from Window's init method. Returns the list of resource id's of
+	 * the layout files of an application.
 	 * 
 	 * @param env
 	 * @param objref
@@ -145,9 +193,9 @@ public class JPF_android_view_Window {
 	}
 
 	/**
-	 * a toplevel window becomes visible - create and store its component map
-	 * (id -> ref). This of course means our constraint is that Windows don't
-	 * change composition once they become visible
+	 * Window becomes visible - create and store its component map (id -> ref).
+	 * This of course means our constraint is that Windows don't change
+	 * composition once they become visible //TODO
 	 */
 	public static void setVisible0__Ljava_lang_String_2Z__V(MJIEnv env,
 			int objref, int titleRef, boolean isVisible) {
@@ -163,11 +211,12 @@ public class JPF_android_view_Window {
 		}
 	}
 
+	// TODO
 	// public static void dispose0__Ljava_lang_String_2__V(MJIEnv env, int
 	// objref,
 	// int titleRef) {
 	// String title = Integer.toString(env.getIntegerObject(titleRef), 16);
-	// for (ComponentEntry e : componentMap.values()) {
+	// for (ViewEntry e : componentMap.values()) {
 	// if (e.toplevelRef == objref) {
 	// componentMap.remove(e.id);
 	// }
@@ -175,29 +224,32 @@ public class JPF_android_view_Window {
 	// }
 
 	/**
-	 * Used by MessageQueue to get the reference the an object
+	 * Used by the {@link MessageQueue} to get the reference of a {@link View}
+	 * object
 	 * 
 	 * @param name
+	 *            the name of the object
 	 * @return
 	 */
 	static int getViewRef(String name) {
-		log.info("NAME:" + name);
-		ComponentEntry e = componentMap.get(name);
+		ViewEntry e = componentMap.get(name);
 		if (e != null) {
-			int cref = e.componentRef;
-			log.fine("Getting reference to view " + name + " => " + cref);
+			int cref = e.getComponentRef();
+			log.fine("Getting reference to View " + name + " => " + cref);
 			return cref;
-		}
+		} else
+			log.severe("Cannot get refernce to view: " + name
+					+ " view does not exist in the componentMap");
 
 		return MJIEnv.NULL;
 	}
 
 	/**
 	 * Used by setContentView(int resId) method in {@link Window} to resolve the
-	 * id of a layout the the name of the layout file.
+	 * resource id of a layout the name of the layout file.
 	 * 
 	 * @param id
-	 *            the id of the layout as defined in the file R.java
+	 *            the resource id of the layout as defined in the file R.java
 	 * @return
 	 */
 	static String getLayoutName(int id) {
@@ -206,15 +258,24 @@ public class JPF_android_view_Window {
 		return name;
 	}
 
+	/**
+	 * 
+	 * @param env
+	 * @param topref
+	 * @param objref
+	 * @param level
+	 * @param index
+	 * @param map
+	 */
 	static void updateComponentMap(MJIEnv env, int topref, int objref,
-			int level, int index, HashMap<String, ComponentEntry> map) {
+			int level, int index, HashMap<String, ViewEntry> map) {
 		assert env.isInstanceOf(objref, "android.view.View");
 
 		ClassInfo ci = env.getClassInfo(objref);
 		storeComponent(env, topref, objref, map);
 
 		if (ci.isInstanceOf("android.view.ViewGroup")) {
-			System.out.println("is  a viewgroup ****************");
+			log.fine(ci.getName() + " is  an instance of  viewgroup");
 			int aref = env.getReferenceField(objref, "mChildren");
 			if (aref != MJIEnv.NULL) {
 				int len = env.getArrayLength(aref);
@@ -228,60 +289,41 @@ public class JPF_android_view_Window {
 	}
 
 	static void storeComponent(MJIEnv env, int topref, int objref,
-			HashMap<String, ComponentEntry> map) {
+			HashMap<String, ViewEntry> map) {
 
-		String name = NAME_PREFIX + getName(env, objref);
+		String name = NAME_PREFIX + env.getStringField(objref, "name");
+		int id = env.getIntField(objref, "mID");
 
 		if (!map.containsKey(name)) {
-			ComponentEntry e = new ComponentEntry(name, Integer.parseInt(name
-					.substring(1, name.length() - 1)), topref, objref);
+			ViewEntry e = new ViewEntry(name, id, topref, objref);
 			map.put(name, e);
 			log.fine("Adding component to map NAME: " + name + " => "
 					+ env.getElementInfo(objref));
 		} else {
-			ComponentEntry c = map.get(name);
+			ViewEntry c = map.get(name);
 			// id is set when R-file is parsed
-			c.toplevelRef = topref;
-			c.componentRef = objref;
-			log.fine("updating component to map NAME: " + name + " ID " + c.id
-					+ " => " + env.getElementInfo(objref));
+			c.setToplevelRef(topref);
+			c.setComponentRef(objref);
+			log.fine("updating component to map NAME: " + name + " ID "
+					+ c.getId() + " => " + env.getElementInfo(objref));
 		}
 
 	}
 
 	/**
-	 * Returns the name field of the object. If the name field is null, a name
-	 * is generated.
+	 * Returns the name field of a View . If the name field is null, a unique
+	 * name is generated.
 	 * 
 	 * @param env
 	 * @param objref
 	 * @return
 	 */
-	static String getName(MJIEnv env, int objref) {
-		String name = null;
-		int id = -1;
-		if (env.isInstanceOf(objref, "android.view.View")) {
-			name = env.getStringField(objref, "name");
-			id = env.getIntField(objref, "mID");
-			if (name == null || name.trim().equals("")) { // assume this view is
-															// notreferenced
-															// from code so
-															// generate new name
-				name = Integer.toString(count) + "_";
-				env.setReferenceField(objref, "name", env.newString(name));
-			}
-
-			if (id < 0) {
-				System.out.println("Changing id from " + id + "to " + count);
-				id = count;
-				env.setIntField(objref, "mID", id);
-
-			}
-			count = count + 1;
-			System.out.println("Name: " + name + " ID: " + id);
-		}
-		return name;
+	static int getID(String name) {
+		ViewEntry c = JPF_android_view_Window.componentMap.get(name);
+		if (c == null)
+			return -1;
+		else
+			return c.getId();
 	}
 
-	static private int count = 1;
 }

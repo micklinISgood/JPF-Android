@@ -7,6 +7,13 @@ import java.util.logging.Logger;
 
 import android.util.Log;
 
+/**
+ * Implements the native methods of android.util.Log. Writes the log as a JPF
+ * log with sort of the same log level.
+ * 
+ * @author "Heila van der Merwe"
+ * 
+ */
 public class JPF_android_util_Log {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 

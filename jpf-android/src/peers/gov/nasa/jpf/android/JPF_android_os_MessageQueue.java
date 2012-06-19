@@ -151,70 +151,124 @@ public class JPF_android_os_MessageQueue {
 	private static void runAction(MJIEnv env, UIAction action) {
 		log.info("ProcessAction: " + action.action + " on " + action.target);
 		if (!action.isNone()) {
-			int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
+			if (action.target.startsWith("$")) {
+				handleViewAction(env, action);
+			} else if (action.target.startsWith("@")) {
+				handleComponentAction(env, action);
+			}
+		}
+	}
 
-			if (tgtRef == MJIEnv.NULL) {
-				log.warning("no view found for UIAction: " + action);
+	private static void handleViewAction(MJIEnv env, UIAction action) {
 
-			} else if (!viewEnabled(env, tgtRef)) {
-				log.warning("view NOT enabled for UIAction: " + action);
+		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
 
+		if (tgtRef == MJIEnv.NULL) {
+			log.warning("no view found for UIAction: " + action);
+
+		} else if (!viewEnabled(env, tgtRef)) {
+			log.warning("view NOT enabled for UIAction: " + action);
+
+		} else {
+
+			ElementInfo ei = env.getElementInfo(tgtRef);
+			ClassInfo ci = ei.getClassInfo();
+			if (!ci.isInstanceOf("android.view.View")) {
+				log.warning("UIAction target reference for : " + action
+						+ " is not a android.view.View: " + ei);
 			} else {
 
-				ElementInfo ei = env.getElementInfo(tgtRef);
-				System.out.println("ElementInfo " + ei);
-				ClassInfo ci = ei.getClassInfo();
-				if (!ci.isInstanceOf("android.view.View")) {
-					log.warning("UIAction target reference for : " + action
-							+ " is not a android.view.View: " + ei);
+				MethodInfo mi = getMethodInfo(ci, action);
+
+				if (mi == null) {
+					log.warning("UIAction " + action
+							+ " refers to unknown method " + action
+							+ "() in class " + ci.getName());
+
 				} else {
-
-					MethodInfo mi = getMethodInfo(ci, action);
-
-					if (mi == null) {
-						log.warning("UIAction " + action
-								+ " refers to unknown method " + action
-								+ "() in class " + ci.getName());
-
-					} else {
-						if (log.isLoggable(Level.FINER)) {
-							log.finer("calling UIAction: " + action + " : "
-									+ ei + "." + mi.getUniqueName());
-						}
-						// Ok, now we can finally make the (direct) call
-						MethodInfo stub = mi.createDirectCallStub(UIACTION);
-						DirectCallStackFrame frame = new DirectCallStackFrame(
-								stub);
-
-						//if (!mi.isStatic()) {
-							frame.push(tgtRef, true);
-						//}
-
-						Object[] args = action.getArguments();
-						if (args != null) {
-							byte[] argTypes = mi.getArgumentTypes();
-							for (int i = 0; i < args.length; i++) {
-								pushArg(env, args[i], argTypes[i], frame);
-							}
-						}
-
-						ThreadInfo ti = env.getThreadInfo();
-						ti.pushFrame(frame);
-
-						// if the event included a focus transfer directive, do
-						// this
-						// before invoking the action, to ensure proper
-						// invocation of
-						// FocusListeners
-						// if (action.transferFocus()) {
-						//stub = getTransferFocusMethod(env);
-						///frame = new DirectCallStackFrame(stub);
-						//frame.pushRef(tgtRef);
-						//ti.pushFrame(frame);
-						// }
+					if (log.isLoggable(Level.FINER)) {
+						log.finer("calling UIAction: " + action + " : " + ei
+								+ "." + mi.getUniqueName());
 					}
+					// Ok, now we can finally make the (direct) call
+					MethodInfo stub = mi.createDirectCallStub(UIACTION);
+					DirectCallStackFrame frame = new DirectCallStackFrame(stub);
+
+					// if (!mi.isStatic()) {
+					frame.push(tgtRef, true);
+					// }
+
+					Object[] args = action.getArguments();
+					if (args != null) {
+						byte[] argTypes = mi.getArgumentTypes();
+						for (int i = 0; i < args.length; i++) {
+							pushArg(env, args[i], argTypes[i], frame);
+						}
+					}
+
+					ThreadInfo ti = env.getThreadInfo();
+					ti.pushFrame(frame);
+
+					// if the event included a focus transfer directive,
+					// do
+					// this
+					// before invoking the action, to ensure proper
+					// invocation of
+					// FocusListeners
+					// if (action.transferFocus()) {
+					// stub = getTransferFocusMethod(env);
+					// /frame = new DirectCallStackFrame(stub);
+					// frame.pushRef(tgtRef);
+					// ti.pushFrame(frame);
+					// }
 				}
 			}
+		}
+	}
+
+	private static void handleComponentAction(MJIEnv env, UIAction action) {
+		int appRef = JPF_android_app_ActivityThread.getApplicationRef();
+		ElementInfo ei = env.getElementInfo(appRef);
+		ClassInfo ci = ei.getClassInfo();
+
+		MethodInfo mi = null;
+		String methodName = "";
+		if (action.action.equals("start")) {
+			methodName = "scheduleLaunchActivity(Ljava/lang/String;)V";
+			mi = ci.getMethod(methodName, true);
+		} else if (action.action.equals("destroy")) {
+			methodName = "scheduleDestroyActivity(String activityName)";
+			mi = ci.getMethod(methodName, true);
+		}
+
+		if (mi == null) {
+			log.warning("UIAction " + action + " refers to unknown method "
+					+ mi + "() in class " + ci.getName());
+
+		} else {
+			if (log.isLoggable(Level.FINER)) {
+				log.finer("calling UIAction: " + action + " : " + ei + "."
+						+ mi.getUniqueName());
+			}
+			// Ok, now we can finally make the (direct) call
+			MethodInfo stub = mi.createDirectCallStub(UIACTION);
+			DirectCallStackFrame frame = new DirectCallStackFrame(stub);
+
+			// if (!mi.isStatic()) {
+			frame.push(appRef, true);
+			// }
+
+			Object[] args = { "com.vdm." + action.target.substring(1) };
+			if (args != null) {
+				byte[] argTypes = mi.getArgumentTypes();
+				for (int i = 0; i < args.length; i++) {
+					pushArg(env, args[i], argTypes[i], frame);
+				}
+			}
+
+			ThreadInfo ti = env.getThreadInfo();
+			ti.pushFrame(frame);
+
 		}
 	}
 

@@ -33,6 +33,10 @@ public final class ActivityThread {
 	private class ApplicationThread {
 		// we use token to identify this activity without having to send the
 		// activity itself back to the activity manager. (matters more with ipc)
+		public final void scheduleDestroyActivity(String activityName) {
+			queueOrSendMessage(H.DESTROY_ACTIVITY, activityName, 0, 0);
+		}
+
 		public final void scheduleLaunchActivity(String activityName) {
 			ActivityClientRecord r = new ActivityClientRecord();
 			r.name = activityName;
@@ -118,9 +122,15 @@ public final class ActivityThread {
 		}
 
 		public static final int LAUNCH_ACTIVITY = 100;
+		public static final int DESTROY_ACTIVITY = 109;
 
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
+			case DESTROY_ACTIVITY:
+				System.out.println("Destroying_activity " + ((String) msg.obj));
+				// handleDestroyActivity((IBinder) msg.obj, msg.arg1 != 0,
+				// msg.arg2, false);
+				break;
 			case LAUNCH_ACTIVITY: {
 				System.out.println("Launching_activity "
 						+ ((ActivityClientRecord) msg.obj).toString());
@@ -129,6 +139,7 @@ public final class ActivityThread {
 			}
 				break;
 			}
+
 		}
 	}
 
@@ -329,7 +340,9 @@ public final class ActivityThread {
 	private void attach() {
 		sThreadLocal.set(this);
 		mSystemThread = false;
-		this.mAppThread.scheduleLaunchActivity("com.vdm.DeadlockActivity");
+		setApplicationRef(this.mAppThread);
+		
+		// this.mAppThread.scheduleLaunchActivity("com.vdm.DeadlockActivity");
 
 		/** give reference of ApplicationThread to system */
 		// RuntimeInit.setApplicationObject(mAppThread.asBinder());
@@ -367,6 +380,8 @@ public final class ActivityThread {
 
 	}
 
+	native void setApplicationRef(ApplicationThread mAppThread2);
+
 	public static void main(String[] args) {
 		Looper.prepareMainLooper();
 
@@ -379,7 +394,7 @@ public final class ActivityThread {
 
 		Looper.loop();
 
-		//throw new RuntimeException("Main thread loop unexpectedly exited");
+		// throw new RuntimeException("Main thread loop unexpectedly exited");
 	}
 
 }

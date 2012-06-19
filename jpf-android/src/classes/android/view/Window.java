@@ -3,6 +3,7 @@ package android.view;
 import java.util.HashMap;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Models a Window
@@ -37,11 +38,12 @@ public class Window extends ViewGroup {
 
 	public Window(Context context) {
 		super(context);
-		System.out.println("New Layout inflator");
+		Log.i(TAG, "Creating new Window");
 		super.mID = 0; // temp solution teh Window must not be a view If you
 						// look at view hierarchy the farameview is the base
 		mContext = context;
 		if (mLayoutInflater == null) {
+			Log.i(TAG, "Creating new LayouInflator");
 			mLayoutInflater = new LayoutInflater(mContext);
 			init();
 		}

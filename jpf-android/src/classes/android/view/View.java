@@ -237,12 +237,9 @@ public class View {
 	 */
 	public void setOnClickListener(OnClickListener l) {
 		getListenerInfo().mOnClickListener = l;
-		l.onClick(this);
-		System.out.println("setOnclick " + this);
 	}
 
 	public OnClickListener getOnClickListener() {
-		System.out.println("getOnclick " + this);
 		ListenerInfo li = mListenerInfo;
 		System.out.println(li);
 		return mListenerInfo.mOnClickListener;
@@ -279,10 +276,8 @@ public class View {
 	 *         otherwise is returned.
 	 */
 	public void onClick() {
-		System.out.println("Onclick");
 		OnClickListener li = getOnClickListener();
 		if (li != null) {
-			System.out.println("Onclick2");
 			li.onClick(this);
 		}
 
@@ -562,5 +557,13 @@ public class View {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	@Override
+	public String toString() {
+		return "View [mID=" + mID + ", name=" + name + "]";
+	}
+	
+	
+	
 
 }
