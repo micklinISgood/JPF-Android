@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.LinearLayout;
 
 /**
  * Very basic Android application containing only DeadlockActivity. The Activity
@@ -23,43 +22,16 @@ public class DeadlockActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); // not used currently
 		setContentView(R.layout.main);
-		
-		
-		Button b = (Button)findViewById(R.id.button1);
+
+		Button b = (Button) findViewById(R.id.button1);
 		b.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-			System.out.println("hoop dit werk");
-				
+				System.out.println("Button Clicked!!!");
+
 			}
 		});
-//		Button b = new Button(this);
-//
-//		b.setID(Integer.parseInt("0x7f050000".substring(2), 16)); // temporarily
-//																	// until
-//																	// this gets
-//																	// set by
-//																	// the
-//																	// layout
-//																	// xml
-//																	// parser
-//		b.setOnClickListener(new OnClickListener() {
-//
-//			@Override
-//			public void onClick(View v) {
-//				System.out.println("Hallo!!!");
-//
-//			}
-//		});
-//
-//		LinearLayout L = new LinearLayout(this);
-//		L.addView(b);
-//
-//		setContentView(L); // This will be converted back to the
-							// setContentView(int resourceId as soon as the
-							// layout inflator is implemented to lookup the
-							// layout resource)
 
 		// final Friend alphonse = new Friend("Alphonse");
 		// final Friend gaston = new Friend("Gaston");

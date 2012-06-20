@@ -237,7 +237,7 @@ public class JPF_android_os_MessageQueue {
 			methodName = "scheduleLaunchActivity(Ljava/lang/String;)V";
 			mi = ci.getMethod(methodName, true);
 		} else if (action.action.equals("destroy")) {
-			methodName = "scheduleDestroyActivity(String activityName)";
+			methodName = "scheduleDestroyActivity(Ljava/lang/String;)V";
 			mi = ci.getMethod(methodName, true);
 		}
 

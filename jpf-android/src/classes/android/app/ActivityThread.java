@@ -117,8 +117,6 @@ public final class ActivityThread {
 
 	private class H extends Handler {
 		public H() {
-			// super(q);
-
 		}
 
 		public static final int LAUNCH_ACTIVITY = 100;
@@ -341,7 +339,7 @@ public final class ActivityThread {
 		sThreadLocal.set(this);
 		mSystemThread = false;
 		setApplicationRef(this.mAppThread);
-		
+
 		// this.mAppThread.scheduleLaunchActivity("com.vdm.DeadlockActivity");
 
 		/** give reference of ApplicationThread to system */
