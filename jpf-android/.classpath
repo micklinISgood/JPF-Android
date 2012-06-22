@@ -8,6 +8,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/heila/GSoC-Repos/jpf-android/lib/android"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jpf-core"/>
-	<classpathentry kind="lib" path="lib/javaparser-1.0.8.jar" sourcepath="/home/heila/Downloads/javaparser-1.0.8-src"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
