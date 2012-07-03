@@ -1143,7 +1143,7 @@ public abstract class Context {
 	 * <dd>A {@link android.view.LayoutInflater} for inflating layout resources
 	 * in this context.
 	 * <dt> {@link #ACTIVITY_SERVICE} ("activity")
-	 * <dd>A {@link android.app.ActivityManager} for interacting with the global
+	 * <dd>A {@link android.app.ActivityManagerNative} for interacting with the global
 	 * activity state of the system.
 	 * <dt> {@link #POWER_SERVICE} ("power")
 	 * <dd>A {@link android.os.PowerManager} for controlling power management.
@@ -1194,7 +1194,7 @@ public abstract class Context {
 	 * @see #LAYOUT_INFLATER_SERVICE
 	 * @see android.view.LayoutInflater
 	 * @see #ACTIVITY_SERVICE
-	 * @see android.app.ActivityManager
+	 * @see android.app.ActivityManagerNative
 	 * @see #POWER_SERVICE
 	 * @see android.os.PowerManager
 	 * @see #ALARM_SERVICE
@@ -1270,11 +1270,11 @@ public abstract class Context {
 
 	/**
 	 * Use with {@link #getSystemService} to retrieve a
-	 * {@link android.app.ActivityManager} for interacting with the global
+	 * {@link android.app.ActivityManagerNative} for interacting with the global
 	 * system state.
 	 * 
 	 * @see #getSystemService
-	 * @see android.app.ActivityManager
+	 * @see android.app.ActivityManagerNative
 	 */
 	public static final String ACTIVITY_SERVICE = "activity";
 
@@ -1736,5 +1736,10 @@ public abstract class Context {
 	 */
 	public boolean isRestricted() {
 		return false;
+	}
+
+	public String getPackageName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

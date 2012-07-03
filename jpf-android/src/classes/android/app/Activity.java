@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -153,8 +154,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		getWindow().setContentView(layoutResID);
 		// initActionBar();
 	}
-	
-	public void setContentView(ViewGroup v){
+
+	public void setContentView(ViewGroup v) {
 		getWindow().setContentView(v);
 	}
 
@@ -179,7 +180,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		// CharSequence title, Activity parent, String id,
 		// NonConfigurationInstances lastNonConfigurationInstances,
 		// Configuration config) {
-		//attachBaseContext(context);
+		// attachBaseContext(context);
 
 		// mFragments.attachActivity(this);
 
@@ -281,7 +282,36 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 	public boolean onSearchRequested() {
 		return false;
 	}
-	
-	
-	
+
+	public void startActivity(Intent intent) {
+		startActivityForResult(intent, -1);
+	}
+
+	public void startActivityForResult(Intent intent, int requestCode) {
+		// if (mParent == null) {
+		// Instrumentation.ActivityResult ar =
+		System.out.println("Activity for result");
+		ActivityManagerProxy.startActivity(intent);
+		// mMainThread.launchActivity(intent);
+		// if (ar != null) {
+		// mMainThread.sendActivityResult(
+		// mToken, mEmbeddedID, requestCode, ar.getResultCode(),
+		// ar.getResultData());
+		// }
+		// if (requestCode >= 0) {
+		// If this start is requesting a result, we can avoid making
+		// the activity visible until the result is received. Setting
+		// this code during onCreate(Bundle savedInstanceState) or onResume()
+		// will keep the
+		// activity hidden during this time, to avoid flickering.
+		// This can only be done when a result is requested because
+		// that guarantees we will get information back when the
+		// activity is finished, no matter what happens to it.
+		// / mStartedActivity = true;
+		// }
+		// } else {
+		// mParent.startActivityFromChild(this, intent, requestCode);
+		// }
+	}
+
 }

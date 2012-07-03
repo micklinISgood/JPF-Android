@@ -109,11 +109,8 @@ public class JPF_android_os_MessageQueue {
 			return false;
 		}
 
-		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // this is executed
-														// before state matching
-
-			if (!ti.isFirstStepInsn()) { // first time around, get the next
-											// UIActionCG
+		if (!ti.hasReturnedFromDirectCall(UIACTION)) {
+			if (!ti.isFirstStepInsn()) {
 				UIActionGenerator cg = scriptEnv.getNext("processScriptAction");
 				if (cg != null) {
 					counter++;
@@ -151,10 +148,13 @@ public class JPF_android_os_MessageQueue {
 	private static void runAction(MJIEnv env, UIAction action) {
 		log.info("ProcessAction: " + action.action + " on " + action.target);
 		if (!action.isNone()) {
-			if (action.target.startsWith("$")) {
+			if (action.target == null) {
+				JPF_android_app_ActivityManagerProxy.handleComponentAction(env,
+						action);
+			} else if (action.target.startsWith("$")) {
 				handleViewAction(env, action);
 			} else if (action.target.startsWith("@")) {
-				handleComponentAction(env, action);
+				JPF_android_app_ActivityManagerProxy.setIntent(env, action);
 			}
 		}
 	}
@@ -165,10 +165,6 @@ public class JPF_android_os_MessageQueue {
 
 		if (tgtRef == MJIEnv.NULL) {
 			log.warning("no view found for UIAction: " + action);
-
-		} else if (!viewEnabled(env, tgtRef)) {
-			log.warning("view NOT enabled for UIAction: " + action);
-
 		} else {
 
 			ElementInfo ei = env.getElementInfo(tgtRef);
@@ -208,106 +204,9 @@ public class JPF_android_os_MessageQueue {
 
 					ThreadInfo ti = env.getThreadInfo();
 					ti.pushFrame(frame);
-
-					// if the event included a focus transfer directive,
-					// do
-					// this
-					// before invoking the action, to ensure proper
-					// invocation of
-					// FocusListeners
-					// if (action.transferFocus()) {
-					// stub = getTransferFocusMethod(env);
-					// /frame = new DirectCallStackFrame(stub);
-					// frame.pushRef(tgtRef);
-					// ti.pushFrame(frame);
-					// }
 				}
 			}
 		}
-	}
-
-	private static void handleComponentAction(MJIEnv env, UIAction action) {
-		int appRef = JPF_android_app_ActivityThread.getApplicationRef();
-		ElementInfo ei = env.getElementInfo(appRef);
-		ClassInfo ci = ei.getClassInfo();
-
-		MethodInfo mi = null;
-		String methodName = "";
-		if (action.action.equals("start")) {
-			methodName = "scheduleLaunchActivity(Ljava/lang/String;)V";
-			mi = ci.getMethod(methodName, true);
-		} else if (action.action.equals("destroy")) {
-			methodName = "scheduleDestroyActivity(Ljava/lang/String;)V";
-			mi = ci.getMethod(methodName, true);
-		}
-
-		if (mi == null) {
-			log.warning("UIAction " + action + " refers to unknown method "
-					+ mi + "() in class " + ci.getName());
-
-		} else {
-			if (log.isLoggable(Level.FINER)) {
-				log.finer("calling UIAction: " + action + " : " + ei + "."
-						+ mi.getUniqueName());
-			}
-			// Ok, now we can finally make the (direct) call
-			MethodInfo stub = mi.createDirectCallStub(UIACTION);
-			DirectCallStackFrame frame = new DirectCallStackFrame(stub);
-
-			// if (!mi.isStatic()) {
-			frame.push(appRef, true);
-			// }
-
-			Object[] args = { "com.vdm." + action.target.substring(1) };
-			if (args != null) {
-				byte[] argTypes = mi.getArgumentTypes();
-				for (int i = 0; i < args.length; i++) {
-					pushArg(env, args[i], argTypes[i], frame);
-				}
-			}
-
-			ThreadInfo ti = env.getThreadInfo();
-			ti.pushFrame(frame);
-
-		}
-	}
-
-	// TODO: move all checks here
-	private static boolean viewEnabled(MJIEnv env, int tgtRef) {
-
-		// int listRef = env.getStaticReferenceField("android.view.Window",
-		// "modalDialogs");
-		// int arrayRef = env.getReferenceField(listRef, "elementData");
-		//
-		// int arrayLength = env.getStaticIntField("android.view.Window",
-		// "numModalDialogs");
-
-		if (false) {// (arrayLength > 0) {
-			// int topModalDialogRef = env.getReferenceArrayElement(arrayRef,
-			// arrayLength - 1);
-			// // follow references upwards until no parent, get top-level
-			// window
-			// // for current view
-			// int parentRef = env.getReferenceField(tgtRef, "parent");
-			//
-			// ElementInfo ei = env.getElementInfo(parentRef);
-			// log.fine("Parent :" + ei);
-			//
-			// while (parentRef != MJIEnv.NULL) {
-			// parentRef = env.getReferenceField(parentRef, "parent");
-			//
-			// ei = env.getElementInfo(parentRef);
-			// log.fine("Parent :" + ei);
-			// // found a match
-			// if (parentRef == topModalDialogRef) {
-			// return true;
-			// }
-			// }
-			// log.warning("action does not belong to top modal dialog");
-			// return false;
-		}
-		// no modal dialogs, no restrictions
-		return true;
 	}
 
 	// <2do> very simplistic argument handling for now

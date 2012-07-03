@@ -52,8 +52,8 @@ public class ViewTest extends TestJPF {
 	  
 	  
     if (verifyNoPropertyViolation()) {
-    	Activity acc = new Activity();
-    	PhoneLayoutInflater layoutInf = new PhoneLayoutInflater(acc);
+    //	Activity acc = new Activity();
+    	//PhoneLayoutInflater layoutInf = new PhoneLayoutInflater(acc);
     }
   }
 }

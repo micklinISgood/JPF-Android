@@ -3,6 +3,7 @@ package android.app;
 import java.util.HashMap;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -37,9 +38,11 @@ public final class ActivityThread {
 			queueOrSendMessage(H.DESTROY_ACTIVITY, activityName, 0, 0);
 		}
 
-		public final void scheduleLaunchActivity(String activityName) {
+		public final void scheduleLaunchActivity(String activityName, Intent intent) {
+			System.out.println("scheduleLaunchActivity: " + activityName);
 			ActivityClientRecord r = new ActivityClientRecord();
 			r.name = activityName;
+			r.intent = intent;
 
 			queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
 		}
@@ -48,8 +51,8 @@ public final class ActivityThread {
 	static final class ActivityClientRecord {
 		// IBinder token;
 		// int ident;
-		// Intent intent;
-		// Bundle state;
+		Intent intent;
+		Bundle state;
 		Activity activity;
 		Window window;
 		Activity parent;
@@ -116,35 +119,88 @@ public final class ActivityThread {
 	}
 
 	private class H extends Handler {
-		public H() {
-		}
 
 		public static final int LAUNCH_ACTIVITY = 100;
+		public static final int PAUSE_ACTIVITY = 101;
+		public static final int PAUSE_ACTIVITY_FINISHING = 102;
+		public static final int STOP_ACTIVITY_SHOW = 103;
+		public static final int STOP_ACTIVITY_HIDE = 104;
+		public static final int SHOW_WINDOW = 105;
+		public static final int HIDE_WINDOW = 106;
+		public static final int RESUME_ACTIVITY = 107;
+		public static final int SEND_RESULT = 108;
 		public static final int DESTROY_ACTIVITY = 109;
+		public static final int NEW_INTENT = 112;
+		public static final int CREATE_SERVICE = 114;
+		public static final int SERVICE_ARGS = 115;
+		public static final int STOP_SERVICE = 116;
+		public static final int RELAUNCH_ACTIVITY = 126;
 
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case DESTROY_ACTIVITY:
-				System.out.println("Destroying_activity " + ((String) msg.obj));
-				// handleDestroyActivity((IBinder) msg.obj, msg.arg1 != 0,
-				// msg.arg2, false);
-				break;
 			case LAUNCH_ACTIVITY: {
 				System.out.println("Launching_activity "
-						+ ((ActivityClientRecord) msg.obj).toString());
+						+ ((ActivityClientRecord) msg.obj).name);
 				ActivityClientRecord r = (ActivityClientRecord) msg.obj;
 				handleLaunchActivity(r, null);
 			}
 				break;
+			case RELAUNCH_ACTIVITY: {
+				// ActivityClientRecord r = (ActivityClientRecord) msg.obj;
+				// handleRelaunchActivity(r);
+			}
+				break;
+			case PAUSE_ACTIVITY:
+				// handlePauseActivity((IBinder) msg.obj, false, msg.arg1 != 0,
+				// msg.arg2);
+				// maybeSnapshot();
+				break;
+			case PAUSE_ACTIVITY_FINISHING:
+				// handlePauseActivity((IBinder) msg.obj, true, msg.arg1 != 0,
+				// msg.arg2);
+				break;
+			case STOP_ACTIVITY_SHOW:
+				// handleStopActivity((IBinder) msg.obj, true, msg.arg2);
+				break;
+			case STOP_ACTIVITY_HIDE:
+				// handleStopActivity((IBinder) msg.obj, false, msg.arg2);
+				break;
+			case SHOW_WINDOW:
+				// handleWindowVisibility((IBinder) msg.obj, true);
+				break;
+			case HIDE_WINDOW:
+				// handleWindowVisibility((IBinder) msg.obj, false);
+				break;
+			case RESUME_ACTIVITY:
+				// handleResumeActivity((IBinder) msg.obj, true, msg.arg1 != 0);
+				break;
+			case SEND_RESULT:
+				// handleSendResult((ResultData) msg.obj);
+				break;
+			case DESTROY_ACTIVITY: {
+				System.out.println("Destroying_activity " + ((String) msg.obj));
+
+				// handleDestroyActivity((IBinder) msg.obj, msg.arg1 != 0,
+				// msg.arg2, false);
+			}
+				break;
+
 			}
 
 		}
 	}
 
+	public void launchActivity(Intent intent) {
+		String activityName = "";
+		activityName = intent.getComponent();
+		System.out.println("ActivityThread LaunchActivity: " + activityName);
+		// verifyActivity(activityName);
+		mAppThread.scheduleLaunchActivity(activityName, intent);
+
+	}
+
 	private Activity performLaunchActivity(ActivityClientRecord r,
 			Intent customIntent) {
-		// System.out.println("##### [" + System.currentTimeMillis() +
-		// "] ActivityThread.performLaunchActivity(" + r + ")");
 
 		// ActivityInfo aInfo = r.activityInfo;
 		// if (r.packageInfo == null) {
@@ -267,21 +323,10 @@ public final class ActivityThread {
 
 	private void handleLaunchActivity(ActivityClientRecord r,
 			Intent customIntent) {
-		// If we are getting ready to gc after going to the background, well
-		// we are back active so skip it.
-		// unscheduleGcIdler();
-
-		// if (r.profileFd != null) {
-		// mProfiler.setProfiler(r.profileFile, r.profileFd);
-		// mProfiler.startProfiling();
-		// mProfiler.autoStopProfiler = r.autoStopProfiler;
-		// }
 
 		// Make sure we are running with the most recent config.
 		// handleConfigurationChanged(null, null);
 
-		// if (localLOGV)
-		// Slog.v(TAG, "Handling launch of " + r);
 		Activity a = performLaunchActivity(r, customIntent);
 
 		// if (a != null) {
@@ -339,6 +384,7 @@ public final class ActivityThread {
 		sThreadLocal.set(this);
 		mSystemThread = false;
 		setApplicationRef(this.mAppThread);
+		init0();
 
 		// this.mAppThread.scheduleLaunchActivity("com.vdm.DeadlockActivity");
 
@@ -377,6 +423,8 @@ public final class ActivityThread {
 		// });
 
 	}
+
+	native private void init0();
 
 	native void setApplicationRef(ApplicationThread mAppThread2);
 

@@ -1,7 +1,5 @@
 package android.os;
 
-import java.util.List;
-
 import android.util.PrefixPrinter;
 import android.util.Printer;
 
