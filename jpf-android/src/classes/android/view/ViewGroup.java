@@ -79,6 +79,8 @@ public class ViewGroup extends View {
 			boolean preventRequestLayout) {
 
 		if (child.mParent != null) {
+			System.out.println("Child: "+ child.name);
+			System.out.println("Child's parent " + child.mParent);
 			throw new IllegalStateException(
 					"The specified child already has a parent. "
 							+ "You must call removeView() on the child's parent first.");

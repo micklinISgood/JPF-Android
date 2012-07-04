@@ -1,9 +1,7 @@
 target = com.example.com.SampleProjectActivity
 classpath=/home/heila/GSoC-Repos/SampleProject/bin/classes/;${classpath}
 sourcepath=/home/heila/GSoC-Repos/SampleProject/src;
-rpath=/home/heila/GSoC-Repos/SampleProject/gen/com/example/com/R.java
-lpath=/home/heila/GSoC-Repos/SampleProject/res/layout/
-path=/home/heila/GSoC-Repos/SampleProject/
+path=/home/heila/GSoC-Repos/SampleProject
 
 #--- which script to run
 awt.script=${config_path}/SampleActivity.es

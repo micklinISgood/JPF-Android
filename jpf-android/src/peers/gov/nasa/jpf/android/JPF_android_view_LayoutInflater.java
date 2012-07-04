@@ -43,13 +43,14 @@ public class JPF_android_view_LayoutInflater {
 
 	public static int setup(MJIEnv env, int objref, int fileref) {
 		Config conf = env.getConfig();
-		String lPath = conf.getString("lpath"); // TODO if specified in
+		String lPath = conf.getString("path") +  "/res/layout/"; // TODO if specified in
 		String filename = JPF_android_view_Window.getLayoutName(fileref);
 
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory
 					.newInstance();
-			InputStream is = new FileInputStream(lPath + filename + ".xml");
+			InputStream is = new FileInputStream(lPath
+					+ filename + ".xml");
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document dom = builder.parse(is, null);
 

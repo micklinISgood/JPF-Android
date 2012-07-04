@@ -103,10 +103,9 @@ public class Window extends ViewGroup {
 	}
 
 	public void setContentView(int layoutResID) {
-		// if (mContentParent != null) {
-		// mContentParent.removeAllViews();
-		// }
-		mContentParent = (ViewGroup) layoutMap.get(layoutResID); // inflate
+		View layout = layoutMap.get(layoutResID); // inflate
+		layout.mParent = null;
+		mContentParent = (ViewGroup) layout;
 		addView(mContentParent);
 		// final Callback cb = getCallback();
 		// //if (cb != null && !isDestroyed()) {

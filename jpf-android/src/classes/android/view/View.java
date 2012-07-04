@@ -22,13 +22,14 @@ public class View {
 		return mParent;
 	}
 
-	public void setmParent(ViewGroup mParent) {
+	public void setParent(ViewGroup mParent) {
 		this.mParent = mParent;
 	}
 
 	boolean enabled;
 
 	private boolean isVisible = true;
+
 
 	static class ListenerInfo {
 		/**

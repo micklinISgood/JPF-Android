@@ -64,8 +64,14 @@ public class JPF_android_view_Window {
 	 */
 	public static void init0____V(MJIEnv env, int cref) {
 		Config conf = env.getConfig();
-		String rPath = conf.getString("rpath"); // TODO get this path without it
+		String rPath = conf.getString("path"); // TODO get this path without it
 												// being specified in the config
+		if (rPath == null || rPath.equals("")) {
+			log.severe("path not set in jpf.properties");
+			return;
+		}
+		rPath = rPath + "/gen/" + JPF_android_app_ActivityThread.getPackageName().replace('.', '/') + "/R.java";
+		
 		parseRFile(rPath);
 
 	}
@@ -78,10 +84,7 @@ public class JPF_android_view_Window {
 	 *            the path to the R.java file on disk
 	 */
 	private static void parseRFile(String rPath) {
-		if (rPath == null || rPath.equals("")) {
-			log.severe("no R-file");
-		}
-
+		
 		Scanner scanner = null;
 		String nextLine;
 		try {
