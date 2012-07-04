@@ -3,6 +3,7 @@ classpath=/home/heila/GSoC-Repos/DeadlockExample/bin/classes/;${jpf-android}/bui
 sourcepath=/home/heila/GSoC-Repos/DeadlockExample/src;
 rpath=/home/heila/GSoC-Repos/DeadlockExample/gen/com/vdm/R.java
 lpath=/home/heila/GSoC-Repos/DeadlockExample/res/layout/
+path=/home/heila/GSoC-Repos/DeadlockExample/
 
 #--- which script to run
 awt.script=${config_path}/DeadlockActivity.es

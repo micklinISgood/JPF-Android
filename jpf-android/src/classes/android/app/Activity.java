@@ -291,7 +291,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		// if (mParent == null) {
 		// Instrumentation.ActivityResult ar =
 		System.out.println("Activity for result");
-		ActivityManagerProxy.startActivity(intent);
+		ActivityManagerProxy.startActivityProxy(intent);
 		// mMainThread.launchActivity(intent);
 		// if (ar != null) {
 		// mMainThread.sendActivityResult(

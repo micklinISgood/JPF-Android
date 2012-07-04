@@ -6,9 +6,7 @@ import gov.nasa.jpf.jvm.MJIEnv;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -19,14 +17,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import android.content.IntentFilter;
+//import android.content.IntentFilter;
 
 public class ApplicationInfo {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
 	public class ComponentEntry {
 		public String name;
-		public List<IntentFilter> intentFilters = new ArrayList<IntentFilter>();
+		// public List<IntentFilter> intentFilters = new
+		// ArrayList<IntentFilter>();
 		public HashMap<String, String> attributes = new HashMap<String, String>();
 	}
 
@@ -92,20 +91,20 @@ public class ApplicationInfo {
 			for (int i = 0; i < filters.getLength(); i++) {
 				Node n = filters.item(i);
 				if (n.getNodeName().equals("intent-filter")) {
-					IntentFilter f = new IntentFilter();
+					// IntentFilter f = new IntentFilter();
 					NodeList att = n.getChildNodes();
 					for (int j = 0; j < att.getLength(); j++) {
 						Node a = att.item(j);
 						if (a.getNodeName().equals("action")) {
-							f.addAction(((Element) a)
-									.getAttribute("android:name"));
+							// f.addAction(((Element) a)
+							// .getAttribute("android:name"));
 						}
 						if (a.getNodeName().equals("category")) {
-							f.addCategory(((Element) a)
-									.getAttribute("android:name"));
+							// f.addCategory(((Element) a)
+							// .getAttribute("android:name"));
 						}
 					}
-					c.intentFilters.add(f);
+					// c.intentFilters.add(f);
 				}
 
 			}

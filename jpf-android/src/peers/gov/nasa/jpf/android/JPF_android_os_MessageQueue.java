@@ -12,17 +12,24 @@ import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.jvm.bytecode.Instruction;
 import gov.nasa.jpf.util.script.ESParser;
-import gov.nasa.jpf.util.script.Event;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Native counterpart of the MessageQueue class.
+ * 
+ * @author Heila van der Merwe
+ * 
+ */
 public class JPF_android_os_MessageQueue {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
+	static final String UIACTION = "[UIAction]";
 
 	// do we want to process all UIActionCGs regardless of state matching
 	static boolean forceActionStates = false;
+
 	static int counter; // the number of UIActionCGs generated so far
 
 	// static UIActionGeneratorFactory cgFactory;
@@ -71,45 +78,24 @@ public class JPF_android_os_MessageQueue {
 		}
 	}
 
-	static MethodInfo miTransferFocus;
-
-	static MethodInfo getTransferFocusMethod(MJIEnv env) {
-		if (miTransferFocus == null) {
-			ClassInfo ci = ClassInfo
-					.tryGetResolvedClassInfo("android.view.View");
-			assert ci != null : "android.view.View not loaded yet"; // should
-																	// have
-																	// been
-																	// initialized
-
-			MethodInfo mi = ci.getMethod("transferFocus()V", true);
-			assert mi != null : "no android.view.View.transferFocus() method found (check model class)";
-
-			miTransferFocus = mi.createDirectCallStub("transferFocus");
-		}
-
-		return miTransferFocus;
-	}
-
-	static final String UIACTION = "[UIAction]";
-
 	/**
 	 * this is called from within the EventDispatcher loop. If we return false,
 	 * it means there is nothing else to check and we are done
 	 */
 	public static boolean processScriptAction(MJIEnv env, int objref) {
-
+		System.out.println("ProcessScriptAction");
 		ThreadInfo ti = env.getThreadInfo();
 		SystemState ss = env.getSystemState();
 		Instruction insn = ti.getPC();
 
 		if (scriptEnv == null) { // that should have caused a warning during
-									// initialization
+									// Initialisation
 			log.warning("no UIScriptEnvironment, terminating");
 			return false;
 		}
 
-		if (!ti.hasReturnedFromDirectCall(UIACTION)) {
+		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // this is run before the
+														// direct call is made
 			if (!ti.isFirstStepInsn()) {
 				UIActionGenerator cg = scriptEnv.getNext("processScriptAction");
 				if (cg != null) {
@@ -120,7 +106,7 @@ public class JPF_android_os_MessageQueue {
 
 					ss.setNextChoiceGenerator(cg);
 					// ti.skipInstructionLogging();
-					log.info("ProcessAction");
+					System.out.println("ProcessAction " + cg.toString());
 					env.repeatInvocation();
 					return true; // doesn't really matter
 				} else {
@@ -133,36 +119,33 @@ public class JPF_android_os_MessageQueue {
 						"processScriptAction", UIActionGenerator.class);
 				assert (cg != null) : "no UIActionGenerator";
 
-				if (log.isLoggable(Level.INFO)) {
-					log.info("processing UIAction: " + cg);
-				}
-
+				System.out.println("processing UIAction: " + cg);
 				runAction(env, cg.getNextChoice());
 				env.repeatInvocation();
+
 			}
 		}
-
 		return true;
 	}
 
 	private static void runAction(MJIEnv env, UIAction action) {
 		log.info("ProcessAction: " + action.action + " on " + action.target);
 		if (!action.isNone()) {
-			if (action.target == null) {
+			if (action.target == null) { // componentAction
 				JPF_android_app_ActivityManagerProxy.handleComponentAction(env,
 						action);
-			} else if (action.target.startsWith("$")) {
+			} else if (action.target.startsWith("$")) { // viewAction
 				handleViewAction(env, action);
-			} else if (action.target.startsWith("@")) {
+
+			} else if (action.target.startsWith("@")) { // intentAction
 				JPF_android_app_ActivityManagerProxy.setIntent(env, action);
+
 			}
 		}
 	}
 
 	private static void handleViewAction(MJIEnv env, UIAction action) {
-
 		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
-
 		if (tgtRef == MJIEnv.NULL) {
 			log.warning("no view found for UIAction: " + action);
 		} else {
@@ -226,15 +209,6 @@ public class JPF_android_os_MessageQueue {
 			throw new UnsupportedOperationException(
 					"argument type not supported: " + arg);
 		}
-	}
-
-	private static UIActionGenerator createRequestFocusCG(UIAction a) {
-		String requestFocusActionId = a.getTarget() + ".requestFocus";
-		Event requestFocusEvent = new Event(null, requestFocusActionId, null,
-				a.getLine());
-		UIAction requestFocusAction = new UIAction(requestFocusEvent);
-		return new UIActionSingleChoice("requestFocusScriptAction",
-				requestFocusAction);
 	}
 
 }

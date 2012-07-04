@@ -43,9 +43,9 @@
 		<!-- our own classes and libs come first -->
 		<pathelement location="build/main" />
 		<pathelement location="build/peers" />
-		<pathelement location="lib/android/" />
 		<!-- add in what we need from the core -->
 		<pathelement path="${jpf-core.native_classpath}" />
+		<pathelement location="lib/android/" />
 
 	</path>
 

@@ -41,6 +41,8 @@ public final class ActivityThread {
 		public final void scheduleLaunchActivity(String activityName, Intent intent) {
 			System.out.println("scheduleLaunchActivity: " + activityName);
 			ActivityClientRecord r = new ActivityClientRecord();
+			//String s = intent.getComponent();
+			//System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" + s);
 			r.name = activityName;
 			r.intent = intent;
 
