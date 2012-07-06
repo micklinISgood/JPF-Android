@@ -21,7 +21,7 @@ public class SampleProjectActivity extends Activity {
 		setContentView(R.layout.main2);
 		System.out.println("act2");
 		i++;
-		Button b = (Button) findViewById(R.id.button1);
+		Button b = (Button) findViewById(R.id.button2);
 		b.setOnClickListener(new OnClickListener() {
 
 			@Override

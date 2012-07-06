@@ -4,7 +4,7 @@ startActivity(@intent1)
 
 $button1.onClick() 
 
-$button1.onClick()
+$button2.onClick()
 
 
 $button1.onClick()

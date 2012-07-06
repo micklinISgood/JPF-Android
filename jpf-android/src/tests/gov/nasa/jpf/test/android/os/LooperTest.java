@@ -20,24 +20,24 @@ public class LooperTest extends TestJPF {
 
 	@Test
 	public void testLooper() {
-//		if (verifyNoPropertyViolation()) {
-//			Looper.prepare();
-//			Handler H = new Handler(new Callback() {
-//				public boolean handleMessage(Message msg) {
-//					System.out.println("Message " + msg.arg1);
-//					return false;
-//				}
-//			});
-//
-//			Message m1 = new Message();
-//			m1.arg1 = 1;
-//			H.sendMessage(m1);
-//			Message m2 = new Message();
-//			m2.arg2 = 2;
-//			H.sendMessage(m2);
-//			// H.sendStopMessage(new Message());
-//			Looper.loop();
-//		}
+		if (verifyNoPropertyViolation()) {
+			Looper.prepare();
+			Handler H = new Handler(new Callback() {
+				public boolean handleMessage(Message msg) {
+					System.out.println("Message " + msg.arg1);
+					return false;
+				}
+			});
+
+			Message m1 = new Message();
+			m1.arg1 = 1;
+			H.sendMessage(m1);
+			Message m2 = new Message();
+			m2.arg2 = 2;
+			H.sendMessage(m2);
+			// H.sendStopMessage(new Message());
+			Looper.loop();
+		}
 
 	}
 
