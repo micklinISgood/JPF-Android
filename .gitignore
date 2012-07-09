@@ -1,0 +1,12 @@
+build.properties
+nbproject/private/*
+build/*
+lib/*
+bin/* 
+dist/*
+*.class
+.version
+activity*.png
+*~
+*.DS_Store
+eclipse/*
