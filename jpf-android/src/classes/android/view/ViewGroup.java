@@ -2,6 +2,11 @@ package android.view;
 
 import android.content.Context;
 
+/**
+ * An extension to View. It contains a list of child Views.
+ * @author "Heila van der Merwe"
+ *
+ */
 public class ViewGroup extends View {
 
 	private static final int ARRAY_INITIAL_CAPACITY = 12;

@@ -75,7 +75,7 @@ public class JPF_android_view_Window {
 		parseRFile(rPath);
 
 	}
-
+	
 	/**
 	 * Parse the R.java file and builds the componentMap and layoutMap.
 	 * 
@@ -83,7 +83,7 @@ public class JPF_android_view_Window {
 	 * @param rPath
 	 *            the path to the R.java file on disk
 	 */
-	private static void parseRFile(String rPath) {
+	public static void parseRFile(String rPath) {
 		
 		Scanner scanner = null;
 		String nextLine;

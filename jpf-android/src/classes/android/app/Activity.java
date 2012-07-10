@@ -3,52 +3,39 @@ package android.app;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
 import android.view.ContextThemeWrapper;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
 import com.android.internal.policy.PolicyManager;
 
-public class Activity extends ContextThemeWrapper implements Window.Callback {
+public class Activity extends ContextThemeWrapper {
+
 	private Context mBase;
-	private Application mApplication;
-	Intent mIntent;
+	// private Application mApplication;
+	Intent mIntent; // Reference to the intent that started this Activity
+	ActivityThread mMainThread; // Reference to the applciation's ActivityThread
+	Activity mParent; // Reference to the activity that started this activity
 
-	ActivityThread mMainThread;
-	Activity mParent;
-
-	boolean mLoadersStarted;
+	// Activity Locks
 	boolean mResumed;
 	private boolean mStopped;
 	boolean mFinished;
 	boolean mStartedActivity;
+
 	/** true if the activity is going through a transient pause */
 	boolean mTemporaryPause = false;
-
-	// private SearchManager mSearchManager;
-	// private MenuInflater mMenuInflater;
 
 	private Window mWindow;
 	// private WindowManager mWindowManager;
 
-	// View mDecor = null; - not using Decor jet
 	boolean mWindowAdded = false;
-	// ActionBarImpl mActionBar = null;
 
 	private CharSequence mTitle;
 	private int mTitleColor = 0;
 
 	Intent mResultData = null;
-
-	private boolean mTitleReady = false;
-
-	private Thread mUiThread;
-	final Handler mHandler = new Handler();
 
 	public void onCreate(Bundle savedInstanceState) {
 		// Loads activity from bundle
@@ -185,7 +172,6 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		// mFragments.attachActivity(this);
 
 		mWindow = PolicyManager.makeNewWindow(this);
-		mWindow.setCallback(this);
 		// mWindow.getLayoutInflater().setPrivateFactory(this);
 		// if (info.softInputMode !=
 		// WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
@@ -194,7 +180,6 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		// if (info.uiOptions != 0) {
 		// mWindow.setUiOptions(info.uiOptions);
 		// }
-		mUiThread = Thread.currentThread();
 
 		mMainThread = aThread;
 		// mInstrumentation = instr;
@@ -216,71 +201,6 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 		// }
 		// mWindowManager = mWindow.getWindowManager();
 		// mCurrentConfig = config;
-	}
-
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean dispatchKeyShortcutEvent(KeyEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean dispatchTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean dispatchTrackballEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public View onCreatePanelView(int featureId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void onContentChanged() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onAttachedToWindow() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onDetachedFromWindow() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean onSearchRequested() {
-		return false;
 	}
 
 	public void startActivity(Intent intent) {

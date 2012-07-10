@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 
 /**
  * This is a model of the View class. Currently it only stores the listeners of
- * the View and executes these listeners when the onCLick method is called.
+ * the View and executes these listeners when the onClick method is called.
  * 
  * @author "Heila van der Merwe"
  * 
