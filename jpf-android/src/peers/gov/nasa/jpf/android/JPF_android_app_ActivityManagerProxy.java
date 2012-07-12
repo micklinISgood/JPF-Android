@@ -137,7 +137,7 @@ public class JPF_android_app_ActivityManagerProxy {
 	 * @param intentRef
 	 *            the reference to the intent starting the activity
 	 */
-	public static void startActivity(MJIEnv env, int clsRef, int intentRef) {
+	private static void startActivity(MJIEnv env, int clsRef, int intentRef) {
 		// TODO pause activity currently active etc
 		// Lookup the name of the activity to launch
 		int activityNameRef = getActivity(env, intentRef);

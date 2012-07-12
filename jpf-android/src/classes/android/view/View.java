@@ -26,9 +26,9 @@ public class View {
 		this.mParent = mParent;
 	}
 
-	boolean enabled;
+	private boolean enabled = true;
 
-	private boolean isVisible = true;
+	private boolean  visible = true;
 
 
 	static class ListenerInfo {
@@ -146,11 +146,11 @@ public class View {
 	}
 
 	public boolean isVisible() {
-		return isVisible;
+		return visible;
 	}
 
 	public void setVisible(boolean isVisible) {
-		this.isVisible = isVisible;
+		this.visible = isVisible;
 	}
 
 	public ListenerInfo getListenerInfo() {
@@ -189,7 +189,7 @@ public class View {
 	 *            True if this view is enabled, false otherwise.
 	 */
 	public void setEnabled(boolean enabled) {
-		enabled = true;
+		this.enabled = enabled;
 	}
 
 	/**
@@ -241,8 +241,8 @@ public class View {
 	}
 
 	public OnClickListener getOnClickListener() {
-		ListenerInfo li = mListenerInfo;
-		System.out.println(li);
+		ListenerInfo li = getListenerInfo();
+	
 		return mListenerInfo.mOnClickListener;
 	}
 
@@ -251,7 +251,7 @@ public class View {
 	 * there is a listener, false if there is none.
 	 */
 	public boolean hasOnClickListeners() {
-		ListenerInfo li = mListenerInfo;
+		ListenerInfo li = getListenerInfo();
 		return (li != null && li.mOnClickListener != null);
 	}
 
@@ -293,11 +293,15 @@ public class View {
 	 *         otherwise is returned.
 	 */
 	public boolean callOnClick() {
-		ListenerInfo li = mListenerInfo;
+		ListenerInfo li = getListenerInfo();
 		if (li != null && li.mOnClickListener != null) {
 			li.mOnClickListener.onClick(this);
 			return true;
+		}else if(li != null && li.mOnClickListener == null){
+			System.out.println("No listener attached");
+			return true;
 		}
+		
 		return false;
 	}
 

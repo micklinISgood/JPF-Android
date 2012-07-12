@@ -2,6 +2,7 @@ package android.app;
 
 import java.util.HashMap;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,14 +39,11 @@ public final class ActivityThread {
 			queueOrSendMessage(H.DESTROY_ACTIVITY, activityName, 0, 0);
 		}
 
-		public final void scheduleLaunchActivity(String activityName, Intent intent) {
-			System.out.println("scheduleLaunchActivity: " + activityName);
+		public final void scheduleLaunchActivity(String activityName,
+				Intent intent) {
 			ActivityClientRecord r = new ActivityClientRecord();
-			//String s = intent.getComponent();
-			//System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" + s);
 			r.name = activityName;
 			r.intent = intent;
-
 			queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
 		}
 	}
@@ -141,8 +139,6 @@ public final class ActivityThread {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case LAUNCH_ACTIVITY: {
-				System.out.println("Launching_activity "
-						+ ((ActivityClientRecord) msg.obj).name);
 				ActivityClientRecord r = (ActivityClientRecord) msg.obj;
 				handleLaunchActivity(r, null);
 			}
@@ -180,35 +176,23 @@ public final class ActivityThread {
 				// handleSendResult((ResultData) msg.obj);
 				break;
 			case DESTROY_ACTIVITY: {
-				System.out.println("Destroying_activity " + ((String) msg.obj));
 
-				// handleDestroyActivity((IBinder) msg.obj, msg.arg1 != 0,
-				// msg.arg2, false);
+				handleDestroyActivity((String) msg.obj);
 			}
 				break;
 
 			}
 
 		}
-	}
 
-	public void launchActivity(Intent intent) {
-		String activityName = "";
-		activityName = intent.getComponent();
-		System.out.println("ActivityThread LaunchActivity: " + activityName);
-		// verifyActivity(activityName);
-		mAppThread.scheduleLaunchActivity(activityName, intent);
+		private void handleDestroyActivity(String obj) {
+			// TODO Auto-generated method stub
 
+		}
 	}
 
 	private Activity performLaunchActivity(ActivityClientRecord r,
 			Intent customIntent) {
-
-		// ActivityInfo aInfo = r.activityInfo;
-		// if (r.packageInfo == null) {
-		// r.packageInfo = getPackageInfo(aInfo.applicationInfo, r.compatInfo,
-		// Context.CONTEXT_INCLUDE_CODE);
-		// }
 
 		// ComponentName component = r.intent.getComponent();
 		// if (component == null) {
@@ -216,7 +200,7 @@ public final class ActivityThread {
 		// .getPackageManager());
 		// r.intent.setComponent(component);
 		// }
-
+		//
 		// if (r.activityInfo.targetActivity != null) {
 		// component = new ComponentName(r.activityInfo.packageName,
 		// r.activityInfo.targetActivity);
@@ -255,9 +239,9 @@ public final class ActivityThread {
 		// .getPackageManager());
 		// Configuration config = new Configuration(mCompatConfiguration);
 		// if (DEBUG_CONFIGURATION)
-		// Slog.v(TAG, "Launching activity " + r.activityInfo.name
-		// + " with config " + config);
-		activity.attach(this);
+		// log.v(TAG, "Launching activity " + r.activityInfo.name+
+		// " with config " + config);
+		activity.attach(this, null, null);
 
 		// appContext, this, getInstrumentation(),
 		// r.token, r.ident, app, r.intent, r.activityInfo, title,

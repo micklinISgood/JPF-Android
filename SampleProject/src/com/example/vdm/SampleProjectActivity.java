@@ -18,18 +18,34 @@ public class SampleProjectActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		System.out.println("onCreate");
 		setContentView(R.layout.main2);
 		System.out.println("act2");
 		i++;
-		Button b = (Button) findViewById(R.id.button2);
-		b.setOnClickListener(new OnClickListener() {
+		Button b1 = (Button) findViewById(R.id.button1);
+		final Button b2 = (Button) findViewById(R.id.button2);
+		b1.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				System.out.println("Button Clicked2!!!   " + i);
-				Intent i = new Intent(SampleProjectActivity.this, com.example.com.SampleProjectActivity.class);
-				startActivity(i);
+				System.out.println("Button 1 Clicked!!!");
+				// Intent i = new Intent(SampleProjectActivity.this,
+				// com.example.vdm.SampleProjectActivity.class);
+				// startActivity(i);
+				b2.setEnabled(true);
+			}
+		});
 
+		
+		b2.setEnabled(false);
+		b2.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				System.out.println("Button 2 Clicked!!!");
+				Intent i = new Intent(SampleProjectActivity.this,
+						com.example.com.SampleProjectActivity.class);
+				startActivity(i);
 			}
 		});
 	}

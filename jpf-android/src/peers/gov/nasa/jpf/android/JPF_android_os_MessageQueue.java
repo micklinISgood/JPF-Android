@@ -42,9 +42,7 @@ public class JPF_android_os_MessageQueue {
 		// parameter
 		// parsing (numbers are all stored as Double). We have to reverse match
 		String methodName = action.getMethodName();
-		System.out.println("Getting method: " + methodName);
 		MethodInfo mi = ci.getMethod(methodName, true);
-		System.out.println(mi);
 
 		return mi;
 	}
@@ -83,7 +81,6 @@ public class JPF_android_os_MessageQueue {
 	 * it means there is nothing else to check and we are done
 	 */
 	public static boolean processScriptAction(MJIEnv env, int objref) {
-		System.out.println("ProcessScriptAction");
 		ThreadInfo ti = env.getThreadInfo();
 		SystemState ss = env.getSystemState();
 		Instruction insn = ti.getPC();
@@ -106,7 +103,8 @@ public class JPF_android_os_MessageQueue {
 
 					ss.setNextChoiceGenerator(cg);
 					// ti.skipInstructionLogging();
-					System.out.println("ProcessAction " + cg.toString());
+					// System.out.println("ProcessAction " + cg.toString());
+
 					env.repeatInvocation();
 					return true; // doesn't really matter
 				} else {
@@ -118,8 +116,8 @@ public class JPF_android_os_MessageQueue {
 				UIActionGenerator cg = ss.getCurrentChoiceGenerator(
 						"processScriptAction", UIActionGenerator.class);
 				assert (cg != null) : "no UIActionGenerator";
+				// System.out.println("processing UIAction: " + cg);
 
-				System.out.println("processing UIAction: " + cg);
 				runAction(env, cg.getNextChoice());
 				env.repeatInvocation();
 
@@ -129,7 +127,8 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void runAction(MJIEnv env, UIAction action) {
-		log.info("ProcessAction: " + action.action + " on " + action.target);
+		System.out.println("ProcessAction: " + action.action + " on "
+				+ action.target);
 		if (!action.isNone()) {
 			if (action.target == null) { // componentAction
 				JPF_android_app_ActivityManagerProxy.handleComponentAction(env,
@@ -145,9 +144,12 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void handleViewAction(MJIEnv env, UIAction action) {
+		System.out.println(action.toString());
 		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
 		if (tgtRef == MJIEnv.NULL) {
 			log.warning("no view found for UIAction: " + action);
+		} else if (!componentEnabled(env, tgtRef)) {
+			log.warning("component NOT enabled for UIAction: " + action);
 		} else {
 
 			ElementInfo ei = env.getElementInfo(tgtRef);
@@ -190,6 +192,16 @@ public class JPF_android_os_MessageQueue {
 				}
 			}
 		}
+	}
+
+	// TODO: move all checks here
+	private static boolean componentEnabled(MJIEnv env, int tgtRef) {
+		boolean enabled = env.getBooleanField(tgtRef, "enabled");
+		boolean visible = env.getBooleanField(tgtRef, "visible");
+		if (!enabled || !visible) {
+			return false;
+		} else
+			return true;
 	}
 
 	// <2do> very simplistic argument handling for now

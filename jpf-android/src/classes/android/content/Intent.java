@@ -894,7 +894,7 @@ public class Intent {
 	 * @see #resolveActivity
 	 */
 	public void setComponent(String component) {
-		System.out.println("setting component to: " + component);
+		//System.out.println("setting component to: " + component);
 		mComponent = component;
 	}
 

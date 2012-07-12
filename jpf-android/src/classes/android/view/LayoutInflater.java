@@ -47,14 +47,14 @@ public class LayoutInflater {
 	}
 
 	private void print(View v) {
-		System.out.println(v.toString() + '{');
+		//System.out.println(v.toString() + '{');
 		if (v instanceof ViewGroup)
 			for (View c : ((ViewGroup) v).getChildren()) {
 				if (c != null)
 					print(c);
 			}
 
-		System.out.println('}');
+		//System.out.println('}');
 	}
 
 	/**

@@ -161,12 +161,13 @@ public class Activity extends ContextThemeWrapper {
 		mBase = newBase;
 	}
 
-	final void attach(ActivityThread aThread) {// ,
+	final void attach(ActivityThread aThread,  Application application, Activity parent) {// ,
 		// Instrumentation instr, IBinder token, int ident,
-		// Application application, Intent intent, ActivityInfo info,
+		//, Intent intent, ActivityInfo info,
 		// CharSequence title, Activity parent, String id,
 		// NonConfigurationInstances lastNonConfigurationInstances,
 		// Configuration config) {
+		
 		// attachBaseContext(context);
 
 		// mFragments.attachActivity(this);
@@ -212,7 +213,6 @@ public class Activity extends ContextThemeWrapper {
 		// Instrumentation.ActivityResult ar =
 		System.out.println("Activity for result");
 		ActivityManagerProxy.startActivityProxy(intent);
-		// mMainThread.launchActivity(intent);
 		// if (ar != null) {
 		// mMainThread.sendActivityResult(
 		// mToken, mEmbeddedID, requestCode, ar.getResultCode(),

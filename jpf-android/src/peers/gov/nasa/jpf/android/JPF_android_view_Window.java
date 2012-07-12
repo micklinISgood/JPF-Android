@@ -125,8 +125,8 @@ public class JPF_android_view_Window {
 			c.setId(Integer.parseInt(list[1].substring(2), 16));
 			c.setName(list[0]);
 			componentMap.put("$" + list[0], c);
-			System.out.println("insertign in map " + c.getId() + " "
-					+ c.getName());
+			//System.out.println("insertign in map " + c.getId() + " "
+			//		+ c.getName());
 
 		}
 		// TODO Add window to the componentMap to catch window events

@@ -9,22 +9,32 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 public class SampleProjectActivity extends Activity {
-	int i = 0;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		i++;
 		System.out.println("act1");
 
-		Button b = (Button) findViewById(R.id.button1);
-		b.setOnClickListener(new OnClickListener() {
+		Button b1 = (Button) findViewById(R.id.buttonPrint1);
+		b1.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				System.out.println("Button Clicked!!!   " + i);
+				System.out.println("Button 1 Clicked!!!");
+				// Intent i = new Intent(SampleProjectActivity.this,
+				// com.example.vdm.SampleProjectActivity.class);
+				// startActivity(i);
+			}
+		});
+
+		Button b2 = (Button) findViewById(R.id.buttonPrint2);
+		b2.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				System.out.println("Button 2 Clicked!!!");
 				Intent i = new Intent(SampleProjectActivity.this,
 						com.example.vdm.SampleProjectActivity.class);
 				startActivity(i);

@@ -2,17 +2,12 @@
 
 startActivity(@intent1)
 
-$button1.onClick() 
+REPEAT 2 {
+	ANY{NONE,$buttonPrint1.onClick()}
+}
+
+
+$buttonPrint2.onClick()
+
 
 $button2.onClick()
-
-
-$button1.onClick()
-
-
-
-
-
-
-
-

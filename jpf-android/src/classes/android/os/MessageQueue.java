@@ -38,13 +38,10 @@ public class MessageQueue {
 	final protected Message next() {
 		Message m = null;
 		do {
-			System.out.println("MSQ: MessageQueue.next");
 			if ((m = nextNonBlocked()) != null) {
-				System.out.println("MSQ: There was a messagein the queue");
 				return m;
-			}else
-				System.out.println("MSQ: Calling ProcessScriptAction");
-			
+			}
+
 		} while (processScriptAction());
 		// this must not happen! an ending message (with target will be
 		// dispatched before this is executed)
@@ -93,9 +90,9 @@ public class MessageQueue {
 	public Message getMessage(int i) {
 		return mMessages.get(i);
 	}
-	
+
 	native void init();
-	
+
 	public static Intent newIntent() {
 		return new Intent();
 	}
