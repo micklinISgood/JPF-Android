@@ -3,6 +3,7 @@ nbproject/private/*
 build/*
 lib/*
 bin/* 
+gen/*
 dist/*
 *.class
 .version
