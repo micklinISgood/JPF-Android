@@ -2,7 +2,6 @@ package android.app;
 
 import java.util.HashMap;
 
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,10 +40,32 @@ public final class ActivityThread {
 
 		public final void scheduleLaunchActivity(String activityName,
 				Intent intent) {
+
+			if (currentActivity != null
+					&& activityName == currentActivity.getName()) {
+				// TODO
+				System.out.println("This activity has already been started");
+			} else {
+
+			}
+
 			ActivityClientRecord r = new ActivityClientRecord();
 			r.name = activityName;
 			r.intent = intent;
 			queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
+		}
+
+		private void performBackPressed() {
+			Activity parent = currentActivity.activity.mParent;
+			//TODO stop id parent null
+			ActivityClientRecord r = new ActivityClientRecord();
+			r.name = parent.getClass().getName();
+			r.intent = new Intent();
+			queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
+		}
+
+		private void performHomePressed() {
+			handleDestroyActivity(currentActivity.name);
 		}
 	}
 
@@ -185,29 +206,20 @@ public final class ActivityThread {
 
 		}
 
-		private void handleDestroyActivity(String obj) {
-			// TODO Auto-generated method stub
+	}
 
-		}
+	private void handleDestroyActivity(String obj) {
+		currentActivity.activity.onPause();
+		currentActivity.activity.onStop();
+
 	}
 
 	private Activity performLaunchActivity(ActivityClientRecord r,
 			Intent customIntent) {
 
-		// ComponentName component = r.intent.getComponent();
-		// if (component == null) {
-		// component = r.intent.resolveActivity(mInitialApplication
-		// .getPackageManager());
-		// r.intent.setComponent(component);
-		// }
-		//
-		// if (r.activityInfo.targetActivity != null) {
-		// component = new ComponentName(r.activityInfo.packageName,
-		// r.activityInfo.targetActivity);
-		// }
-
 		// Make new instance of the Activity class
 		Activity activity = null;
+
 		try {
 			Class<Activity> cls = (Class<Activity>) Class.forName(r.getName());
 			activity = cls.newInstance();
@@ -215,94 +227,40 @@ public final class ActivityThread {
 			throw new RuntimeException("Unable to instantiate activity " + ": "
 					+ e.toString(), e);
 		}
+		try {
+			// Application app = new
+			// Application();//r.packageInfo.makeApplication(false,
+			// mInstrumentation);
 
-		// try {
-		// Application app = new
-		// Application();//r.packageInfo.makeApplication(false,
-		// mInstrumentation);
+			if (activity != null) {
+				// appContext.init(r.packageInfo, r.token, this);
+				// appContext.setOuterContext(activity); //set this activity as
+				// the main activity
+				// CharSequence title = r.activityInfo.loadLabel(appContext
+				// .getPackageManager());
+				// Configuration config = new
+				// Configuration(mCompatConfiguration);
 
-		// if (localLOGV)
-		// Slog.v(TAG, "Performing launch of " + r);
-		// if (localLOGV)
-		// Slog.v(TAG,
-		// r + ": app=" + app + ", appName="
-		// + app.getPackageName() + ", pkg="
-		// + r.packageInfo.getPackageName() + ", comp="
-		// + r.intent.getComponent().toShortString()
-		// + ", dir=" + r.packageInfo.getAppDir());
+				activity.attach(this, null,
+						((currentActivity != null) ? currentActivity.activity
+								: null), r.intent);
 
-		// if (activity != null) {
-		// appContext.init(r.packageInfo, r.token, this);
-		// appContext.setOuterContext(activity); //set this activity as the main
-		// activity
-		// CharSequence title = r.activityInfo.loadLabel(appContext
-		// .getPackageManager());
-		// Configuration config = new Configuration(mCompatConfiguration);
-		// if (DEBUG_CONFIGURATION)
-		// log.v(TAG, "Launching activity " + r.activityInfo.name+
-		// " with config " + config);
-		activity.attach(this, null, null);
+				activity.onCreate(r.state);
+				r.activity = activity;
+				activity.onStart();
+				if (r.state != null) {
+					activity.onRestoreInstanceState(r.state);
+				}
+				activity.onPostCreate(r.state);
+				r.paused = true;
 
-		// appContext, this, getInstrumentation(),
-		// r.token, r.ident, app, r.intent, r.activityInfo, title,
-		// r.parent, r.embeddedID,
-		// /r.lastNonConfigurationInstances, config);
+				mActivities.put(r.getName(), r);
 
-		// if (customIntent != null) {
-		// activity.mIntent = customIntent;
-		// }
-		// r.lastNonConfigurationInstances = null;
-		// activity.mStartedActivity = false;
-		// int theme = r.activityInfo.getThemeResource();
-		// if (theme != 0) {
-		// activity.setTheme(theme);
-		// }
-
-		// activity.mCalled = false;
-		activity.onCreate(null);
-		// if (!activity.mCalled) {
-		// throw new SuperNotCalledException("Activity "
-		// + r.intent.getComponent().toShortString()
-		// + " did not call through to super.onCreate()");
-		// }
-		r.activity = activity;
-		// r.stopped = true;
-		// if (!r.activity.mFinished) {
-		// activity.performStart();
-		// r.stopped = false;
-		// }
-		// if (!r.activity.mFinished) {
-		// if (r.state != null) {
-		// mInstrumentation.callActivityOnRestoreInstanceState(
-		// activity, r.state);
-		// }
-		// }
-		// // if (!r.activity.mFinished) {
-		// activity.mCalled = false;
-		// mInstrumentation
-		// .callActivityOnPostCreate(activity, r.state);
-		// // if (!activity.mCalled) {
-		// throw new SuperNotCalledException(
-		// "Activity "
-		// / + r.intent.getComponent()
-		// .toShortString()
-		// + " did not call through to super.onPostCreate()");
-		// }
-		// }
-		// }
-		// r.paused = true;
-
-		mActivities.put(r.getName(), r);
-
-		// } catch (SuperNotCalledException e) {
-		// throw e;
-		//
-		// } catch (Exception e) {
-		// //if (!mInstrumentation.onException(activity, e)) {
-		// throw new RuntimeException("Unable to start activity "
-		// + r.getName() + ": " + e.toString(), e);
-		// //}
-		// }
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Unable to start activity "
+					+ r.getName() + ": " + e.toString(), e);
+		}
 
 		return activity;
 	}
@@ -315,55 +273,80 @@ public final class ActivityThread {
 
 		Activity a = performLaunchActivity(r, customIntent);
 
-		// if (a != null) {
-		// r.createdConfig = new Configuration(mConfiguration);
-		// Bundle oldState = r.state;
-		// handleResumeActivity(r.token, false, r.isForward);
+		if (a != null) {
+			// r.createdConfig = new Configuration(mConfiguration);
+			Bundle oldState = r.state;
+			handleResumeActivity(r);
 
-		// if (!r.activity.mFinished && r.startsNotResumed) {
-		// The activity manager actually wants this one to start out
-		// paused, because it needs to be visible but isn't in the
-		// foreground. We accomplish this by going through the
-		// normal startup (because activities expect to go through
-		// onResume() the first time they run, before their window
-		// is displayed), and then pausing it. However, in this case
-		// we do -not- need to do the full pause cycle (of freezing
-		// and such) because the activity manager assumes it can just
-		// retain the current state it has.
-		// try {
-		// r.activity.mCalled = false;
-		// mInstrumentation.callActivityOnPause(r.activity);
-		// We need to keep around the original state, in case
-		// we need to be created again.
-		// r.state = oldState;
-		// if (!r.activity.mCalled) {
-		// throw new SuperNotCalledException("Activity "
-		// + r.intent.getComponent().toShortString()
-		// + " did not call through to super.onPause()");
-		// }
+			// if (!r.activity.mFinished && r.startsNotResumed) {
+			// The activity manager actually wants this one to start out
+			// paused, because it needs to be visible but isn't in the
+			// foreground. We accomplish this by going through the
+			// normal startup (because activities expect to go through
+			// onResume() the first time they run, before their window
+			// is displayed), and then pausing it. However, in this case
+			// we do -not- need to do the full pause cycle (of freezing
+			// and such) because the activity manager assumes it can just
+			// retain the current state it has.
+			// try {
+			// r.activity.mCalled = false;
+			// mInstrumentation.callActivityOnPause(r.activity);
+			// We need to keep around the original state, in case
+			// we need to be created again.
+			// r.state = oldState;
+			// if (!r.activity.mCalled) {
+			// throw new SuperNotCalledException("Activity "
+			// + r.intent.getComponent().toShortString()
+			// + " did not call through to super.onPause()");
+			// }
 
-		// } catch (SuperNotCalledException e) {
-		// throw e;
+			// } catch (SuperNotCalledException e) {
+			// throw e;
 
-		// /} catch (Exception e) {
-		// if (!mInstrumentation.onException(r.activity, e)) {
-		// throw new RuntimeException("Unable to pause activity "
-		// + r.intent.getComponent().toShortString()
-		// + ": " + e.toString(), e);
-		// }
-		// }
-		// r.paused = true;
-		// }
-		// } else {
-		// If there was an error, for any reason, tell the activity
-		// manager to stop us.
-		// try {
-		// ActivityManagerNative.getDefault().finishActivity(r.token,
-		// Activity.RESULT_CANCELED, null);
-		// } catch (RemoteException ex) {
-		// Ignore
-		// }
-		// }
+			// /} catch (Exception e) {
+			// if (!mInstrumentation.onException(r.activity, e)) {
+			// throw new RuntimeException("Unable to pause activity "
+			// + r.intent.getComponent().toShortString()
+			// + ": " + e.toString(), e);
+			// }
+			// }
+			// r.paused = true;
+			// }
+			// } else {
+			// If there was an error, for any reason, tell the activity
+			// manager to stop us.
+			// try {
+			// ActivityManagerNative.getDefault().finishActivity(r.token,
+			// Activity.RESULT_CANCELED, null);
+			// } catch (RemoteException ex) {
+			// Ignore
+			// }
+			// }
+			if (currentActivity != null) {
+				currentActivity.activity.onStop();
+				a.mParent = currentActivity.activity;
+			}
+			currentActivity = r;
+		}
+	}
+
+	final void handleResumeActivity(ActivityClientRecord r) {
+		performResumeActivity(r);
+	}
+
+	public final void performResumeActivity(ActivityClientRecord r) {
+		if (r != null) {
+			try {
+				r.activity.onResume();
+				r.activity.onPostResume();
+				r.paused = false;
+				r.stopped = false;
+				r.state = null;
+			} catch (Exception e) {
+				throw new RuntimeException("Unable to resume activity "
+						+ r.intent.getComponent() + ": " + e.toString(), e);
+			}
+		}
 	}
 
 	private void attach() {
@@ -425,8 +408,6 @@ public final class ActivityThread {
 		}
 
 		Looper.loop();
-
-		// throw new RuntimeException("Main thread loop unexpectedly exited");
 	}
 
 }

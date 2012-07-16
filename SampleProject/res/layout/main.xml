@@ -6,7 +6,10 @@
 		android:layout_height="64dp" android:layout_margin="5dp" android:text="Button1" />
 	<Button android:id="@+id/buttonPrint2" android:layout_width="64dp"
 		android:layout_height="64dp" android:layout_margin="5dp" android:text="Button1" />
-	<TextView android:text="HalloWorld"/>
 
+	<TextView
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:text="HalloWorld" />
 
 </LinearLayout>

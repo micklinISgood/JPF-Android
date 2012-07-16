@@ -11,9 +11,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import android.content.ComponentName;
-import android.content.Intent;
-
 /**
  * Models the Android ActivityManagerService. This Service is traditionally run
  * in the system process and is not part of the application process. That is why
@@ -86,13 +83,37 @@ public class JPF_android_app_ActivityManagerProxy {
 			int intentref = getJPFIntent(env, intentName);
 			startActivity(env, 0, intentref);
 
-		} else if (action.action.equals("destroy")) {
-			String intentName = (String) action.arguments[0];
-			int intentref = getJPFIntent(env, intentName);
-			startActivity(env, 0, intentref);
-
+		} else if (action.action.equals("backButton")) {
+			backButton(env);
+		}else if(action.action.equals("homeButton")) {
+			homeButton(env);
 		}
 	}
+
+	
+	private static void backButton(MJIEnv env) {
+		// schedule launch of activity
+		int appRef = JPF_android_app_ActivityThread.getApplicationRef();
+		String methodName = "performBackPressed()V";
+		int[] args = {};
+
+		callMethod(env, appRef, methodName, args);
+
+	}
+	
+	private static void homeButton(MJIEnv env) {
+		// schedule launch of activity
+		int appRef = JPF_android_app_ActivityThread.getApplicationRef();
+		String methodName = "performHomePressed()V";
+		int[] args = {};
+
+		callMethod(env, appRef, methodName, args);
+
+	}
+	
+	
+	
+	
 
 	/**
 	 * Returns the reference to an the Intent object
@@ -158,7 +179,7 @@ public class JPF_android_app_ActivityManagerProxy {
 		return env.getReferenceField(intentRef, "mComponent");
 	}
 
-	public static void stopActivity() {
+	private static void stopActivity(MJIEnv env, int clsRef, int intentRef) {
 		// TODO
 		@SuppressWarnings("unused")
 		String methodName = "scheduleDestroyActivity(Ljava/lang/String;)V";

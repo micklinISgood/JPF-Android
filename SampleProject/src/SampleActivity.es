@@ -2,12 +2,8 @@
 
 startActivity(@intent1)
 
-REPEAT 2 {
-	ANY{NONE,$buttonPrint1.onClick()}
-}
-
 
 $buttonPrint2.onClick()
 
 
-$button2.onClick()
+backButton()

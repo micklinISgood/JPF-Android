@@ -161,13 +161,14 @@ public class Activity extends ContextThemeWrapper {
 		mBase = newBase;
 	}
 
-	final void attach(ActivityThread aThread,  Application application, Activity parent) {// ,
+	final void attach(ActivityThread aThread, Application application,
+			Activity parent, Intent intent) {// ,
 		// Instrumentation instr, IBinder token, int ident,
-		//, Intent intent, ActivityInfo info,
+		// , Intent intent, ActivityInfo info,
 		// CharSequence title, Activity parent, String id,
 		// NonConfigurationInstances lastNonConfigurationInstances,
 		// Configuration config) {
-		
+
 		// attachBaseContext(context);
 
 		// mFragments.attachActivity(this);
@@ -187,11 +188,11 @@ public class Activity extends ContextThemeWrapper {
 		// mToken = token;
 		// mIdent = ident;
 		// mApplication = application;
-		// mIntent = intent;
+		 mIntent = intent;
 		// mComponent = intent.getComponent();
 		// mActivityInfo = info;
 		// mTitle = title;
-		// mParent = parent;
+		 mParent = parent;
 		// mEmbeddedID = id;
 		// mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
@@ -208,9 +209,11 @@ public class Activity extends ContextThemeWrapper {
 		startActivityForResult(intent, -1);
 	}
 
-	public void startActivityForResult(Intent intent, int requestCode) {
+	public final void startActivityForResult(Intent intent, int requestCode) {
 		// if (mParent == null) {
 		// Instrumentation.ActivityResult ar =
+		intent.setParent(this);
+		onPause();
 		System.out.println("Activity for result");
 		ActivityManagerProxy.startActivityProxy(intent);
 		// if (ar != null) {
@@ -232,6 +235,11 @@ public class Activity extends ContextThemeWrapper {
 		// } else {
 		// mParent.startActivityFromChild(this, intent, requestCode);
 		// }
+	}
+
+	public void onRestoreInstanceState(Bundle state) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

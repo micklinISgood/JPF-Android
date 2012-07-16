@@ -4,15 +4,25 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import android.app.Activity;
 import android.os.Bundle;
 
 public class Intent {
 
+	Activity parent; 
 	String mAction;
 	String mType;
 	String mComponent;
 	HashSet<String> mCategories;
 	Bundle mExtras;
+
+	public Activity getParent() {
+		return parent;
+	}
+
+	public void setParent(Activity parent) {
+		this.parent = parent;
+	}
 
 	public Intent() {
 
