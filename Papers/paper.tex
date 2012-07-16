@@ -8,10 +8,11 @@
 
 
 \documentclass{acm_proc_article-sp}
+\usepackage{graphicx}
 \begin{document}
 
 
-\title{jpf-android: Model checking Android Applications}
+\title{Verifying Android Applications using Java PathFinder}
 
 \numberofauthors{3}
 
@@ -51,20 +52,254 @@
 
 \terms{VERIFICATION}
 
-\keywords{Java PathFinder,JPF, Android, Verification} % NOT required for Proceedings
+\keywords{Java PathFinder, JPF, Android, Verification} % NOT required for Proceedings
 
 \section{Introduction}
+%The current trend in software development is mobile application development.
+
+%At Google I/O 2012 Android claimed to have approximately 600
+%thousand applications on the market with a total of 20 billion application downloads. They continue to note that this number is growing by
+%one billion per month.
+
+Although Android mobile applications and Java desktop applications both use the Java language, they are developed for a completely different
+platforms.  and both contain many similar errors and defects. These defects include faults such as concurrency issues and run-time
+exceptions. 
+         are  compared to
+         
+         
+The testing of Android applications  also faces many challenges including:
+\begin{enumerate}
+ \item The device challenge. 
+ Mobile applications can only fully run on a mobile devices/emulators. Additionally the physical devices are
+not designed with testing in mind.
+
+ \item Event driven architecture.
+ The event input must be simulated which is especially difficult due to the many types of
+sensory inputs that must be supported. 
+
+ \item Operating system variety. It is impossible to test the application on all the different operating system versions.
+\end{enumerate}
+
+Due to these challenges and the rapid pace at which applications are developed and released, application testing becomes too expensive in
+terms of time and money. This results in many mobile applications being unstable and unreliable.
+
+Manual testing is not the solution to the problem as it is very expensive, time consuming and does not detect enough errors in
+Android applications. That is why only automatic testing frameworks are the best options.
+
+There are currently two ways to automatically test Android applications:
+\begin{enumerate}
+ \item testing on a physical device/emulator
+  Install application on the device. Install test project that runs in the same process. The test project drives the application testing. 
+ 
+
+ 
+ %\begin{figure}[h!]
+ %\centering
+ %\includegraphics{../../Pictures/test_framework.png}
+ % test_framework.png: 473x517 pixel, 96dpi, 12.51x13.68 cm, bb=0 0 355 388
+%\end{figure}
+  Examples include: Robotium\ref{} Android Test project
+
+  MoneyRunner~\ref{},SPark~\ref{}
+  -advantage wifi and many sensor events  already modelled
+-problem is that emulator run actual android so testing framework as to either be android application
+-
+ 
+ \item testing the application on a computer
+   Examples:
+    android unit tests
+    android lint
+    
+   mock objects
+   adapt for pc
+- static analysis or model android framework
+- mock unit tests - still have to write the tests
+- Robolectric
+\end{enumerate}
+ 
+
+% what are we going to do and why (WHAT ARE ADVANTAGES)
+This paper describes jpf-android, an extension to Java PathFinder that allows the automatic testing of Android Applications. 
+
+The first section of the paper provides an overview of Android and Java Pathfinder and how JPF can be used to test Android applications.
+The next section describes the design and development of the jpf-android tool followed by an simple example to show how the tool works. The
+paper will conclude by discussing the effectiveness and usefulness of the tool.
 
 
-\section{Implementation}
 
 
+
+
+
+
+\newpage
+\section{Background}
+\subsection{The Android architecture}
+Android is an open source software stack for mobile devices such as smartphones and tablets with an advanced RISC Machine (ARM)
+architecture.
+
+It consists of:
+    the Android operating system built on top of a modified Linux kernel,
+    the application framework - set of libraries api
+    an application development toolkit assisting developers to create applications for the platform.
+
+    
+An application runs on framework using api libs to communicate.
+system process threading
+
+%\begin{figure}[h!]
+% \centering
+% \includegraphics[width=\pagewidth]{../../M-Projek/heila/research_proposal/02-AndroidStack.png}
+ % 5502982451_1f78830c9e.jpg: 500x270 pixel, 96dpi, 13.23x7.14 cm, bb=0 0 375 203
+%\end{figure}
+
+each application runs in own process
+1 thread called the looper
+handler message queue structure
+2 types of input
+
+
+%\begin{figure}[h!]
+% \centering
+% \includegraphics[width=\pagewidth]{../../M-Projek/heila/research_proposal/5502982451_1f78830c9e.jpg}
+ % 5502982451_1f78830c9e.jpg: 500x270 pixel, 96dpi, 13.23x7.14 cm, bb=0 0 375 203
+%\end{figure}
+
+% why cant we just run android applications they are written in java?
+Specific java version without swing etc
+native code - has to be modelled
+
+
+\subsection{Java PathFinder}
+JPF is a powerful software model checker used to test automatically whether the system under test (SUT) meets a given specification.
+Java applications~\cite{}. It consists of a custom Java virtual machine implementation that executes the compiled java byte-code of the
+system under test(SUT).
+
+
+JPF models the Java API libraries to allow... 
+-how does it work?
+-modelled java libs
+-custom vm executing java bytecode
+-controlled environment executing all execution paths
+-listeners for certain property violations 
+
+Furthermore, JPF's design encourages developers to create extensions to the framework. It provides that key mechanisms:
+to model java libraries,
+model native method calls (MJI),
+track bytecode execusion and listen for property violations
+
+
+Currently there exists many extensions including a symbolic execution extension (jpf-symbc), data race detector (jpf-racefinder) and a
+abstract window toolkit (AWT) extension (jpf-awt).
+
+One of the advantages of extending JPF is that it has been thoroughly tested and already works for Java applications. So as soon as the the
+Android applications can run on JPF, common errors and defects can be detected.
+
+\subsection{Applying JPF to Android applications}
+Android applications are written in a custom Java implementation Apache Harmony.
+
+Dalvik, the virtual machine used in Google's Android platform, uses a subset of Harmony for the core of its Class Library.[15] However,
+Dalvik does not align to Java SE nor Java ME Class Library profiles (for example J2ME classes, AWT and Swing are not supported). Instead it
+uses its own library,[16] built on a subset of Harmony.
+
+-model the android framework so that android applications can run on the java JVM
+-on it can be run on the java jvm we can run it on jpf’s java jvm
+
+- testing with object maps
+- advantage above capture and replay is that all event sequences are executed
+
+
+%what do I want to detect?
+
+The objective of this project is to create a JPF extension based on JPF-AWT's scripting mechanism that will:
+\begin{itemize}
+ \item model the Android framework libraries using Java SE. Android applications are built on a framework written in Apache Harmony's Java
+implementation. This framework will basically be simplified and closed down to allow the Android application to execute in a controlled
+environment of JPF on a computer.
+
+ \item model user and system input to the application. Android applications are event driven. We need to create a user model to simulate
+input events for the application, similar to a driver. 
+
+ \item use these models to automatically detect property violations such as deadlocks,race conditions and run-time exceptions in Android
+applications.
+
+\end{itemize}
+\newpage
+\section{Development}
+% what are the issues of modelling the framework?
+size of android framework - what to model
+  - we don't necessarily want to have to run android applications exactly as they are run, then gets to complication to test all application
+  paths.
+
+   - the more is modelled the more has to be re-modelled if something changes
+
+   - if too little is modelled, then support to little functionality
+
+native code and the fact that it is run in different thread - but if not native cannot be back tracked
+
+2 important parts to model:
+- processes we don’t need ipc on computer everything runs in one process and we do not need this for testing
+- binder ipc communication between components very import part see application as a whole
+- gui\& system events drives applciation
+- application framework
+
+
+% description of the model:
+1 process
+1 main thread
+1 application
+direct communication instead of binder
+no gui drawing
+
+\subsection{The model}
+- how is an application structured
+--activitythread
+--messagequeue + handler structure
+--window structure
+
+
+script input
+- what is the purpose of the script
+-- input to program
+-- vars added
+-- later check added
+
+- what can the script handle
+- GUI and external events
+-- depth first
+-- non-determinism
+
+- what can the script not handle
+-- specific activity event structure
+-- progressive disclosure
+
+how and where is the script events handled
+- messagequeue processScriptAction
+- generates event sequences uses backtrack to do depth first search trough all possible sequences
+\newpage
 \section{Example}
-\section{Discussion}
-\section{Related Work}
-\section{Conclusions}
+% example showing the detection of a null pointer exception in certain case
 
-\section{Acknowledgments}
+
+
+
+
+\section{Discussion}
+%discussion showing how the tool is successful and the advantages of the tool
+
+
+
+
+\section{Conclusion}
+
+
+limitations
+- only 1 application
+- no android native code can be handled
+
+
+
+\section{Acknowledgements}
 
 %
 % The following two commands are all you need in the
