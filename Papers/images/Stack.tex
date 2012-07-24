@@ -1,0 +1,80 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[rgb]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{calc, positioning}
+\usetikzlibrary{fit}
+\usetikzlibrary{shapes.geometric}
+\usepgflibrary{shapes.geometric}
+\usepgflibrary{decorations.shapes}
+
+\begin{document}
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+\definecolor[named]{fillColor}{rgb}{0.48,0.17,0.26}
+
+\begin{figure}[h!]
+ \centering
+\definecolor[named]{fillColor}{rgb}{0.48,0.17,0.26}
+\begin{tikzpicture}
+[block/.style={rectangle,draw=black!50,text width=1.7cm,,align=center,
+decoration={shape sep=.1cm}}]
+
+\node[block, minimum height=30mm,minimum width=60mm, fill=gray!20 ] (server)  at (5.3,0) {};
+\node[text width=6cm,align=center] (text) at (5.3,2.1)  {Web application server\\(Tomcat)};
+
+\node[block,minimum width=18mm, minimum height=17mm,fill=fillColor!69!white,text=white] (client) {Client};
+\node[text width=3cm,align=center] (text) at (0,2.1)  {Web browser\\ (Firefox,Chrome)};
+
+\node[block, minimum width=20mm,minimum height=25mm,fill=fillColor!69!white,text=white] (webserver)
+at (3.6,0) {Web server};
+\node[block, minimum width=30mm,minimum height=25mm,fill=fillColor!69!white,text=white] (applicationserver)
+at (6.4,0) {Application server};
+
+\node[block,fill=black!0 ,minimum width=18mm, minimum height=17mm] (persistence) 		at (8.5,0) {Persistence
+provider};
+
+\node[text width=6cm,align=center] (text) at (12,2.1)  {Database\\ (HSQLDB)};
+\node[minimum width=1cm, minimum height=2.7cm, cylinder, shape border rotate=90, draw, >=stealth,shape
+aspect=.2,fill=fillColor!69!white,text=white] (database) 				at (12,0) {Data source};
+
+\draw [->] (client) to (server);
+\draw [<-] (client) to node [above,align=center,midway] {HTTP}  (server);
+\draw [<->] (persistence) to node [above,align=center,midway] {JDBC} (database) ;
+
+\end{tikzpicture}
+\caption{Starlight web-based application architecture}
+\end{figure}
+
+\begin{figure}[h!]
+ \centering
+\definecolor[named]{fillColor}{rgb}{0.48,0.17,0.26}
+\begin{tikzpicture}
+[block/.style={rectangle,draw=black!50,text width=1.7cm,,align=center,
+decoration={shape sep=.1cm}}]
+
+
+\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white] (apps1)  at (-5.1,0) {};
+\node[text width=6cm,align=center,text=white,font=\Large\bfseries\sf ] (text) at (-5.25,0.64)  {Stock Android Apps};
+\node[text width=6cm,align=center,text=white,font=\small\sf ] (text) at (-5.25,-0.34)  {Launcher   Phone  Alarm\\Email  Settings  Camera\\Gallery  Calendar ... };
+
+\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white ] (apps2)  at (1.1,0) {};
+\node[text width=6cm,align=center,text=white, font=\Large\bfseries\sf ] (text) at (0.2,0)  {Custom/Market Apps};
+
+\draw[style=dashed] (-8.5, -1.2) to (3.5,-1.2);
+
+\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white] (apps1)  at (-5.1,-2.4) {};
+
+
+
+
+
+
+
+\end{tikzpicture}
+\caption{Starlight web-based application architecture}
+\end{figure}
+
+
+
+\end{document}

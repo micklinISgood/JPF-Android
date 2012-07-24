@@ -37,16 +37,13 @@
 \maketitle
 
 \begin{abstract}
-Software testing and verification plays an important role in determining the quality and robustness of software. These are two very important attributes of 
-mobile applications and can determine the success of the applications. Especially since there are more than 600 000 applications available on the Google play
-market today. But, mobile application testing is a specialized and complex field. Due to mobile applications' event driven design and mobile execution environment,
-there currently exist only a small number of 
-effective tools to verify these applications.
+Mobile application testing is a specialized and complex field. Due to mobile applications' event driven design and mobile runtime environment,
+there currently exist only a small number of tools to verify these applications.
 
 This paper describes the development of JPF-ANDROID, an Android application verification tool. JPF-ANDROID is built on Java PathFinder, 
-a Java model checking engine. JPF-ANDROID attempts to create a simplified model of the Android framework on which an Android application can run. It then allows
+a Java model checking engine. JPF-ANDROID provides a simplified model of the Android framework on which an Android application can run. It then allows
 the user to script input events to drive the application flow. JPF-ANDROID provides a way to detect common property violations such as deadlocks and runtime exceptions
-in Android applications. The paper also provides an example of how to apply JPF-ANDROID to an application and discusses the limitations of the framework.
+in Android applications. The paper also provides an example of how to apply JPF-ANDROID to an application.
 \end{abstract}
 
 \category{D.2.5}{Software Engineering}{Testing and Debugging}[Testing tools]
@@ -56,6 +53,10 @@ in Android applications. The paper also provides an example of how to apply JPF-
 \keywords{Mobile Application, Java PathFinder, JPF, Android, Verification, Testing}
 
 \section{Introduction}
+%Software testing and verification plays an important role in determining the quality and robustness of software. These are two very important attributes of 
+%mobile applications and can determine the success of the applications. Especially since there are more than 600 000 applications available on the Google play
+%market today. But, m
+
 Software testing is a crucial part of software development. It determines the quality and the user
 experience of software which are two very important aspects of Android applications. Especially for the high volume Android applications
 that are released yearly. 
@@ -120,39 +121,44 @@ detector (JPF-RACEFINDER) and an abstract window toolkit (AWT) extension (JPF-AW
 
 The JPF Android extension (JPF-ANDROID) will use JPF's extension mechanisms to:
 \begin{enumerate}
-\item model the Android library classes so that Android applications can run on the JVM
+\item model the Android application framework so that Android applications can run on the JVM,
 \item create an input model to simulate user and system input to the application.
 \end{enumerate}
 
-One of the advantages of extending JPF is that it has been rigorously tested and can can detect many different defects in Java applications. As soon as
-Android applications can run on JPF, common software errors such as null pointer exceptions, assertion violations, deadlocks and
+One of the advantages of extending JPF is that it has been rigorously tested and can successfully detect many common defects in Java applications. As soon as
+Android applications can run on JPF-ANDROID, common software errors such as null pointer exceptions, assertion violations, deadlocks and
 race-conditions will automatically be detected.
 
-The first step in modeling the android class libraries is to understand the structure of the Android application framework.
+The first step in modeling the android framework is to understand its architecture.
 
-\subsection{The Android application framework}
+\subsection{Android}
+Android is an open source software stack for mobile devices such as smartphones with an advanced RISC Machine (ARM) architecture (Figure 1).
+It consists of the Android operating system (OS), the application framework and an application development toolkit assisting developers to create
+applications for the platform~\cite{AndroidDocs}.
 
-Android can be described as a software stack that includes an operating system (OS), middleware and key applications~\cite{AndroidDocs}. 
-The Android framework is built on top of the Linux kernel, using the native libraries. For security reasons each application is run as a separate process on the OS on its 
-own Dalvik VM instance. The applications can only communicate with the Android framework using the Binder inter-process communication (IPC) mechanism. 
+The Android OS is built on top of a modified Linux kernel. It provides a layer of abstraction on top of its low level functionality such as process,
+memory, user, network and thread management. On top of the Android kernel is a set of native libraries including a custom, optimised version of the
+JVM called the Dalvik VM.
+
+For security reasons every Android application is run as a separate process in its own Dalvik VM instance. Hence, applications can only
+communicate with each other and the with the Android framework using Android's Binder inter-process communication (IPC) mechanism. 
+
 \begin{figure}
 \centering
 \epsfig{file=stack.eps, width=3in,}
 \caption{The Android application stack}
 \end{figure}
 
-
-The main application of the OS is called the system process. The system process
-contains services responsible for running the main tasks of the OS for example:
+The main Android application is called the system process. The system process contains services responsible for running the main tasks of the system for example:
 \begin{itemize}
  \item activity manager -- manages the life-cycle and interaction of all the activities running on the system
  \item window manager -- allows applications to draw on the screen
  \item package manager -- stores information on the application packages installed on the device
 \end{itemize}
 
-Android follows a single-threaded application design in which the main thread of an application handles all application events~\cite{AndroidDocs}. This structure is
+Android applications follow a single-threaded design in which the main thread of the application handles all application events~\cite{AndroidDocs}. This structure is
 commonly used by many UI frameworks since it becomes too complex to make all UI classes thread safe~\cite{SingleThread}. For Android, this main thread is called
-the \texttt{Looper} and has a message queue attach to it containing application events to be handled. When UI events are fired, they
+the \texttt{Looper}. The \texttt{Looper} and has a message queue attach to it containing application events to be handled. When UI events are fired, they
 are added to the \texttt{Looper}'s message queue. System events are also scheduled on the main \texttt{Looper} by adding them to the message
 queue. The \texttt{Looper} is responsible for continuously looping through these messages and handling them appropriately. This could
 include updating a widget, loading a new activity or processing an intent.
@@ -182,42 +188,61 @@ applications using a structure called an \texttt{Intent}. An \texttt{Intent} is 
 
 \subsection{Scope of JPF-ANDROID}
 The Android platform is very large and one of the main challenges is to decide which parts of the system to model. The objective of
-JPF-ANDROID is to test Android application not to model the Android framework, so we do not necessarily want to model the entire
-Android OS. Additionally, the more of the framework is modelled, the more has to be re-modelled when Google changes the design.
+JPF-ANDROID is to verify Android applications by running the code using a collection of event sequences and then to detect when errors appear.
 
-JPF-ANDROID will only model one application with multiple components and their interaction. Furthermore the graphics libraries will not
-be modelled as we do not have to physically draw on the screen for testing. The system service of the Android OS is not run in the
-application process and runs in its own thread. To reduce scheduling possibilities we will not model this service, but implement the
-necessary tasks as part of the application process. Lastly, as the application will not be communicating with outside processes, the Binder
-IPC will not be modelled. The components will communicate with each other by sending direct references to themselves. 
+The more the Android framework gets modeled, the more realistic the model is and the more errors can be found. But, the more of the Android framework
+get modeled, the more scheduling possibilities can occur and the search space becomes to big. Additionally, the more of the framework is modelled, 
+the more has to be re-modelled when the architecture changes.
+
+JPF-ANDROID will focus on verifying one application with multiple application components and their interaction. The system service of the Android OS
+is not run in the application process and runs in its own thread. To reduce scheduling possibilities we will not model the entire system service,
+but implement the necessary tasks as part of the application process.
+
+The following parts of the Android framework will be modeled:
+\begin{description}
+ \item [Activity manager] - modeled to manages the lifecycle of Activities and other application components.
+ \item [Activity thread] - modeled to manage the application components and their input.
+ \item [Application components] - including Activity, Service, Broadcast Receiver and Content Provider. 
+ \item [Window and View structure] - The view hierachy will be modeled including the widgets and the sindow classes.
+ \item [Message queue] - The message queue will be modeled to support input from the script file.
+\end{description}
+
+Lastly, as the application will not be communicating with outside processes, the Binder IPC will not be modelled.
+The components will communicate with each other by sending direct references to themselves. 
 
 \section{Development}
 At the basis of the tool's modelled framework are the message queue, the view structure and the activity manager. These components will be
 discussed in greater detail below:
 
-In the Android framework all input events of the system are placed on the message queue and then processed by the \texttt{Looper}. Hence,
-JPF-ANDROID needed a way to place events in this queue. jpf-awt introduced the idea of using a simple script to write event sequences as
+As shown in Figure 2, all input events of the system are placed in the message queue and then processed by the \texttt{Looper}. Hence,
+JPF-ANDROID needed a way to place events in this queue. JPF-AWT introduced the idea of using a simple script to write event sequences as
 input for the application. This scripting mechanism made use of JPF's state backtracking feature to support elements such as the ANY and
 REPEAT structures to make it simpler to specify many input sequences simultaneously. Each time the message queue is empty an event is
-read from the script file. 
+read from the script file. As Android and AWT both use a single-threaded UI design, JPF-ANDROID could build on the idea of scripting input events. 
 
-As Android and AWT both use a single-threaded UI design, JPF-ANDROID could build on the idea of scripting input events. There were two
-challenges to using this approach in JPF-ANDROID:
-\begin{enumerate}
- \item Android applications other that AWT applications receive input from two different
-sources: user input from the UI, and system input from the activity manager through Intents. 
- \item Android applications contains multiple windows - one for each Activity. This complicates the UI input as each
-window has its own unique set of view components - thus a unique input sequence.
-\end{enumerate}
-These challenges were addressed by expanded the scripting language in a few ways:
+%There were two
+%challenges to using this approach in JPF-ANDROID:
+%\begin{enumerate}
+% \item Android applications other that AWT applications receive input from two different
+%sources: user input from the UI, and system input from the activity manager through Intents. 
+% \item Android applications contain multiple windows - one for each Activity. This complicates the UI input as each
+%window has its own unique set of view components - thus a unique input sequence.
+%\end{enumerate}
+%These challenges were addressed by expanded the scripting feature in a few ways:
 
 \subsection{The input model}
+\begin{figure}
+\centering
+\epsfig{file=arch.eps, width=3in,}
+\caption{JPF-ANDROID architecture}
+\end{figure}
+
 JPF-ANDROID classifies input events as either UI events or system events. UI events are handled similar to
-how they were handled in jpf-awt. When the activity's UI is inflated, an object map is built binding the name of a view component (widget)
-to a reference of the inflated view object. When an UI event occurs the name of the target view component is looked-up in the object map
+how they were handled in JPF-AWT. When the activity's UI is inflated, an object map is built binding the name of a view component (widget)
+to the inflated widget. When an UI event occurs the name of the target view component is looked-up in the object map
 and then the action is called on the actual view object. 
 
-An Intent-object are used to describe system events. Intents are used to start Activities
+An Intent-object are is to describe system events. Intents are used to start Activities
 and Services or to provide a notification of certain events. They are similar to messages containing a description of an operation to be
 performed or, often in the case of broadcasts, a description of something that has happened and is being announced. The are two types of
 Intents:
