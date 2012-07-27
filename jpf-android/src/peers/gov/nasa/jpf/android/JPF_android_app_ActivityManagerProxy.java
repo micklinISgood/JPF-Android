@@ -47,7 +47,7 @@ public class JPF_android_app_ActivityManagerProxy {
 	 *            - action as read from the script file
 	 */
 	public static void setIntent(MJIEnv env, UIAction action) {
-		log.fine("Setting " + action.toString());
+		System.out.println("Setting " + action.toString());
 		IntentEntry intent = intentMap.get(action.getTarget());
 
 		if (intent == null) {

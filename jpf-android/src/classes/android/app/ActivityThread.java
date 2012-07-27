@@ -26,18 +26,19 @@ public final class ActivityThread {
 	final H mH = new H();
 	final HashMap<String, ActivityClientRecord> mActivities = new HashMap<String, ActivityClientRecord>();
 
+	// stores the current running Activity
 	ActivityClientRecord currentActivity;
-	boolean mSystemThread = false;
-	static final ThreadLocal<ActivityThread> sThreadLocal = new ThreadLocal<ActivityThread>();
+
 	final ApplicationThread mAppThread = new ApplicationThread();
 
 	private class ApplicationThread {
-		// we use token to identify this activity without having to send the
-		// activity itself back to the activity manager. (matters more with ipc)
+
+		@SuppressWarnings("unused")
 		public final void scheduleDestroyActivity(String activityName) {
 			queueOrSendMessage(H.DESTROY_ACTIVITY, activityName, 0, 0);
 		}
 
+		@SuppressWarnings("unused")
 		public final void scheduleLaunchActivity(String activityName,
 				Intent intent) {
 
@@ -55,9 +56,40 @@ public final class ActivityThread {
 			queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
 		}
 
+		// public final void schedulePauseActivity(IBinder token, boolean
+		// finished,
+		// boolean userLeaving, int configChanges) {
+		// queueOrSendMessage(
+		// finished ? H.PAUSE_ACTIVITY_FINISHING : H.PAUSE_ACTIVITY,
+		// token,
+		// (userLeaving ? 1 : 0),
+		// configChanges);
+		// }
+
+		// public final void scheduleStopActivity(IBinder token, boolean
+		// showWindow,
+		// int configChanges) {
+		// queueOrSendMessage(
+		// showWindow ? H.STOP_ACTIVITY_SHOW : H.STOP_ACTIVITY_HIDE,
+		// token, 0, configChanges);
+		// }
+
+		// public final void scheduleResumeActivity(IBinder token, boolean
+		// isForward) {
+		// queueOrSendMessage(H.RESUME_ACTIVITY, token, isForward ? 1 : 0);
+		// }
+		//
+		// public final void scheduleSendResult(IBinder token, List<ResultInfo>
+		// results) {
+		// ResultData res = new ResultData();
+		// res.token = token;
+		// res.results = results;
+		// queueOrSendMessage(H.SEND_RESULT, res);
+		// }
+
 		private void performBackPressed() {
 			Activity parent = currentActivity.activity.mParent;
-			//TODO stop id parent null
+			// TODO stop id parent null
 			ActivityClientRecord r = new ActivityClientRecord();
 			r.name = parent.getClass().getName();
 			r.intent = new Intent();
@@ -350,8 +382,6 @@ public final class ActivityThread {
 	}
 
 	private void attach() {
-		sThreadLocal.set(this);
-		mSystemThread = false;
 		setApplicationRef(this.mAppThread);
 		init0();
 

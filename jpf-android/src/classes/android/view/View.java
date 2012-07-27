@@ -277,6 +277,7 @@ public class View {
 	 *         otherwise is returned.
 	 */
 	public void onClick() {
+		System.out.println("############################# onclick");
 		OnClickListener li = getOnClickListener();
 		if (li != null) {
 			li.onClick(this);

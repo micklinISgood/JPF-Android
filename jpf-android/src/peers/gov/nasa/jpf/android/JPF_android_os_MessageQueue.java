@@ -94,7 +94,11 @@ public class JPF_android_os_MessageQueue {
 		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // this is run before the
 														// direct call is made
 			if (!ti.isFirstStepInsn()) {
-				UIActionGenerator cg = scriptEnv.getNext("processScriptAction");
+				String[] currentActivity = { JPF_android_app_ActivityThread
+						.getCurrentActivity(env) };
+				System.out.println("Current Activity: " + currentActivity[0]);
+				UIActionGenerator cg = scriptEnv.getNext("processScriptAction",
+						currentActivity);
 				if (cg != null) {
 					counter++;
 					if (forceActionStates) {
@@ -127,6 +131,8 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void runAction(MJIEnv env, UIAction action) {
+		System.out.println("*******************************");
+
 		System.out.println("ProcessAction: " + action.action + " on "
 				+ action.target);
 		if (!action.isNone()) {
@@ -144,7 +150,7 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void handleViewAction(MJIEnv env, UIAction action) {
-		System.out.println(action.toString());
+		System.out.println("#######" + action.toString());
 		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
 		if (tgtRef == MJIEnv.NULL) {
 			log.warning("no view found for UIAction: " + action);
