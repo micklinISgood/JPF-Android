@@ -1,6 +1,5 @@
 package android.os;
 
-import android.util.PrefixPrinter;
 import android.util.Printer;
 
 /**
@@ -169,23 +168,23 @@ public class Looper {
 	}
 
 	public void dump(Printer pw, String prefix) {
-		pw = PrefixPrinter.create(pw, prefix);
-		pw.println(this.toString());
-		pw.println("mRun=" + mRun);
-		pw.println("mThread=" + mThread);
-		pw.println("mQueue=" + ((mQueue != null) ? mQueue : "(null"));
-		if (mQueue != null) {
-			synchronized (mQueue) {
-				long now = SystemClock.uptimeMillis();
-				Message msg = null;
-				int i = 0;
-				for (; i < mQueue.getSize(); i++) {
-					msg = mQueue.getMessage(i);
-					pw.println("  Message " + i + ": " + msg.toString(now));
-				}
-				pw.println("(Total messages: " + (i + 1) + ")");
-			}
-		}
+//		pw = PrefixPrinter.create(pw, prefix);
+//		pw.println(this.toString());
+//		pw.println("mRun=" + mRun);
+//		pw.println("mThread=" + mThread);
+//		pw.println("mQueue=" + ((mQueue != null) ? mQueue : "(null"));
+//		if (mQueue != null) {
+//			synchronized (mQueue) {
+//				long now = SystemClock.uptimeMillis();
+//				Message msg = null;
+//				int i = 0;
+//				for (; i < mQueue.getSize(); i++) {
+//					msg = mQueue.getMessage(i);
+//					pw.println("  Message " + i + ": " + msg.toString(now));
+//				}
+//				pw.println("(Total messages: " + (i + 1) + ")");
+//			}
+//		}
 	}
 
 	public String toString() {

@@ -104,7 +104,7 @@ public class JPF_android_os_MessageQueue {
 					if (forceActionStates) {
 						env.setIntField(objref, "forceNewState", counter);
 					}
-
+					System.out.println("setting next cg: " + cg);
 					ss.setNextChoiceGenerator(cg);
 					// ti.skipInstructionLogging();
 					// System.out.println("ProcessAction " + cg.toString());
@@ -112,6 +112,8 @@ public class JPF_android_os_MessageQueue {
 					env.repeatInvocation();
 					return true; // doesn't really matter
 				} else {
+					System.out.println("setting next cg: false");
+
 					return false;
 				}
 
@@ -119,10 +121,14 @@ public class JPF_android_os_MessageQueue {
 						// left), retrieve it
 				UIActionGenerator cg = ss.getCurrentChoiceGenerator(
 						"processScriptAction", UIActionGenerator.class);
-				assert (cg != null) : "no UIActionGenerator";
-				// System.out.println("processing UIAction: " + cg);
+				
+				
 
-				runAction(env, cg.getNextChoice());
+				assert (cg != null) : "no UIActionGenerator";
+				System.out.println("processing UIAction: " + cg);
+				UIAction ac =  cg.getNextChoice();
+				System.out.println("Next choice : " + ac);
+				runAction(env, ac);
 				env.repeatInvocation();
 
 			}
@@ -150,7 +156,6 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	private static void handleViewAction(MJIEnv env, UIAction action) {
-		System.out.println("#######" + action.toString());
 		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
 		if (tgtRef == MJIEnv.NULL) {
 			log.warning("no view found for UIAction: " + action);

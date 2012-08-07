@@ -12,5 +12,7 @@ SECTION com.example.com.SampleProjectActivity {
 
 SECTION com.example.vdm.SampleProjectActivity {
  $button1.onClick()
+
+
 }
 

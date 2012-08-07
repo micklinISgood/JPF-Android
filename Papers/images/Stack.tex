@@ -6,7 +6,7 @@
 \usetikzlibrary{shapes.geometric}
 \usepgflibrary{shapes.geometric}
 \usepgflibrary{decorations.shapes}
-
+\thispagestyle{empty}
 \begin{document}
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
@@ -15,64 +15,135 @@
 
 \begin{figure}[h!]
  \centering
+\definecolor[named]{grey}{rgb}{0.9,0.9,0.9}
+\definecolor[named]{green}{rgb}{0.297,0.832,0.793}
+\definecolor[named]{blue}{rgb}{0.574,0.633,0.926}
+
 \definecolor[named]{fillColor}{rgb}{0.48,0.17,0.26}
+
 \begin{tikzpicture}
-[block/.style={rectangle,draw=black!50,text width=1.7cm,,align=center,
+[block/.style={rectangle,draw=black,text width=1.7cm,,align=center,
 decoration={shape sep=.1cm}}]
 
-\node[block, minimum height=30mm,minimum width=60mm, fill=gray!20 ] (server)  at (5.3,0) {};
-\node[text width=6cm,align=center] (text) at (5.3,2.1)  {Web application server\\(Tomcat)};
 
-\node[block,minimum width=18mm, minimum height=17mm,fill=fillColor!69!white,text=white] (client) {Client};
-\node[text width=3cm,align=center] (text) at (0,2.1)  {Web browser\\ (Firefox,Chrome)};
+\node[block, minimum height=20mm,minimum width=60mm,fill=green] (apps1)  at (-3.25,1.25) {};
+\node[text width=6cm,align=center,font=\Large\bfseries\sf ] (text) at (-3.25,1.8)  {Stock Android Apps};
+\node[text width=6cm,align=center,font=\small\sf ] (text) at (-3.25,0.9)  {Launcher   Phone  Alarm\\Email  Settings 
+Camera\\Gallery  Calendar ... };
 
-\node[block, minimum width=20mm,minimum height=25mm,fill=fillColor!69!white,text=white] (webserver)
-at (3.6,0) {Web server};
-\node[block, minimum width=30mm,minimum height=25mm,fill=fillColor!69!white,text=white] (applicationserver)
-at (6.4,0) {Application server};
+\node[block, minimum height=20mm,minimum width=60mm,fill=green] (apps2)  at (3.25,1.25) {};
+\node[text width=6cm,align=center, font=\Large\bfseries\sf ] (text) at (3.25,1.25)  {Custom/Market Apps};
 
-\node[block,fill=black!0 ,minimum width=18mm, minimum height=17mm] (persistence) 		at (8.5,0) {Persistence
-provider};
+\draw[style=dashed] (-7, 0) to (7,0);
+\draw[style=dashed] (0, 0) to (0,-3.5);
+\node[align=center,font=\small\sf,rotate=90, fill=white] (text) at (0,-1.5)  {Binder};
 
-\node[text width=6cm,align=center] (text) at (12,2.1)  {Database\\ (HSQLDB)};
-\node[minimum width=1cm, minimum height=2.7cm, cylinder, shape border rotate=90, draw, >=stealth,shape
-aspect=.2,fill=fillColor!69!white,text=white] (database) 				at (12,0) {Data source};
 
-\draw [->] (client) to (server);
-\draw [<-] (client) to node [above,align=center,midway] {HTTP}  (server);
-\draw [<->] (persistence) to node [above,align=center,midway] {JDBC} (database) ;
+
+\node[block, minimum height=30mm,minimum width=60mm,fill=grey] (apps1)  at (-3.25,-1.75) {};
+\node[text width=6cm,align=center,font=\Large\bfseries\sf ] (text) at (-3.25,-0.65)  {System Server};
+\node[text width=6cm,align=center,font=\small\sf ] (text) at (-3.25,-2)  {Activity Manager    Window Manager\\Package Manager   
+Location Manager\\Power Manager Battery Service\\Notification Manager Mount Service\\Clipboard Service  ...};
+
+
+\node[block, minimum height=30mm,minimum width=28.75mm,fill=grey] (apps1)  at (1.6875,-1.75) {};
+\node[text width=6cm,align=center,font=\Large\bfseries\sf ] (text) at (1.6875,-1.75)  {android.*};
+\node[block, minimum height=30mm,minimum width=28.75mm,fill=grey] (apps1)  at (4.8125,-1.75) {};
+\node[text width=6cm,align=center,font=\Large\bfseries\sf ] (text) at (4.8125,-1.57)  {java.*};
+\node[text width=6cm,align=center,font=\small\sf ] (text) at (4.8125,-2)  {(Apache Harmony)};
+
+\node[block, minimum height=10mm,minimum width=125mm,fill=grey] (apps1)  at (0,-4) {};
+\node[text width=13cm,align=center,font=\large\bfseries\sf ] (text) at (0,-4)  {Android Runtime/Dalvik/Zygote};
+
+\draw[style=dashed] (-7, -4.75) to (7,-4.75);
+
+
+\node[block, minimum height=12mm,minimum width=28.75mm,fill=blue] (apps1)  at (1.6875,-5.6) {};
+\node[text width=3cm,align=center,font=\large\bfseries\sf ] (text) at (1.6875,-5.6)  {Libs};
+\node[block, minimum height=12mm,minimum width=28.75mm,fill=blue] (apps1)  at (4.8125,-5.6) {};
+\node[text width=3cm,align=center,font=\large\bfseries\sf ] (text) at (4.8125,-5.6)  {Init/Toolbox};
+\node[block, minimum height=12mm,minimum width=28.75mm,fill=blue] (apps1)  at (-1.6875,-5.6) {};
+\node[text width=3cm,align=center,font=\large\bfseries\sf ] (text) at (-1.6875,-5.6)  {Native\\Daemons};
+\node[block, minimum height=12mm,minimum width=28.75mm,fill=blue] (apps1)  at (-4.8125,-5.6) {};
+\node[text width=3cm,align=center,font=\large\bfseries\sf ] (text) at (-4.8125,-5.6)  {Hardware\\Drivers};
+
+
+
+\node[block, minimum height=10mm,minimum width=125mm,fill=blue] (apps1)  at (0,-6.95) {};
+\node[text width=13cm,align=center,font=\Large\bfseries\sf ] (text) at (0,-6.75)  {Linux Kernel};
+\node[text width=6cm,align=center,font=\small\sf ] (text) at (0,-7.25)  {Binder, ashmem, wakelocks,lowmem, ...};
+
 
 \end{tikzpicture}
-\caption{Starlight web-based application architecture}
 \end{figure}
 
+\newpage
+\thispagestyle{empty}
 \begin{figure}[h!]
  \centering
+\definecolor[named]{grey}{rgb}{0.9,0.9,0.9}
+\definecolor[named]{green}{rgb}{0.297,0.832,0.793}
+\definecolor[named]{blue}{rgb}{0.574,0.633,0.926}
+
 \definecolor[named]{fillColor}{rgb}{0.48,0.17,0.26}
+
 \begin{tikzpicture}
-[block/.style={rectangle,draw=black!50,text width=1.7cm,,align=center,
+[block/.style={rectangle,draw=black,text width=1.7cm,,align=center,
 decoration={shape sep=.1cm}}]
 
+\node[block,minimum height=1cm,minimum width=4.8cm,fill=green,text width=4.8cm,align=center, font=\bfseries\sf ] (application) at
+(0cm,1.7cm) {Application Components};
 
-\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white] (apps1)  at (-5.1,0) {};
-\node[text width=6cm,align=center,text=white,font=\Large\bfseries\sf ] (text) at (-5.25,0.64)  {Stock Android Apps};
-\node[text width=6cm,align=center,text=white,font=\small\sf ] (text) at (-5.25,-0.34)  {Launcher   Phone  Alarm\\Email  Settings  Camera\\Gallery  Calendar ... };
+\path [draw,fill=grey ] (-3.8,-4) -- (-3.8,1.6) -- (-2.7,1.6) -- (-2.7,1) -- (2.7,1) -- (2.7,1.6) --  (3.8,1.6) -- (3.8,-4) --
+(-3.8,-4);
 
-\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white ] (apps2)  at (1.1,0) {};
-\node[text width=6cm,align=center,text=white, font=\Large\bfseries\sf ] (text) at (0.2,0)  {Custom/Market Apps};
+\node[block, minimum height=1cm,minimum width=2cm,text width=2cm, font=\small\bfseries\sf,fill=white ] (am)  at (-2.5cm,-3.3cm)
+{JPF\_Activity Manager};
+\node[block, minimum height=1cm,minimum width=2cm,text width=2cm,font=\small\bfseries\sf,fill=white ] (mq)  at (0cm,-3.3cm) {JPF\_Message
+Queue};
+\node[block, minimum height=1cm,minimum width=2cm,text width=2cm, font=\small\bfseries\sf ,fill=white] (win)  at (2.5cm,-3.3cm)
+{JPF\_Window};
 
-\draw[style=dashed] (-8.5, -1.2) to (3.5,-1.2);
-
-\node[block, minimum height=20mm,minimum width=60mm, fill=fillColor!69!white,text=white] (apps1)  at (-5.1,-2.4) {};
-
-
+\draw[style=dashed,thick] (-5, -2.6) to (5,-2.6);
+\node[text width=6cm,align=center, font=\bfseries\sf ] (text1) at (4.3cm,-2.3)  {JPF};
+\node[text width=6cm,align=center, font=\bfseries\sf ] (text2) at (4.3cm,-2.9)  {MJI};
 
 
 
+ \node[block, minimum height=1cm,minimum width=2.7cm,font=\bfseries\sf,,fill=white] (MQ)  at (-2.25cm,-1.3) {Message Queue};
+\node[block, minimum height=1cm,minimum width=7.2cm,align=center, font=\large\bfseries\sf,fill=white ] (apps2)  at (0cm,0.3cm)
+{ActivityThread};
+% \draw[style=dashed] (-3.8,-1) to (3.8,-1);
+ \node[block, minimum height=1cm,minimum width=2.7cm, font=\small\bfseries\sf,fill=white ] (loop)  at (2.25cm,-1.3cm) {Looper};
+%  \node[block, minimum height=1cm,minimum width=2cm,text width=2cm, font=\small\bfseries\sf ] (apps2)  at (2.5cm,-1.9cm) {};
+
+\node[minimum width=1cm,text width=1cm, minimum height=1.4cm, cylinder, shape border rotate=90, draw, >=stealth,shape
+aspect=.2,fill=green, align=center] (database) 				at (0,-5) {Input\\ Script};
+
+
+\draw [->, thick] (win) to [ out=30, in= -10] (application)  ;
+\node[text width=3cm,align=center, font=\small\bfseries\sf ] (text) at (5,-1)  {\$button.onClick()};
+
+\draw [->,thick] (database) to (mq);
+
+\draw [->,thick] (mq) to (am);
+\draw [->,thick] (mq) to (win);
+\draw [->, thick] (am) to  [ out=180, in=180] (MQ);
+\draw [->, thick] (MQ) to (mq);
+\draw [->, thick] (loop) to (MQ);
+\draw [->, thick] (loop) to (apps2);
+\node[text width=3cm,align=center, font=\small\bfseries\sf ] (text) at (1.8cm,-0.5cm)  {handleLaunchActivity(...)};
+\node[text width=3cm,align=center, font=\small\bfseries\sf ] (text) at (-4,-2.3)  {scheduleLaunchActivity(...)};
+
+
+\node[text width=3cm,align=center, font=\small\bfseries\sf ] (text) at (0.5, -2.3)  {processScriptAction()};
+\node[text width=3cm,align=center, font=\small\bfseries\sf ] (text) at (0, -1.1)  {getNext()};
+
+
+\draw [->,thick] (apps2) to (application);
 
 
 \end{tikzpicture}
-\caption{Starlight web-based application architecture}
 \end{figure}
 
 
