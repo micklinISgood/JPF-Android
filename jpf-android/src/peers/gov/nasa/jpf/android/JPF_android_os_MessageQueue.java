@@ -34,22 +34,12 @@ public class JPF_android_os_MessageQueue {
 
 	// static UIActionGeneratorFactory cgFactory;
 	static UIScriptEnvironment scriptEnv;
-
-	static MethodInfo getMethodInfo(ClassInfo ci, UIAction action) {
-		// <2do> this does not work - we can't deduce the exact method signature
-		// from
-		// the UI action because of the missing return type and the lossy
-		// parameter
-		// parsing (numbers are all stored as Double). We have to reverse match
-		String methodName = action.getMethodName();
-		MethodInfo mi = ci.getMethod(methodName, true);
-
-		return mi;
-	}
+	
+	
 
 	/**
-	 * this is called from the EventDispatchThread run, i.e. before each
-	 * application run
+	 * Called from the MesaageQueue Constructor, i.e. before each
+	 * application run. It opens and parses the input script.
 	 */
 	public static void init____V(MJIEnv env, int objref) {
 		Config conf = env.getConfig();
@@ -77,26 +67,26 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	/**
-	 * this is called from within the EventDispatcher loop. If we return false,
-	 * it means there is nothing else to check and we are done
+	 * Called from within the message queue to retrieve new message when queue is
+	 * empty. If we return false, it means there is nothing else to check and we
+	 * are done
 	 */
 	public static boolean processScriptAction(MJIEnv env, int objref) {
 		ThreadInfo ti = env.getThreadInfo();
 		SystemState ss = env.getSystemState();
 		Instruction insn = ti.getPC();
 
-		if (scriptEnv == null) { // that should have caused a warning during
-									// Initialisation
+		if (scriptEnv == null) {
 			log.warning("no UIScriptEnvironment, terminating");
 			return false;
 		}
 
-		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // this is run before the
-														// direct call is made
+		if (!ti.hasReturnedFromDirectCall(UIACTION)) { //before direct call to handle action
 			if (!ti.isFirstStepInsn()) {
 				String[] currentActivity = { JPF_android_app_ActivityThread
 						.getCurrentActivity(env) };
-				System.out.println("Current Activity: " + currentActivity[0]);
+				log.fine("Current Activity: " + currentActivity[0]);
+				//get next action to process of this activity
 				UIActionGenerator cg = scriptEnv.getNext("processScriptAction",
 						currentActivity);
 				if (cg != null) {
@@ -104,16 +94,13 @@ public class JPF_android_os_MessageQueue {
 					if (forceActionStates) {
 						env.setIntField(objref, "forceNewState", counter);
 					}
-					System.out.println("setting next cg: " + cg);
+					log.fine("setting next cg: " + cg);
 					ss.setNextChoiceGenerator(cg);
 					// ti.skipInstructionLogging();
-					// System.out.println("ProcessAction " + cg.toString());
-
-					env.repeatInvocation();
+					env.repeatInvocation(); // will execute else where first option of the cg will be retrieved etc.
 					return true; // doesn't really matter
 				} else {
-					System.out.println("setting next cg: false");
-
+					log.fine("cg == null"); // no more events in this event sequence - either backtrack or end
 					return false;
 				}
 
@@ -121,116 +108,36 @@ public class JPF_android_os_MessageQueue {
 						// left), retrieve it
 				UIActionGenerator cg = ss.getCurrentChoiceGenerator(
 						"processScriptAction", UIActionGenerator.class);
-				
-				
 
 				assert (cg != null) : "no UIActionGenerator";
-				System.out.println("processing UIAction: " + cg);
-				UIAction ac =  cg.getNextChoice();
-				System.out.println("Next choice : " + ac);
+				log.fine("processing UIAction: " + cg);
+				UIAction ac = cg.getNextChoice();
+				log.fine("Next choice : " + ac);
 				runAction(env, ac);
-				env.repeatInvocation();
-
+				env.repeatInvocation(); // this will execute until no more choices in this cg.
 			}
 		}
 		return true;
 	}
 
+	/**
+	 * Sends the action to the appropriate native peer to handle
+	 * @param env
+	 * @param action
+	 */
 	private static void runAction(MJIEnv env, UIAction action) {
-		System.out.println("*******************************");
+		log.fine("*******************************");
+		log.fine("ProcessAction: " + action.action + " on " + action.target);
 
-		System.out.println("ProcessAction: " + action.action + " on "
-				+ action.target);
 		if (!action.isNone()) {
 			if (action.target == null) { // componentAction
 				JPF_android_app_ActivityManagerProxy.handleComponentAction(env,
 						action);
 			} else if (action.target.startsWith("$")) { // viewAction
-				handleViewAction(env, action);
-
+				JPF_android_view_Window.handleViewAction(env, action);
 			} else if (action.target.startsWith("@")) { // intentAction
 				JPF_android_app_ActivityManagerProxy.setIntent(env, action);
-
 			}
-		}
-	}
-
-	private static void handleViewAction(MJIEnv env, UIAction action) {
-		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
-		if (tgtRef == MJIEnv.NULL) {
-			log.warning("no view found for UIAction: " + action);
-		} else if (!componentEnabled(env, tgtRef)) {
-			log.warning("component NOT enabled for UIAction: " + action);
-		} else {
-
-			ElementInfo ei = env.getElementInfo(tgtRef);
-			ClassInfo ci = ei.getClassInfo();
-			if (!ci.isInstanceOf("android.view.View")) {
-				log.warning("UIAction target reference for : " + action
-						+ " is not a android.view.View: " + ei);
-			} else {
-
-				MethodInfo mi = getMethodInfo(ci, action);
-
-				if (mi == null) {
-					log.warning("UIAction " + action
-							+ " refers to unknown method " + action
-							+ "() in class " + ci.getName());
-
-				} else {
-					if (log.isLoggable(Level.FINER)) {
-						log.finer("calling UIAction: " + action + " : " + ei
-								+ "." + mi.getUniqueName());
-					}
-					// Ok, now we can finally make the (direct) call
-					MethodInfo stub = mi.createDirectCallStub(UIACTION);
-					DirectCallStackFrame frame = new DirectCallStackFrame(stub);
-
-					// if (!mi.isStatic()) {
-					frame.push(tgtRef, true);
-					// }
-
-					Object[] args = action.getArguments();
-					if (args != null) {
-						byte[] argTypes = mi.getArgumentTypes();
-						for (int i = 0; i < args.length; i++) {
-							pushArg(env, args[i], argTypes[i], frame);
-						}
-					}
-
-					ThreadInfo ti = env.getThreadInfo();
-					ti.pushFrame(frame);
-				}
-			}
-		}
-	}
-
-	// TODO: move all checks here
-	private static boolean componentEnabled(MJIEnv env, int tgtRef) {
-		boolean enabled = env.getBooleanField(tgtRef, "enabled");
-		boolean visible = env.getBooleanField(tgtRef, "visible");
-		if (!enabled || !visible) {
-			return false;
-		} else
-			return true;
-	}
-
-	// <2do> very simplistic argument handling for now
-	static void pushArg(MJIEnv env, Object arg, byte typeCode, StackFrame frame) {
-		if (arg == null) {
-			frame.push(MJIEnv.NULL, false);
-		} else if (arg instanceof String) {
-			int sRef = env.newString((String) arg);
-			frame.push(sRef, true);
-		} else if (arg instanceof Double) {
-			frame.doublePush(((Double) arg).doubleValue());
-		} else if (arg instanceof Integer) {
-			frame.push(((Integer) arg).intValue(), false);
-		} else if (arg instanceof Boolean) {
-			frame.push(((Boolean) arg).booleanValue() ? 1 : 0, false);
-		} else {
-			throw new UnsupportedOperationException(
-					"argument type not supported: " + arg);
 		}
 	}
 

@@ -24,7 +24,6 @@ public class MessageQueue {
 	native boolean processScriptAction();
 
 	public MessageQueue() {
-		// nothing
 		init();
 	}
 

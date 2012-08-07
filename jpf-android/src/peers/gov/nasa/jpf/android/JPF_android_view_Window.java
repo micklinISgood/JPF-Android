@@ -3,12 +3,18 @@ package gov.nasa.jpf.android;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.jvm.DirectCallStackFrame;
+import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.MethodInfo;
+import gov.nasa.jpf.jvm.StackFrame;
+import gov.nasa.jpf.jvm.ThreadInfo;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import android.os.MessageQueue;
@@ -32,6 +38,7 @@ import android.view.Window;
  */
 public class JPF_android_view_Window {
 	static Logger log = JPF.getLogger("gov.nasa.jpf.android");
+	static final String UIACTION = "[UIAction]";
 
 	private static String ID_HEADER = "public static final class id {";
 	private static String LAYOUT_HEADER = "public static final class layout {";
@@ -70,12 +77,15 @@ public class JPF_android_view_Window {
 			log.severe("path not set in jpf.properties");
 			return;
 		}
-		rPath = rPath + "/gen/" + JPF_android_app_ActivityThread.getPackageName().replace('.', '/') + "/R.java";
-		
+		rPath = rPath
+				+ "/gen/"
+				+ JPF_android_app_ActivityThread.getPackageName().replace('.',
+						'/') + "/R.java";
+
 		parseRFile(rPath);
 
 	}
-	
+
 	/**
 	 * Parse the R.java file and builds the componentMap and layoutMap.
 	 * 
@@ -84,7 +94,7 @@ public class JPF_android_view_Window {
 	 *            the path to the R.java file on disk
 	 */
 	public static void parseRFile(String rPath) {
-		
+
 		Scanner scanner = null;
 		String nextLine;
 		try {
@@ -125,8 +135,8 @@ public class JPF_android_view_Window {
 			c.setId(Integer.parseInt(list[1].substring(2), 16));
 			c.setName(list[0]);
 			componentMap.put("$" + list[0], c);
-			//System.out.println("insertign in map " + c.getId() + " "
-			//		+ c.getName());
+			// System.out.println("insertign in map " + c.getId() + " "
+			// + c.getName());
 
 		}
 		// TODO Add window to the componentMap to catch window events
@@ -327,6 +337,97 @@ public class JPF_android_view_Window {
 			return -1;
 		else
 			return c.getId();
+	}
+
+	static void handleViewAction(MJIEnv env, UIAction action) {
+		int tgtRef = JPF_android_view_Window.getViewRef(action.getTarget());
+		if (tgtRef == MJIEnv.NULL) {
+			log.warning("no view found for UIAction: " + action);
+		} else if (!componentEnabled(env, tgtRef)) {
+			log.warning("component NOT enabled for UIAction: " + action);
+		} else {
+
+			ElementInfo ei = env.getElementInfo(tgtRef);
+			ClassInfo ci = ei.getClassInfo();
+			if (!ci.isInstanceOf("android.view.View")) {
+				log.warning("UIAction target reference for : " + action
+						+ " is not a android.view.View: " + ei);
+			} else {
+
+				MethodInfo mi = getMethodInfo(ci, action);
+
+				if (mi == null) {
+					log.warning("UIAction " + action
+							+ " refers to unknown method " + action
+							+ "() in class " + ci.getName());
+
+				} else {
+					if (log.isLoggable(Level.FINER)) {
+						log.finer("calling UIAction: " + action + " : " + ei
+								+ "." + mi.getUniqueName());
+					}
+					// Ok, now we can finally make the (direct) call
+					MethodInfo stub = mi.createDirectCallStub(UIACTION);
+					DirectCallStackFrame frame = new DirectCallStackFrame(stub);
+
+					if (!mi.isStatic()) {
+						frame.push(tgtRef, true);
+					}
+
+					Object[] args = action.getArguments();
+					if (args != null) {
+						byte[] argTypes = mi.getArgumentTypes();
+						for (int i = 0; i < args.length; i++) {
+							pushArg(env, args[i], argTypes[i], frame);
+						}
+					}
+
+					ThreadInfo ti = env.getThreadInfo();
+					ti.pushFrame(frame);
+				}
+			}
+		}
+	}
+
+	// TODO: move all checks here
+	private static boolean componentEnabled(MJIEnv env, int tgtRef) {
+		boolean enabled = env.getBooleanField(tgtRef, "enabled");
+		boolean visible = env.getBooleanField(tgtRef, "visible");
+		if (!enabled || !visible) {
+			return false;
+		} else
+			return true;
+	}
+
+	static MethodInfo getMethodInfo(ClassInfo ci, UIAction action) {
+		// <2do> this does not work - we can't deduce the exact method signature
+		// from
+		// the UI action because of the missing return type and the lossy
+		// parameter
+		// parsing (numbers are all stored as Double). We have to reverse match
+		String methodName = action.getMethodName();
+		MethodInfo mi = ci.getMethod(methodName, true);
+
+		return mi;
+	}
+
+	// <2do> very simplistic argument handling for now
+	static void pushArg(MJIEnv env, Object arg, byte typeCode, StackFrame frame) {
+		if (arg == null) {
+			frame.push(MJIEnv.NULL, false);
+		} else if (arg instanceof String) {
+			int sRef = env.newString((String) arg);
+			frame.push(sRef, true);
+		} else if (arg instanceof Double) {
+			frame.doublePush(((Double) arg).doubleValue());
+		} else if (arg instanceof Integer) {
+			frame.push(((Integer) arg).intValue(), false);
+		} else if (arg instanceof Boolean) {
+			frame.push(((Boolean) arg).booleanValue() ? 1 : 0, false);
+		} else {
+			throw new UnsupportedOperationException(
+					"argument type not supported: " + arg);
+		}
 	}
 
 }
