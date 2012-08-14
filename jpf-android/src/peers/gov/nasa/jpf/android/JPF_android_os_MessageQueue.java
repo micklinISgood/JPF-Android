@@ -34,12 +34,10 @@ public class JPF_android_os_MessageQueue {
 
 	// static UIActionGeneratorFactory cgFactory;
 	static UIScriptEnvironment scriptEnv;
-	
-	
 
 	/**
-	 * Called from the MesaageQueue Constructor, i.e. before each
-	 * application run. It opens and parses the input script.
+	 * Called from the MesaageQueue Constructor, i.e. before each application
+	 * run. It opens and parses the input script.
 	 */
 	public static void init____V(MJIEnv env, int objref) {
 		Config conf = env.getConfig();
@@ -67,9 +65,9 @@ public class JPF_android_os_MessageQueue {
 	}
 
 	/**
-	 * Called from within the message queue to retrieve new message when queue is
-	 * empty. If we return false, it means there is nothing else to check and we
-	 * are done
+	 * Called from within the message queue to retrieve new message when queue
+	 * is empty. If we return false, it means there is nothing else to check and
+	 * we are done
 	 */
 	public static boolean processScriptAction(MJIEnv env, int objref) {
 		ThreadInfo ti = env.getThreadInfo();
@@ -81,12 +79,13 @@ public class JPF_android_os_MessageQueue {
 			return false;
 		}
 
-		if (!ti.hasReturnedFromDirectCall(UIACTION)) { //before direct call to handle action
+		if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
+														// handle action
 			if (!ti.isFirstStepInsn()) {
-				String[] currentActivity = { JPF_android_app_ActivityThread
-						.getCurrentActivity(env) };
-				log.fine("Current Activity: " + currentActivity[0]);
-				//get next action to process of this activity
+				String currentActivity = JPF_android_app_ActivityThread
+						.getCurrentActivity(env);
+				log.fine("Current Activity: " + currentActivity);
+				// get next action to process of this activity
 				UIActionGenerator cg = scriptEnv.getNext("processScriptAction",
 						currentActivity);
 				if (cg != null) {
@@ -97,10 +96,14 @@ public class JPF_android_os_MessageQueue {
 					log.fine("setting next cg: " + cg);
 					ss.setNextChoiceGenerator(cg);
 					// ti.skipInstructionLogging();
-					env.repeatInvocation(); // will execute else where first option of the cg will be retrieved etc.
+					env.repeatInvocation(); // will execute else where first
+											// option of the cg will be
+											// retrieved etc.
 					return true; // doesn't really matter
 				} else {
-					log.fine("cg == null"); // no more events in this event sequence - either backtrack or end
+					log.fine("cg == null"); // no more events in this event
+											// sequence - either backtrack or
+											// end
 					return false;
 				}
 
@@ -114,7 +117,8 @@ public class JPF_android_os_MessageQueue {
 				UIAction ac = cg.getNextChoice();
 				log.fine("Next choice : " + ac);
 				runAction(env, ac);
-				env.repeatInvocation(); // this will execute until no more choices in this cg.
+				env.repeatInvocation(); // this will execute until no more
+										// choices in this cg.
 			}
 		}
 		return true;
@@ -122,6 +126,7 @@ public class JPF_android_os_MessageQueue {
 
 	/**
 	 * Sends the action to the appropriate native peer to handle
+	 * 
 	 * @param env
 	 * @param action
 	 */

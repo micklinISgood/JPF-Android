@@ -3,15 +3,15 @@
 startActivity(@intent1)
 
 SECTION com.example.com.SampleProjectActivity {
- $buttonPrint1.onClick()
- REPEAT 2 {
-	ANY{$buttonPrint2.onClick(),$buttonPrint1.onClick()}
-	}
-}
 
+ANY { $buttonPrint3.onClick(), $buttonPrint2.onClick() }
+
+$buttonPrint1.onClick()
+}
 
 SECTION com.example.vdm.SampleProjectActivity {
  $button1.onClick()
+ $button2.onClick()
 
 
 }

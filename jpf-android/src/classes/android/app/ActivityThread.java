@@ -46,7 +46,7 @@ public final class ActivityThread {
 					&& activityName == currentActivity.getName()) {
 				// TODO
 				System.out.println("This activity has already been started");
-			} else {
+			} else { // was started already and cotained in mActivities
 
 			}
 

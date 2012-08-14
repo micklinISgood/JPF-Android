@@ -10,22 +10,28 @@ import android.widget.Button;
 
 public class SampleProjectActivity extends Activity {
 
+	int i =0;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		System.out.println("act1");
-
+		
 		Button b1 = (Button) findViewById(R.id.buttonPrint1);
+		final Button b3 = (Button) findViewById(R.id.buttonPrint3);
+
 		b1.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				System.out.println("Button 1 Clicked!!!");
+				i++;
+				System.out.println("Button 1 Clicked!!!" + i);
 				// Intent i = new Intent(SampleProjectActivity.this,
 				// com.example.vdm.SampleProjectActivity.class);
 				// startActivity(i);
+				b3.setEnabled(true);
 			}
 		});
 
@@ -34,7 +40,20 @@ public class SampleProjectActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				System.out.println("Button 2 Clicked!!!");
+				i++;
+				System.out.println("Button 2 Clicked!!! " + i);
+				Intent i = new Intent(SampleProjectActivity.this,
+						com.example.vdm.SampleProjectActivity.class);
+				startActivity(i);
+			}
+		});
+		
+		b3.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				i++;
+				System.out.println("Button 3 Clicked!!! " + i);
 				Intent i = new Intent(SampleProjectActivity.this,
 						com.example.vdm.SampleProjectActivity.class);
 				startActivity(i);

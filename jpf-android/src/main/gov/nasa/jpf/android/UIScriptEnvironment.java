@@ -1,14 +1,12 @@
 package gov.nasa.jpf.android;
 
+import gov.nasa.jpf.util.script.Event;
+import gov.nasa.jpf.util.script.ScriptEnvironment;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.List;
-
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.util.script.Event;
-import gov.nasa.jpf.util.script.ScriptEnvironment;
 
 public class UIScriptEnvironment extends ScriptEnvironment<UIActionGenerator> {
 
