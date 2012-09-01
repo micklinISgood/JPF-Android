@@ -26,6 +26,12 @@
             android:name="com.example.vdm.SampleProjectActivity"
             android:label="@string/app_name" >
         </activity>
+        
+        <activity
+            android:name="com.example.com.MylistView"
+            android:label="@string/app_name" >
+        </activity>
+            
     </application>
 
 </manifest>

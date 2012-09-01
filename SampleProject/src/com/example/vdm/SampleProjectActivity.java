@@ -7,20 +7,32 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.com.R;
 
 public class SampleProjectActivity extends Activity {
-	int i=0;
-	
-	
+	int i = 0;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		System.out.println("onCreate");
 		setContentView(R.layout.main2);
+		System.out.println("onCreate");
 		System.out.println("act2");
+
+		Bundle bundle = getIntent().getExtras();
+
+		if (bundle != null) { // forgot to null check
+			String sName = bundle.getString("name");
+			String sSurname = bundle.getString("surname");
+			int sAge = bundle.getInt("age");
+
+			TextView l = (TextView) findViewById(R.id.nameEdit);
+			l.setText(sName + " " + sSurname + " age: " + sAge);
+			System.out.println(sName + " " + sSurname + " age: " + sAge);
+		}
 
 		Button b1 = (Button) findViewById(R.id.button1);
 		final Button b2 = (Button) findViewById(R.id.button2);
@@ -37,20 +49,20 @@ public class SampleProjectActivity extends Activity {
 			}
 		});
 
-		
 		b2.setEnabled(false);
 		b2.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				i++;
-				System.out.println("Button 2 Clicked!!!"+ i);
+				System.out.println("Button 2 Clicked!!!" + i);
 				Intent i = new Intent(SampleProjectActivity.this,
 						com.example.com.SampleProjectActivity.class);
 				startActivity(i);
 			}
 		});
 	}
+
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -69,8 +81,6 @@ public class SampleProjectActivity extends Activity {
 		super.onResume();
 		System.out.println("2  onResume()");
 
-		
-		
 	}
 
 	@Override
@@ -90,7 +100,6 @@ public class SampleProjectActivity extends Activity {
 		super.onStop();
 		System.out.println("2  onStop()");
 
-		
 	}
 
 	@Override
@@ -130,7 +139,6 @@ public class SampleProjectActivity extends Activity {
 		System.out.println("2  onActivityResult()");
 		super.onActivityResult(requestCode, resultCode, data);
 	}
-
 
 	/**
 	 * The main entry point to the application

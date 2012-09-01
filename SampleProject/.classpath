@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry kind="lib" path="/home/heila/Android/android-sdk-linux/sources/android-15"/>
+	<classpathentry kind="lib" path="/home/heila/Android/android-sdk-linux/platforms/android-15/android.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jpf-android"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

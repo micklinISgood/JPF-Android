@@ -10,30 +10,47 @@ import android.widget.Button;
 
 public class SampleProjectActivity extends Activity {
 
-	int i =0;
-	
+	int i = 0;
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		System.out.println("act1");
-		
-		Button b1 = (Button) findViewById(R.id.buttonPrint1);
-		final Button b3 = (Button) findViewById(R.id.buttonPrint3);
+
+		Button b1 = (Button) findViewById(R.id.buttonText1);
 
 		b1.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
 				i++;
-				System.out.println("Button 1 Clicked!!!" + i);
-				// Intent i = new Intent(SampleProjectActivity.this,
-				// com.example.vdm.SampleProjectActivity.class);
-				// startActivity(i);
-				b3.setEnabled(true);
+				System.out.println("Printing text 1 :" + i);
 			}
 		});
+
+		Button b11 = (Button) findViewById(R.id.buttonText2);
+
+		b11.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				i++;
+				System.out.println("Printing text 2: " + i);
+			}
+		});
+
+		Button b111 = (Button) findViewById(R.id.buttonText3);
+
+		b111.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				i++;
+				System.out.println("Printing text 3: " + i);
+			}
+		});
+
+		final Button b3 = (Button) findViewById(R.id.buttonPrint3);
+		final Button b4 = (Button) findViewById(R.id.buttonPrint4);
 
 		Button b2 = (Button) findViewById(R.id.buttonPrint2);
 		b2.setOnClickListener(new OnClickListener() {
@@ -47,7 +64,7 @@ public class SampleProjectActivity extends Activity {
 				startActivity(i);
 			}
 		});
-		
+
 		b3.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -56,9 +73,35 @@ public class SampleProjectActivity extends Activity {
 				System.out.println("Button 3 Clicked!!! " + i);
 				Intent i = new Intent(SampleProjectActivity.this,
 						com.example.vdm.SampleProjectActivity.class);
+
+				// Create the bundle
+				Bundle bundle = new Bundle();
+
+				// Add your stuff
+				bundle.putString("name", "heidi");
+				bundle.putString("surname", "van der merwe");
+				bundle.putInt("age", 83);
+
+				// Add the bundle to the intent
+				i.putExtras(bundle);
+
 				startActivity(i);
 			}
 		});
+
+		b4.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				i++;
+				System.out.println("Button 4 Clicked!!! " + i);
+				Intent i = new Intent(SampleProjectActivity.this,
+						com.example.com.MylistView.class);
+
+				startActivity(i);
+			}
+		});
+
 	}
 
 	@Override
