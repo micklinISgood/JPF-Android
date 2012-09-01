@@ -1,14 +1,14 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.util.script.Event;
-import gov.nasa.jpf.util.script.ScriptEnvironment;
+import gov.nasa.jpf.util.script.ScriptingEnvironment;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.List;
-
-public class UIScriptEnvironment extends ScriptEnvironment<UIActionGenerator> {
+ 
+public class UIScriptEnvironment extends ScriptingEnvironment<UIActionGenerator> {
 
   public UIScriptEnvironment (String fname) throws FileNotFoundException {
     super( fname, new FileReader(fname));
@@ -31,5 +31,8 @@ public class UIScriptEnvironment extends ScriptEnvironment<UIActionGenerator> {
       return cg;
     }
   }
+
+
+
 
 }

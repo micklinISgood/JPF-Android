@@ -241,5 +241,10 @@ public class Activity extends ContextThemeWrapper {
 		// TODO Auto-generated method stub
 
 	}
+	
+	
+	public Intent getIntent(){
+		return mIntent;
+	}
 
 }

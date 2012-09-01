@@ -44,9 +44,8 @@
 		<pathelement location="build/main" />
 		<pathelement location="build/peers" />
 		<!-- add in what we need from the core -->
-		<pathelement path="${jpf-core.native_classpath}" />
 		<pathelement location="lib/android/" />
-
+		<pathelement path="${jpf-core.native_classpath}"/>
 
 	</path>
 

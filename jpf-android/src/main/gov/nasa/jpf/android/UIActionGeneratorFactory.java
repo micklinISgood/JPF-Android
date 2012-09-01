@@ -19,17 +19,17 @@
 
 package gov.nasa.jpf.android;
 
-import java.io.PrintWriter;
-
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPFConfigException;
 import gov.nasa.jpf.util.script.Alternative;
 import gov.nasa.jpf.util.script.ESParser;
 import gov.nasa.jpf.util.script.Event;
+import gov.nasa.jpf.util.script.EventGeneratorFactory;
 import gov.nasa.jpf.util.script.Repetition;
 import gov.nasa.jpf.util.script.ScriptElement;
-import gov.nasa.jpf.util.script.EventGeneratorFactory;
 import gov.nasa.jpf.util.script.Section;
+
+import java.io.PrintWriter;
 
 
 public class UIActionGeneratorFactory extends EventGeneratorFactory {
@@ -87,6 +87,8 @@ public class UIActionGeneratorFactory extends EventGeneratorFactory {
       r.processChildren(this);
     }
   }
+  
+  
 
   public void process (Section sec) {
     // we don't really process sections for UIActions (yet)
@@ -105,4 +107,5 @@ public class UIActionGeneratorFactory extends EventGeneratorFactory {
       t.printStackTrace();
     }
   }
+
 }

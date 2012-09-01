@@ -16,6 +16,10 @@ public class Intent {
 	HashSet<String> mCategories;
 	Bundle mExtras;
 
+	public Bundle getExtras(){
+		return mExtras;
+	}
+	
 	public Activity getParent() {
 		return parent;
 	}
