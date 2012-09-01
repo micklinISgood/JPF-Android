@@ -10,4 +10,10 @@ dist/*
 activity*.png
 *~
 *.DS_Store
+*.bbl
+*.dvi
+*.blg
+*.log
+*.ps
+*.aux
 

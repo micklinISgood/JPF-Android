@@ -8,6 +8,4 @@ dist/*
 activity*.png
 *~
 *.DS_Store
-eclipse/*
-
 /lib
