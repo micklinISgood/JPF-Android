@@ -1,0 +1,22 @@
+target = com.example.jpf.DeadlockActivity
+classpath=${jpf-android}/../DeadlockExample/bin/classes/;${jpf-android}/build/classes
+sourcepath=${jpf-android}/../DeadlockExample/src;
+path=${jpf-android}/../DeadlockExample/
+
+#--- which script to run
+awt.script=${config_path}/DeadlockScript.es
+
+# the modeled data acquisition thread needs it
+cg.enumerate_random=true
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.NullPointerException
+
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
+search.class = .search.heuristic.BFSHeuristic
+
+# deadlock analyzer is a property-specific trace report generator
+listener=.listener.DeadlockAnalyzer
+deadlock.format=essential
