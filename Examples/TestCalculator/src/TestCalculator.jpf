@@ -1,0 +1,19 @@
+target = com.example.calculator.SimpleActivity
+classpath=/home/heila/workspace/TestCalculator/bin/classes/;${classpath}
+sourcepath=/home/heila/workspace/TestCalculator/src;
+path=/home/heila/workspace/TestCalculator
+
+#--- which script to run
+awt.script=${config_path}/TestCalculator.es
+
+# the modeled data acquisition thread needs it
+cg.enumerate_random=true
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.ArithmeticException
+
+
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
+
