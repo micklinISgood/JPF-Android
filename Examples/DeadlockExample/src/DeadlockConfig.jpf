@@ -1,7 +1,7 @@
 target = com.example.jpf.DeadlockActivity
-classpath=${jpf-android}/../DeadlockExample/bin/classes/;${jpf-android}/build/classes
-sourcepath=${jpf-android}/../DeadlockExample/src;
-path=${jpf-android}/../DeadlockExample/
+classpath=${jpf-android}/../Examples/DeadlockExample/bin/classes/;${jpf-android}/build/classes
+sourcepath=${jpf-android}/../Examples/DeadlockExample/src;
+path=${jpf-android}/../Examples/DeadlockExample/
 
 #--- which script to run
 awt.script=${config_path}/DeadlockScript.es

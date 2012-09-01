@@ -1,10 +1,10 @@
 target = com.example.com.SampleProjectActivity
-classpath=/home/heila/GSoC-Repos/SampleProject/bin/classes/;${classpath}
-sourcepath=/home/heila/GSoC-Repos/SampleProject/src;
-path=/home/heila/GSoC-Repos/SampleProject
+classpath=${jpf-android}/../Examples/SampleProject/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/SampleProject/src;
+path=${jpf-android}/../Examples/SampleProject
 
 #--- which script to run
-awt.script=${config_path}/SampleActivity.es
+awt.script=${config_path}/SampleScript.es
 
 # the modeled data acquisition thread needs it
 cg.enumerate_random=true

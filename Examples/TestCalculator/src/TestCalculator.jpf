@@ -1,7 +1,7 @@
 target = com.example.calculator.SimpleActivity
-classpath=/home/heila/workspace/TestCalculator/bin/classes/;${classpath}
-sourcepath=/home/heila/workspace/TestCalculator/src;
-path=/home/heila/workspace/TestCalculator
+classpath=${jpf-android}/../Examples/TestCalculator/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/TestCalculator/src;
+path=${jpf-android}/../Examples/TestCalculator
 
 #--- which script to run
 awt.script=${config_path}/TestCalculator.es
