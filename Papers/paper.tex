@@ -27,7 +27,7 @@
 Mobile application testing is a specialised and complex field. Due to mobile applications' event driven design and mobile runtime
 environment, there currently exist only a small number of tools to verify these applications.
 
-This paper describes the development of JPF-ANDROID, an Android application verification tool. JPF-ANDROID is built on Java PathFinder, 
+This paper describes the development of JPF-ANDROID, an Android application verification tool. JPF-ANDROID is built on Java Pathfinder, 
 a Java model checking engine. JPF-ANDROID provides a simplified model of the Android framework on which an Android application can run. It then allows
 the user to script input events to drive the application flow. JPF-ANDROID provides a way to detect common property violations such as deadlocks and runtime exceptions
 in Android applications.
@@ -71,16 +71,16 @@ Robolectric~\cite{robolectric}, a JUnit testing framework running on the JVM,  i
 shadows classes that model these classes.
 
 Although Android applications and Java desktop applications are designed for completely different Java VMs, they are both built on an
-implementation of the Java API. As a consequence, Android applications contain many of the same error as Java applications. These defects
+implementation of the Java API. As a consequence, Android applications contain many of the same errors as Java applications. These defects
 include, but are not limited to, concurrency issues and common runtime exceptions such as NullPointer Exceptions. It follows that existing
 Java testing frameworks can be adapted to verify Android applications.
 
 % what are we going to do and why 
-This paper describes an extension to Java PathFinder (JPF)~\cite{JPFDocs} that enables the automatic verification of Android applications on
+This paper describes an extension to Java Pathfinder (JPF)~\cite{JPFDocs} that enables the automatic verification of Android applications on
 the standard Java JVM. 
 
 The next section will provide an overview of JPF and Android and how JPF can be used to test Android applications. Thereafter
-the development of the JPF-ANDROID tool will be discussed. 
+the development of the JPF-ANDROID tool will be discussed concluding with two case studies.
 
 \section{Design}
 \subsection{Java PathFinder}
@@ -206,7 +206,7 @@ is received by the native \texttt{JPF\_Window} class, the name of the target wid
 called directly on the inflated widget object by pushing a direct call frame on the JPF call stack. 
 
 % Explain what system events are how they are handled by android how they are handled by the system
-System events use \texttt{Intent} objects to describe a the event that occurred. They include events to start an Activity or Service or a
+System events use \texttt{Intent} objects to describe a event that occurred. They include events to start an Activity or Service or a
 battery low notification. In the Android OS, system events are sent to the Activity manager which is modelled in JPF-ANDROID by the native
 \texttt{JPF\_ActivityManager} class. This class keeps a map of Intents as they are defined in the script file. When a system event is
 received, the corresponding \texttt{Intent} is looked up in the map. The \texttt{Intent} is then resolved to the relevant
@@ -236,7 +236,7 @@ objects. For example, a script file that sends an \texttt{Intent} to start the \
 
 JPF-ANDROID scripts also adopted the \textbf{REPEAT} and \textbf{ANY} constructs from JPF-AWT. \textbf{REPEAT} constructs repeat a list of
 events a specified number of times. \textbf{ANY} constructs take a list of events as parameters and then uses a ChoiceGenerator and JPF's
-state matching and backtracking features to visit each of the execution branches. JPF stores the state of the system before the it advances
+state matching and backtracking features to visit each of the execution branches. JPF stores the state of the system before it advances
 to a new state. JPF-AWT uses a JPF search listener to store and retrieve the current position of the input script in a specific state so
 that the script's state is also saved.
 
@@ -262,11 +262,11 @@ at any point of execution. In other words, if we do not know in what Activity th
 % }
 % \caption{Input script for ``New Contact'' window}
 % \end{figure}
-Let us take a contacts android application as an example. The application has two Activities: ListContactsActivity and the
-NewContactActivity. The ListContactsActivity contains a list of the current contacts and a button to add new contacts that directs the user
-to the NewContactActivity. The NewContactActivity contains two buttons: the clear button stays on the current Activity and clears its fields
-and the create button starts the \texttt{ListContactsActivity}. Now let us look at figure \ref{fig:contact} containing the input sequence
-for the NewContactActivity.
+Let us take a Contacts Android application as an example. The application has two Activities: ListContactsActivity and the
+NewContactActivity. The ListContactsActivity contains a list of the current contacts and a button to add a new contact that directs the
+user to the NewContactActivity. The NewContactActivity contains two buttons: the clear button stays on the current Activity and clears its
+fields and the create button starts the \texttt{ListContactsActivity}. Now let us look at figure \ref{fig:contact} containing the input
+sequence for the NewContactActivity.
 
 \begin{figure}
 \frame{
@@ -290,7 +290,7 @@ The problem occurs in the ANY structure. When the create button is clicked the a
 and the following event is not valid any more. This drastically restricts the number of sequences that can be scripted in the file. To
 address this issue, we included the use of sections in the input script (see figure \ref{fig:contact2}). Each section groups the input
 events of a specific Activity. Now, if the create button is pressed the \texttt{ListContactsActivity} will be started and the
-\texttt{ListContactsActivity}'s events specified in its sequence will start executing again.
+\texttt{ListContactsActivity}'s events specified in its section will start executing again.
 
 \begin{figure}
 \frame{
@@ -324,7 +324,7 @@ The addition of the sections in the input script lead to infinite event sequence
 create button is pressed on the NewContactActivity window. This will stop the execution of the NewContactActivity section and restart
 the ListContactsActivity section's events. When the ListContactsActivity's section is restarted, it again clicks on the createButton
 restarting the NewContactActivity. To address this issue, JPF-ANDROID keeps record of its current Activity. The scripting environment was
-also adapted to store the current position of each section's events for each visited Activity. If the branch returns to a previously visited
+also adapted to store the current position in each visited Activity's script section. If a branch returns to a previously visited
 Activity, its current position in its section is looked up and instead of restarting the section, it continues from its previous position.
 
 \subsection{Case studies}
@@ -378,8 +378,8 @@ following input sequences:
 Each of the ten number buttons are pressed followed by a simple operation and another number or a complex operation.
 
 %how they where detected
-JPF is automatically configured to detect thrown exceptions and to stop execution. When JPF-ANDROID was run it firstly detected the
-\texttt{ArithmenticException} due to the division by zero:
+JPF is automatically configured to detect thrown exceptions and to stop execution. When JPF-ANDROID was run on the application it firstly
+detected the \texttt{ArithmenticException} due to the division by zero:
 \begingroup
  \fontsize{6pt}{7pt}\selectfont
 \begin{verbatim}
@@ -473,6 +473,7 @@ techniques and can successfully detect common Java errors such as runtime except
 
 This extension provides a basis on which Android applications can be tested. It can later be extended to verify functional requirements
 and identify Android specific errors using JPF's listener mechanism.
+\vspace*{5pt}
 % The following two commands are all you need in the
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
