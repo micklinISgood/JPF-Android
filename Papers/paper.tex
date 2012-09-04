@@ -41,10 +41,10 @@ in Android applications.
 
 \section{Introduction}
 Software testing and verification plays an important role in determining the quality and robustness of software. These are two very
-important attributes of mobile applications. Especially since users currently have more than 600 000 applications to choose from on the
+important attributes of mobile applications, especially since users currently have more than 600 000 applications to choose from on the
 Google Play Market.
 
-Although software testing is so important, it is often neglected due to its complex and time consuming process. Android
+Although software testing is so important, it is often neglected due to it being a complex and time consuming process. Android
 applications face additional challenges when it comes to application testing. Firstly, they have an event based design which means that
 their application flow is driven by graphical user interface (GUI) and system events~\cite{Hu:2011}. Secondly, Android applications are
 developed in a
@@ -54,7 +54,7 @@ devices~\cite{dalvik}.
 
 Due to these challenges, the rapid pace at which mobile applications are developed and the lack of testing tools available, mobile
 application testing is often omitted altogether. The simplest way to test GUI applications is manual black-box testing.
-But, this is a time consuming, error prone and expensive~\cite{AccessibilityTech} process. One way to reduce this high cost, is to  automate
+But, this is a time consuming, error prone and expensive process~\cite{AccessibilityTech}. One way to reduce this high cost, is to  automate
 the testing of GUI -- in this case Android -- applications~\cite{AccessibilityTech}.
 
 The most common way to automate Android application testing is to run tests on the Dalvik VM on a
@@ -69,11 +69,11 @@ simple to automate this input emulation.
 Another approach is to test Android applications using the Java Virtual Machine (JVM). There are different ways of implementing such
 a framework. Android lint, for example, makes use of static analysis to identify common errors in applications.
 Robolectric~\cite{robolectric}, a JUnit testing framework running on the JVM,  intercepts the loading of Android classes and then uses
-shadows classes that model these classes.
+shadow classes that model these classes.
 
 Although Android applications and Java desktop applications are designed for completely different Java VMs, they are both built on an
 implementation of the Java API. As a consequence, Android applications contain many of the same errors as Java applications. These defects
-include, but are not limited to, concurrency issues and common run-time exceptions such as null pointer exceptions. It follows that
+include, but are not limited to, concurrency issues and common run-time exceptions such as null pointer dereferencing exceptions. It follows that
 existing Java testing frameworks can be adapted to verify Android applications.
 
 % what are we going to do and why 
@@ -106,7 +106,7 @@ Android is an open source software stack for devices with an advanced RISC Machi
 It consists of the Android operating system (OS), the application framework and an application development toolkit assisting developers to create
 applications for the platform~\cite{AndroidDocs}.
 
-As shown in figure \ref{fig:android}, the Android OS is built on top of a modified Linux kernel. The kernel provides a layer of abstraction
+As shown in Figure \ref{fig:android}, the Android OS is built on top of a modified Linux kernel. The kernel provides a layer of abstraction
 on top of its low level functionality such as process, memory, user, network and thread management. On top of the Android kernel is a set of
 native C-libraries. The Dalvik VM is a custom, optimised version of the JVM. For security reasons each Android application is run as a
 separate process in its own Dalvik VM instance~\cite{AndroidSecurity}.  Hence, applications can only communicate with each other and with
@@ -120,7 +120,7 @@ the Android framework using Android's Binder inter-process communication (IPC) m
 \end{figure}
 
 Android has one main application called the system process. The system process contains services responsible for performing the main
-tasks of the system including:
+tasks of the system, including:
 \vspace{-10pt}
 \begin{description}
  \item [ActivityManager] manages the life-cycle and interaction of all the activities running on the system
@@ -133,7 +133,7 @@ events~\cite{AndroidDocs}. This structure is commonly used by many UI frameworks
 safe~\cite{SingleThread}. In Android, this main thread is called the \texttt{Looper} thread. The \texttt{Looper} has a message queue
 attached to it containing all application events to be dispatched. UI and system events are scheduled on the main \texttt{Looper} by adding
 them to the message queue. The \texttt{Looper} is responsible for continuously looping through these messages and handling them
-appropriately. This could include updating a widget, loading a new activity or processing an \texttt{Intent}.
+appropriately. This could include updating a widget, loading a new activity or processing an \texttt{Intent} (see below).
 
 The main entry-point of each Android application is in its \texttt{ActivityThread} class. The \texttt{ActivityThread} class is part of the
 Android framework and starts the application's \texttt{Looper} thread. It also keeps track of the application's components and handles user
@@ -161,7 +161,7 @@ event sequences and then to detect when certain errors occur using JPF.
 %what scope of android will be modeled
 
 The Android framework is very large and one of the main challenges of JPF-ANDROID is to decide which parts of the system to model. The more
-of the Android framework is modelled, the more realistic the model is and the more errors can be found. But, if too much
+of the Android framework is modelled, the more realistic the model is and the more errors can be found. However, if too much
 of the framework is modelled the scheduling possibilities increase exponentially which means that the search space can become too big to
 verify.
 
@@ -190,9 +190,8 @@ Binder IPC service.
 % \label{fig:arch}
 % \end{figure}
 %JPF-ANDROID BASED ON JPF_AWT  why and how does it work?
-As discussed above, both Android and AWT applications have a single-threaded application design. That is why JPF-ANDROID's architecture
-is based on JPF-AWT.
-JPF- ANDROID models Android's message queue by using JPF's MJI
+As discussed above, both Android and AWT applications have a single-threaded application design and therefore JPF-ANDROID is based on JPF-AWT's architecture.
+\linebreak JPF-ANDROID models Android's message queue by using JPF's MJI
 environment. When the \texttt{Looper} thread requests a new message from the message queue and it is empty, a call to the native
 \texttt{JPF\_MessageQueue} class requests the next event from the scripting environment. The \texttt{JPF\_MessageQueue} class classifies
 events as either UI or system events. UI events are directed to and handled by the native \texttt{JPF\_Window} class and system events by
@@ -214,10 +213,10 @@ component and scheduled in the application's message queue.
 
 \subsection{The scripting environment}
 % what is input script, how does it work(its function) and how are does it look
-JPF-AWT's script consist of a list of UI events. These events are executed one-by-one when the message queue it empty. To allow users to
+JPF-AWT's script consist of a list of UI events. These events are read one-by-one when the message queue it empty. To allow users to
 script system events, variables were added to the scripting language in JPF-ANDROID. Variable names are identified by the ``@'' in front of
 the variable's name as '\$' is already used in JPF-AWT to identify UI components. These variable can be used to construct most Intent
-objects. For example, a script file that sends an \texttt{Intent} to start the \texttt{SampleActivity} is shown in figure \ref{fig:start}
+objects. For example, a script file that sends an \texttt{Intent} to start the \texttt{SampleActivity} is shown in Figure \ref{fig:start}
 \begin{figure}
 \frame{
 \parbox{0.48\textwidth}{
@@ -235,7 +234,7 @@ objects. For example, a script file that sends an \texttt{Intent} to start the \
 \end{figure}
 
 JPF-ANDROID scripts also adopted the \textbf{REPEAT} and \textbf{ANY} constructs from JPF-AWT. \textbf{REPEAT} constructs repeat a list of
-events a specified number of times. \textbf{ANY} constructs take a list of events as parameters and then uses a ChoiceGenerator and JPF's
+events a specified number of times. \textbf{ANY} constructs take a list of non-deterministic events as parameters and then uses a ChoiceGenerator and JPF's
 state matching and backtracking features to visit each of the execution branches. JPF stores the state of the system before it advances
 to a new state. JPF-AWT uses a JPF search listener to store and retrieve the current position of the input script in a specific state so
 that the script's state is also saved.
@@ -243,7 +242,7 @@ that the script's state is also saved.
 %how and why was this scripting environment adapted
 Android applications contain multiple windows - one for each Activity. This complicates the script input as each window has its own unique
 set of view components, hence, a unique input sequence. Furthermore, the application flow can switch between these Activities
-at any point of execution. In other words, if we do not know which Activity has the focus (or is in it's resumed state), we can not script
+at any point of execution. In other words, if we do not know which Activity has the focus (or is in it's resumed state), we cannot script
 the following events.
 
 % \begin{figure}
@@ -263,11 +262,11 @@ the following events.
 % }
 % \caption{Input script for ``New Contact'' window}
 % \end{figure}
-Let us take a Contacts Android application as an example. The application has two Activities: ListContactsActivity and the
-NewContactActivity. The ListContactsActivity contains a list of the current contacts and a button to add a new contact that directs the
-user to the NewContactActivity. The NewContactActivity contains two buttons: the clear button stays on the current Activity and clears its
-fields and the create button starts the \texttt{ListContactsActivity}. Now let us look at figure \ref{fig:contact} containing the input
-sequence for the NewContactActivity.
+Let us take a Contacts Android application as an example. The application has two Activities: the \texttt{ListContactsActivity} and the
+\texttt{NewContactActivity}. The \texttt{ListContactsActivity} contains a list of the stored contacts and a button to add a new contact that directs the
+user to the \texttt{NewContactActivity}. The \texttt{NewContactActivity} contains two buttons: the clear button stays on the current Activity and clears its
+fields and the create button starts the \texttt{ListContactsActivity}. Now let us look at Figure \ref{fig:contact} containing the input
+sequence for the \texttt{NewContactActivity}.
 
 \begin{figure}
 \frame{
@@ -289,9 +288,9 @@ sequence for the NewContactActivity.
 
 The problem occurs in the ANY structure. When the create button is clicked the application changes to the ListContactsActivity
 and the following event is not valid any more. This drastically restricts the number of sequences that can be scripted in the file. To
-address this issue, we included the use of sections in the input script (see figure \ref{fig:contact2}). Each section groups the input
-events of a specific Activity. Now, if the create button is pressed the \texttt{ListContactsActivity} will be started and the
-\texttt{ListContactsActivity}'s events specified in its section will start executing again.
+address this issue, we included the use of sections in the input script (see Figure \ref{fig:contact2}). Each section groups the input
+events of a specific Activity. Now, if the create button is pressed, the \texttt{ListContactsActivity} will be started and the events
+specified in its section will start executing again.
 
 \begin{figure}
 \frame{
@@ -299,15 +298,15 @@ events of a specific Activity. Now, if the create button is pressed the \texttt{
 {\small
 {\sf 
 \vspace*{2mm}
-\hspace*{2mm}1. \textbf{SECTION} default \{\\
-\hspace*{2mm}2. \hspace*{5mm}@startIntent.setComponent(``ListContactsActivity'')\\
-\hspace*{2mm}3. \hspace*{5mm}startActivity(@startIntent)\\
-\hspace*{2mm}4. \}\\
-\hspace*{2mm}5. \\
-\hspace*{2mm}6. \textbf{SECTION} ListContactsActivity \{\\
-\hspace*{2mm}7. \hspace*{5mm}\$createButton.onClick()\\
-\hspace*{2mm}8. \hspace*{5mm}\$list.setSelectedIndex([0-3])\\
-\hspace*{2mm}9. \}\\
+\hspace*{2mm}1.\; \textbf{SECTION} default \{\\
+\hspace*{2mm}2.\; \hspace*{5mm}@startIntent.setComponent(``ListContactsActivity'')\\
+\hspace*{2mm}3.\; \hspace*{5mm}startActivity(@startIntent)\\
+\hspace*{2mm}4.\; \}\\
+\hspace*{2mm}5.\; \\
+\hspace*{2mm}6.\; \textbf{SECTION} ListContactsActivity \{\\
+\hspace*{2mm}7.\; \hspace*{5mm}\$createButton.onClick()\\
+\hspace*{2mm}8.\; \hspace*{5mm}\$list.setSelectedIndex([0-3])\\
+\hspace*{2mm}9.\; \}\\
 \hspace*{2mm}10. \\
 \hspace*{2mm}11. \textbf{SECTION} NewContactActivity \{\\
 \hspace*{2mm}12. \hspace*{5mm}\$nameEdit.setText(``Mary'')\\
@@ -319,12 +318,13 @@ events of a specific Activity. Now, if the create button is pressed the \texttt{
 \vspace{-15pt}
 \caption{Adding sections to the input script}
 \label{fig:contact2}
+\vspace{-10pt}
 \end{figure}
 
 The addition of the sections in the input script lead to infinite event sequences. In the above example, an infinite loop occurs when the
-create button is pressed on the NewContactActivity window. This will stop the execution of the NewContactActivity section and restart
-the ListContactsActivity section's events. When the ListContactsActivity's section is restarted, it again clicks on the createButton
-restarting the NewContactActivity. To address this issue, JPF-ANDROID keeps record of its current Activity. The scripting environment was
+create button is pressed on the \texttt{NewContactActivity} window. This will stop the execution of the \texttt{NewContactActivity} section and restart
+the \texttt{ListContactsActivity} section's events. When the \texttt{ListContactsActivity}'s section is restarted, it again clicks on the create button
+restarting the \texttt{NewContactActivity}. To address this issue, JPF-ANDROID keeps record of its current Activity. The scripting environment was
 also adapted to store the current position in each visited Activity's script section. If a branch returns to a previously visited
 Activity, its current position in its section is looked up and instead of restarting the section, it continues from its previous position.
 
@@ -334,9 +334,9 @@ Activity, its current position in its section is looked up and instead of restar
 The first application is a scientific calculator. The calculator has two Activities: a simple view that
 displays basic arithmetic operations and a scientific view that displays more complex arithmetic operations. When the user switches
 between these Activities, the current state of the calculator is preserved. This state includes the intermediate values and current
-operation. This state information is bundled with the \texttt{Intent} that starts then next Activity.
-\begin{figure}
+operation. This state information is bundled with the \texttt{Intent} that starts the next Activity.
 
+\begin{figure}
 \frame{
 \parbox{0.48\textwidth}{
 {\small
@@ -355,17 +355,17 @@ operation. This state information is bundled with the \texttt{Intent} that start
 \vspace{-15pt}
 \caption{Input script for Calculator application}
 \label{fig:calc}
+\vspace{-10pt}
 \end{figure}
+
 
 %what errors can occur
 The calculator application contains two errors. When the user divides a value by zero, an uncaught
-\texttt{ArithmeticException} is thrown by the application which causes Android to kill the application. Secondly the application neglected
-to attach the state information to the Intent that is passed to the next Activity. When the user switches to the other Activity a
-\texttt{NullPointerException} is thrown when it tries to read the state information from the Intent. 
+\texttt{ArithmeticException} is thrown by the application which causes Android to kill the application. Secondly, the application neglected
+to attach the state information to the \texttt{Intent} that is passed to the next Activity. When the user switches to the other Activity a
+\texttt{NullPointerException} is thrown when it tries to read the state information from the \texttt{Intent}. 
 
-
-
-To detect these errors we will use the test script in figure~\ref{fig:calc}. The scripting environment interprets the script into the
+To detect these errors we will use the test script in Figure~\ref{fig:calc}. The scripting environment interprets the script into the
 following input sequences:
 \begin{align*}
 \text{<sequence>} &= \text{<simple\_seq>}\,|\,\text{<complex\_seq>}\\
@@ -376,11 +376,12 @@ following input sequences:
 \text{equals} &= \text{``=''} \\
 \text{number} &= \text{``0''\,|\,``1''\,|\,``2''\,|\,``3''\,|\,``4''\,|\,``5''\,|\,``6''\,|\,``7''\,|\,``8''\,|\,``9''}
 \end{align*}
-Each of the ten number buttons are pressed followed by a simple operation and another number or a complex operation.
-
-%how they where detected
+Each of the ten number buttons are pressed followed by a simple operation and another number or a complex operation. Although it is possible
+to input numbers consisting of multiple digits including floating point numbers, for illustration purposes this was left out of the input script.
 JPF is automatically configured to detect thrown exceptions and to stop execution. When JPF-ANDROID was run on the application it firstly
 detected the \texttt{ArithmenticException} due to the division by zero:
+
+\vspace*{-10pt}
 \begingroup
  \fontsize{6pt}{7pt}\selectfont
 \begin{verbatim}
@@ -399,22 +400,26 @@ loaded code:        classes=145, methods=2064
 ======================================================
 \end{verbatim}
 \endgroup
+\vspace*{-10pt}
 After this error was fixed JPF-ANDROID detected the \texttt{NullPointerException} in the same way.
 
 Both of these errors would have been difficult to detect with unit testing. The \texttt{ArithmenticException} is challenging due
 to the many possible input sequence combinations. If a test case did not specifically identify this as a point of interest, unit testing
 would not have detected this error. The second error is challenging to detect due to the fact that it only occurs when the flow of Activity
-classes are modelled.
+classes are tested.
 
 % deadlock
 %how does application look and work
 The next case study is a very simple application demonstrating how JPF-ANDROID detects a deadlock in a Android application. When the
-\texttt{Looper}/main thread of an application is caught in a deadlock, the Android OS kills the application and displays an
-Application Not Responding (ANR) dialog. But, Android does not detect a deadlock if it occurs between other asynchronous threads. This
+\texttt{Looper} thread of an application is caught in a deadlock, the Android OS kills the application and displays an
+Application Not Responding (ANR) dialog. However, Android does not detect a deadlock if it occurs between other asynchronous threads. This
 sample application spawns two asynchronous threads that deadlock. The application has one Activity with two
 buttons. The first button spawns the first thread and the second button spawns the second thread. After a while these two thread deadlock
-and are then blocked forever, waiting for each other. The input script for the application is given in figure \ref{fig:deadlock}.
+and are then blocked forever, waiting for each other. The input script for the application is given in Figure \ref{fig:deadlock}. JPF is then
+configured to listen for deadlocks and schedules the threads in all possible ways to detect the deadlock.
+
 \begin{figure}
+
 \frame{
 \parbox{0.48\textwidth}{
 {\small
@@ -425,12 +430,13 @@ and are then blocked forever, waiting for each other. The input script for the a
 \hspace*{2mm}3. \hspace*{5mm}\$button2.onClick()\\
 \hspace*{2mm}4. \}\\
 }}}}
-\vspace{-15pt}
+
 \caption{Input script for Deadlock application}
 \label{fig:deadlock}
+\vspace{-10pt}
 \end{figure}
 
-JPF is then configured to listen for deadlocks and schedules the threads in all possible ways to detect the deadlock.
+\vspace*{-10pt}
 \begingroup
  \fontsize{6pt}{7pt}\selectfont
 \begin{verbatim}
@@ -458,23 +464,24 @@ loaded code:        classes=140, methods=1792
 ======================================================
 \end{verbatim}
 \endgroup
-
+\vspace*{-10pt}
 \section{Future Work}
 Currently JPF-ANDROID can detect deadlocks, race conditions and other property violations in Android applications. The next challenge is
 modelling the extra Android libraries. This is because most Android applications make use of many Android specific
 libraries such as the sqlite database connector, HTTP connections or the media player libraries.
 
 Another extension that will be added to JPF-ANDROID is coverage testing. JPF has many coverage extensions available so we will be adapting
-one these extensions to work on Android applications.
+one these extensions to work on Android applications~\cite{coverage}. Coverage testing is especially important to find errors related to the Android Activity
+life cycle such as the null pointer exception mentioned above.
 
 \section{Conclusion}
 The paper discussed the design and implementation of JPF-ANDROID. JPF-ANDROID is still under development and currently only models
 the core libraries needed to verify a basic Android application. It allows Android applications to be tested using JPF's proven verification
-techniques and can successfully detect common Java errors such as runtime exceptions and deadlocks. 
+techniques and can successfully detect common Java errors such as runtime exceptions and deadlocks.
 
-This extension provides a basis on which Android applications can be tested. It can later be extended to verify functional requirements
-and identify Android specific errors using JPF's listener mechanism.
-\vspace*{5pt}
+This extension provides a basis on which Android applications can be tested. It can later be extended to verify functional requirements and identify Android specific errors using JPF's listener mechanism.
+
+% \vspace*{5pt}
 % The following two commands are all you need in the
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
