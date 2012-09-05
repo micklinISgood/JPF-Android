@@ -16,4 +16,4 @@ activity*.png
 *.log
 *.ps
 *.aux
-
+*.backup
