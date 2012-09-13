@@ -1,10 +1,13 @@
 package android.app;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
@@ -23,7 +26,8 @@ public final class ActivityThread {
 
   final Looper mLooper = Looper.myLooper();
   final H mH = new H();
-  final HashMap<String, ActivityClientRecord> mActivities = new HashMap<String, ActivityClientRecord>();
+  // stores a map of all activities that have been started and not destroyed
+  final HashMap<Integer, ActivityClientRecord> mActivities = new HashMap<Integer, ActivityClientRecord>();
 
   // stores the current running Activity
   ActivityClientRecord currentActivity;
@@ -32,75 +36,91 @@ public final class ActivityThread {
 
   private class ApplicationThread {
 
-    @SuppressWarnings("unused")
-    public final void scheduleDestroyActivity(String activityName) {
-      queueOrSendMessage(H.DESTROY_ACTIVITY, activityName, 0, 0);
-    }
-
-    @SuppressWarnings("unused")
+    /**
+     * Called to schedule the launch of an Activity for the first time
+     * 
+     * @param activityName
+     *          the name of the Activity to start
+     * @param intent
+     */
     public final void scheduleLaunchActivity(String activityName, Intent intent) {
-
-      if (currentActivity != null && activityName == currentActivity.getName()) {
-        // TODO
-        System.out.println("This activity has already been started");
-      } else { // was started already and cotained in mActivities
-
-      }
-
       ActivityClientRecord r = new ActivityClientRecord();
       r.name = activityName;
       r.intent = intent;
       queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
     }
 
-    // public final void schedulePauseActivity(IBinder token, boolean
-    // finished,
-    // boolean userLeaving, int configChanges) {
-    // queueOrSendMessage(
-    // finished ? H.PAUSE_ACTIVITY_FINISHING : H.PAUSE_ACTIVITY,
-    // token,
-    // (userLeaving ? 1 : 0),
-    // configChanges);
-    // }
+    public final void scheduleRelaunchActivity(String activityName, Intent intent) {
+      // requestRelaunchActivity(token, pendingResults, pendingNewIntents, configChanges, notResumed, config,
+      // true);
+    }
 
-    // public final void scheduleStopActivity(IBinder token, boolean
-    // showWindow,
-    // int configChanges) {
-    // queueOrSendMessage(
-    // showWindow ? H.STOP_ACTIVITY_SHOW : H.STOP_ACTIVITY_HIDE,
-    // token, 0, configChanges);
-    // }
+    public final void scheduleResumeActivity(int ident) {
+      queueOrSendMessage(H.RESUME_ACTIVITY, null, ident, 0);
+    }
 
-    // public final void scheduleResumeActivity(IBinder token, boolean
-    // isForward) {
-    // queueOrSendMessage(H.RESUME_ACTIVITY, token, isForward ? 1 : 0);
-    // }
-    //
-    // public final void scheduleSendResult(IBinder token, List<ResultInfo>
-    // results) {
-    // ResultData res = new ResultData();
-    // res.token = token;
-    // res.results = results;
-    // queueOrSendMessage(H.SEND_RESULT, res);
-    // }
+    public final void schedulePauseActivity(int ident) {
+      queueOrSendMessage(H.PAUSE_ACTIVITY, null, ident, 0);
+    }
+
+    public final void scheduleStopActivity(int ident) {
+      queueOrSendMessage(H.STOP_ACTIVITY_HIDE, null, ident, 0);
+    }
+
+    public final void scheduleDestroyActivity(int ident) {
+      queueOrSendMessage(H.DESTROY_ACTIVITY, null, ident, 0);
+    }
+
+    public final void scheduleSendResult(Activity activity, List<ResultInfo> results) {
+      // ResultData res = new ResultData();
+      // res.token = token;
+      // res.results = results;
+      // queueOrSendMessage(H.SEND_RESULT, res);
+    }
+
+    private void performLaunchActivity(String activityname, Intent startingIntent) {
+      ActivityClientRecord current = currentActivity;
+      if (current != null)
+        schedulePauseActivity(current.ident);
+      scheduleLaunchActivity(activityname, startingIntent);
+      if (current != null)
+        scheduleStopActivity(current.ident);
+    }
+
+    private void performSleep() {
+
+    }
+
+    private void performOrientationChange() {
+
+    }
 
     private void performBackPressed() {
-      Activity parent = currentActivity.activity.mParent;
-      // TODO stop id parent null
-      ActivityClientRecord r = new ActivityClientRecord();
-      r.name = parent.getClass().getName();
-      r.intent = new Intent();
-      queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
+      ActivityClientRecord current = currentActivity;
+      if (current != null) {
+        schedulePauseActivity(current.ident);
+      }
+      scheduleResumeActivity(current.parent.mIdent);
+      if (current != null) {
+        scheduleStopActivity(current.ident);
+        scheduleDestroyActivity(current.ident);
+      }
     }
 
     private void performHomePressed() {
-      handleDestroyActivity(currentActivity.name);
+
+      ActivityClientRecord current = currentActivity;
+      if (current != null) {
+        // schedulePauseActivity(current);
+      }
+
     }
+
   }
 
   static final class ActivityClientRecord {
     // IBinder token;
-    // int ident;
+    int ident;
     Intent intent;
     Bundle state;
     Activity activity;
@@ -121,7 +141,7 @@ public final class ActivityThread {
     // ParcelFileDescriptor profileFd;
     // boolean autoStopProfiler;
 
-    // ActivityInfo activityInfo;
+    // ActivityInfo activityInfo; //parsed infor from android manifest
     // CompatibilityInfo compatInfo;
     // LoadedApk packageInfo;
 
@@ -183,6 +203,7 @@ public final class ActivityThread {
     public static final int CREATE_SERVICE = 114;
     public static final int SERVICE_ARGS = 115;
     public static final int STOP_SERVICE = 116;
+    public static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
     public static final int RELAUNCH_ACTIVITY = 126;
 
     public void handleMessage(Message msg) {
@@ -193,13 +214,12 @@ public final class ActivityThread {
       }
         break;
       case RELAUNCH_ACTIVITY: {
-        // ActivityClientRecord r = (ActivityClientRecord) msg.obj;
+        ActivityClientRecord r = (ActivityClientRecord) msg.obj;
         // handleRelaunchActivity(r);
       }
         break;
       case PAUSE_ACTIVITY:
-        // handlePauseActivity((IBinder) msg.obj, false, msg.arg1 != 0,
-        // msg.arg2);
+        handlePauseActivity((IBinder) msg.obj, false, msg.arg1 != 0, msg.arg2);
         // maybeSnapshot();
         break;
       case PAUSE_ACTIVITY_FINISHING:
@@ -210,7 +230,7 @@ public final class ActivityThread {
         // handleStopActivity((IBinder) msg.obj, true, msg.arg2);
         break;
       case STOP_ACTIVITY_HIDE:
-        // handleStopActivity((IBinder) msg.obj, false, msg.arg2);
+        handleStopActivity(msg.arg1);
         break;
       case SHOW_WINDOW:
         // handleWindowVisibility((IBinder) msg.obj, true);
@@ -219,14 +239,13 @@ public final class ActivityThread {
         // handleWindowVisibility((IBinder) msg.obj, false);
         break;
       case RESUME_ACTIVITY:
-        // handleResumeActivity((IBinder) msg.obj, true, msg.arg1 != 0);
+        handleResumeActivity(msg.arg1);
         break;
       case SEND_RESULT:
         // handleSendResult((ResultData) msg.obj);
         break;
       case DESTROY_ACTIVITY: {
-
-        handleDestroyActivity((String) msg.obj);
+        handleDestroyActivity(msg.arg1);
       }
         break;
 
@@ -236,13 +255,20 @@ public final class ActivityThread {
 
   }
 
-  private void handleDestroyActivity(String obj) {
-    currentActivity.activity.onPause();
-    currentActivity.activity.onStop();
-
-  }
-
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
+
+    // Resolve Component
+    // ComponentName component = r.intent.getComponent();
+    // if (component == null) {
+    // component = r.intent.resolveActivity(
+    // mInitialApplication.getPackageManager());
+    // r.intent.setComponent(component);
+    // }
+    //
+    // if (r.activityInfo.targetActivity != null) {
+    // component = new ComponentName(r.activityInfo.packageName,
+    // r.activityInfo.targetActivity);
+    // }
 
     // Make new instance of the Activity class
     Activity activity = null;
@@ -253,6 +279,7 @@ public final class ActivityThread {
     } catch (Exception e) {
       throw new RuntimeException("Unable to instantiate activity " + ": " + e.toString(), e);
     }
+
     try {
       // Application app = new
       // Application();//r.packageInfo.makeApplication(false,
@@ -267,7 +294,10 @@ public final class ActivityThread {
         // Configuration config = new
         // Configuration(mCompatConfiguration);
 
-        activity.attach(this, null, ((currentActivity != null) ? currentActivity.activity : null), r.intent);
+        // activity.attach(this, null, ((currentActivity != null) ? currentActivity.activity : null),
+        // r.intent);
+        activity.attach(null, this, new Application(), r.intent, null, "",
+            ((currentActivity != null) ? currentActivity.activity : null));
 
         activity.onCreate(r.state);
         r.activity = activity;
@@ -278,7 +308,7 @@ public final class ActivityThread {
         activity.onPostCreate(r.state);
         r.paused = true;
 
-        mActivities.put(r.getName(), r);
+        mActivities.put(r.ident, r);
 
       }
     } catch (Exception e) {
@@ -300,55 +330,21 @@ public final class ActivityThread {
       Bundle oldState = r.state;
       handleResumeActivity(r);
 
-      // if (!r.activity.mFinished && r.startsNotResumed) {
-      // The activity manager actually wants this one to start out
-      // paused, because it needs to be visible but isn't in the
-      // foreground. We accomplish this by going through the
-      // normal startup (because activities expect to go through
-      // onResume() the first time they run, before their window
-      // is displayed), and then pausing it. However, in this case
-      // we do -not- need to do the full pause cycle (of freezing
-      // and such) because the activity manager assumes it can just
-      // retain the current state it has.
-      // try {
-      // r.activity.mCalled = false;
-      // mInstrumentation.callActivityOnPause(r.activity);
-      // We need to keep around the original state, in case
-      // we need to be created again.
-      // r.state = oldState;
-      // if (!r.activity.mCalled) {
-      // throw new SuperNotCalledException("Activity "
-      // + r.intent.getComponent().toShortString()
-      // + " did not call through to super.onPause()");
-      // }
-
-      // } catch (SuperNotCalledException e) {
-      // throw e;
-
-      // /} catch (Exception e) {
-      // if (!mInstrumentation.onException(r.activity, e)) {
-      // throw new RuntimeException("Unable to pause activity "
-      // + r.intent.getComponent().toShortString()
-      // + ": " + e.toString(), e);
-      // }
-      // }
-      // r.paused = true;
-      // }
-      // } else {
-      // If there was an error, for any reason, tell the activity
-      // manager to stop us.
-      // try {
-      // ActivityManagerNative.getDefault().finishActivity(r.token,
-      // Activity.RESULT_CANCELED, null);
-      // } catch (RemoteException ex) {
-      // Ignore
-      // }
-      // }
       if (currentActivity != null) {
         currentActivity.activity.onStop();
         a.mParent = currentActivity.activity;
       }
       currentActivity = r;
+
+    } else {
+      // If there was an error, for any reason, tell the activity
+      // manager to stop us.
+      // try {
+      // TODO ActivityManagerNative.getDefault().finishActivity(r.token, Activity.RESULT_CANCELED, null);
+      // } catch (RemoteException ex) {
+      // Ignore
+      // }
+
     }
   }
 
@@ -369,6 +365,98 @@ public final class ActivityThread {
             + e.toString(), e);
       }
     }
+  }
+
+  private void handlePauseActivity(int ident) {
+    ActivityClientRecord r = mActivities.get(ident);
+    if (r != null) {
+      // Slog.v(TAG, "userLeaving=" + userLeaving + " handling pause of " + r);
+      // if (userLeaving) {
+      // performUserLeavingActivity(r);
+      // }
+
+      // r.activity.mConfigChangeFlags |= configChanges;
+      performPauseActivity(ident);
+
+      // Make sure any pending writes are now committed.
+      // if (r.isPreHoneycomb()) {
+      // QueuedWork.waitToFinish();
+      // }
+
+      // Tell the activity manager we have paused.
+      // try {
+      // ActivityManagerNative.getDefault().activityPaused(token);
+      // } catch (RemoteException ex) {
+      // }
+    }
+  }
+
+  final Bundle performPauseActivity(int ident) {
+    ActivityClientRecord r = mActivities.get(ident);
+    return performPauseActivity(r);
+  }
+
+  final Bundle performPauseActivity(ActivityClientRecord r) {
+    // if (r.paused) {
+    // if (r.activity.mFinished) {
+    // // If we are finishing, we won't call onResume() in certain cases.
+    // // So here we likewise don't want to call onPause() if the activity
+    // // isn't resumed.
+    // return null;
+    // }
+    // RuntimeException e = new RuntimeException("Performing pause of activity that is not resumed: "
+    // + r.intent.getComponent());
+    // // Slog.e(TAG, e.getMessage(), e);
+    // }
+    Bundle state = null;
+    // if (finished) {
+    // r.activity.mFinished = true;
+    // }
+    try {
+      // Next have the activity save its current state and managed dialogs...
+      if (!r.activity.mFinished && saveState) {
+        state = new Bundle();
+        state.setAllowFds(false);
+        mInstrumentation.callActivityOnSaveInstanceState(r.activity, state);
+        r.state = state;
+      }
+      // Now we are idle.
+      r.activity.mCalled = false;
+      mInstrumentation.callActivityOnPause(r.activity);
+      EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
+      if (!r.activity.mCalled) {
+        throw new SuperNotCalledException("Activity " + r.intent.getComponent().toShortString()
+            + " did not call through to super.onPause()");
+      }
+
+    } catch (SuperNotCalledException e) {
+      throw e;
+
+    } catch (Exception e) {
+      if (!mInstrumentation.onException(r.activity, e)) {
+        throw new RuntimeException("Unable to pause activity " + r.intent.getComponent().toShortString()
+            + ": " + e.toString(), e);
+      }
+    }
+    r.paused = true;
+
+    // Notify any outstanding on paused listeners
+    ArrayList<OnActivityPausedListener> listeners;
+    synchronized (mOnPauseListeners) {
+      listeners = mOnPauseListeners.remove(r.activity);
+    }
+    int size = (listeners != null ? listeners.size() : 0);
+    for (int i = 0; i < size; i++) {
+      listeners.get(i).onPaused(r.activity);
+    }
+
+    return state;
+  }
+
+  private void handleDestroyActivity(String obj) {
+    currentActivity.activity.onPause();
+    currentActivity.activity.onStop();
+
   }
 
   private void attach() {
