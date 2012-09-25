@@ -20,13 +20,11 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
 import android.content.ComponentCallbacks2;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.util.Log;
 
 public abstract class Service extends ContextWrapper implements ComponentCallbacks2 {
@@ -214,6 +212,90 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
    * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
    * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
    * thread can be found in <a href="{@docRoot}
    * guide/topics/fundamentals/processes-and-threads.html">Processes and Threads</a>.
    * </p>
@@ -284,10 +366,10 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * @see #stopSelfResult
    */
   public final void stopSelf(int startId) {
-    try {
-      mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
-    } catch (RemoteException ex) {
-    }
+    // try {
+    // mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
+    // } catch (RemoteException ex) {
+    // }
   }
 
   /**
@@ -310,13 +392,13 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * @see #stopSelf()
    */
   public final boolean stopSelfResult(int startId) {
-    if (mActivityManager == null) {
-      return false;
-    }
-    try {
-      return mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
-    } catch (RemoteException ex) {
-    }
+    // if (mActivityManager == null) {
+    // return false;
+    // }
+    // try {
+    // return mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
+    // } catch (RemoteException ex) {
+    // }
     return false;
   }
 
@@ -360,11 +442,11 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * @see #stopForeground(boolean)
    */
   public final void startForeground(int id, Notification notification) {
-    try {
-      mActivityManager.setServiceForeground(new ComponentName(this, mClassName), mToken, id, notification,
-          true);
-    } catch (RemoteException ex) {
-    }
+    // try {
+    // mActivityManager.setServiceForeground(new ComponentName(this, mClassName), mToken, id, notification,
+    // true);
+    // } catch (RemoteException ex) {
+    // }
   }
 
   /**
@@ -376,11 +458,11 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * @see #startForeground(int, Notification)
    */
   public final void stopForeground(boolean removeNotification) {
-    try {
-      mActivityManager.setServiceForeground(new ComponentName(this, mClassName), mToken, 0, null,
-          removeNotification);
-    } catch (RemoteException ex) {
-    }
+    // try {
+    // mActivityManager.setServiceForeground(new ComponentName(this, mClassName), mToken, 0, null,
+    // removeNotification);
+    // } catch (RemoteException ex) {
+    // }
   }
 
   /**

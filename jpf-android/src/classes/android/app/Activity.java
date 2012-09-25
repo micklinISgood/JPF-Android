@@ -202,7 +202,7 @@ public class Activity extends ContextThemeWrapper {
     // if (mParent == null) {
     // Instrumentation.ActivityResult ar =
     intent.setParent(this);
-    onPause();
+    // onPause();
     // System.out.println("Activity for result");
     ActivityManagerProxy.startActivityProxy(intent);
     // if (ar != null) {
@@ -428,7 +428,7 @@ public class Activity extends ContextThemeWrapper {
     // mFragments.dispatchStop();
     //
     mCalled = false;
-    onStop();
+    this.onStop();
     if (!mCalled) {
       throw new SuperNotCalledException("Activity " + mComponent + " did not call through to super.onStop()");
     }

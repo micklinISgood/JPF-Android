@@ -1,6 +1,5 @@
 package android.app;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,6 +30,8 @@ public final class ActivityThread {
 
   // stores the current running Activity
   ActivityClientRecord currentActivity;
+
+  final HashMap<IBinder, Service> mServices = new HashMap<IBinder, Service>();
 
   final ApplicationThread mAppThread = new ApplicationThread();
 
@@ -83,15 +84,23 @@ public final class ActivityThread {
       if (current != null)
         schedulePauseActivity(current.ident);
       scheduleLaunchActivity(activityname, startingIntent);
-      if (current != null)
+      if (current != null) {
         scheduleStopActivity(current.ident);
+      }
     }
 
     private void performSleep() {
 
     }
 
-    private void performOrientationChange() {
+    private void performWake() {
+
+    }
+
+    /**
+     * 
+     */
+    private void performConfigChange() {
 
     }
 
@@ -108,14 +117,12 @@ public final class ActivityThread {
     }
 
     private void performHomePressed() {
-
       ActivityClientRecord current = currentActivity;
       if (current != null) {
-        // schedulePauseActivity(current);
+        schedulePauseActivity(current.ident);
+        scheduleStopActivity(current.ident);
       }
-
     }
-
   }
 
   static final class ActivityClientRecord {
@@ -219,7 +226,7 @@ public final class ActivityThread {
       }
         break;
       case PAUSE_ACTIVITY:
-        handlePauseActivity((IBinder) msg.obj, false, msg.arg1 != 0, msg.arg2);
+        handlePauseActivity(msg.arg1);
         // maybeSnapshot();
         break;
       case PAUSE_ACTIVITY_FINISHING:
@@ -253,6 +260,412 @@ public final class ActivityThread {
 
     }
 
+  }
+
+  // private void handleCreateService(CreateServiceData data) {
+  // // If we are getting ready to gc after going to the background, well
+  // // we are back active so skip it.
+  // // unscheduleGcIdler();
+  //
+  // LoadedApk packageInfo = getPackageInfoNoCheck(
+  // data.info.applicationInfo, data.compatInfo);
+  // Service service = null;
+  // try {
+  // Class<Service> cls = (Class<Service>) Class.forName(r.getName());
+  // activity = cls.newInstance();
+  // } catch (Exception e) {
+  // throw new RuntimeException("Unable to instantiate activity " + ": " + e.toString(), e);
+  // }
+  //
+  //
+  // try {
+  // if (localLOGV) Slog.v(TAG, "Creating service " + data.info.name);
+  //
+  // ContextImpl context = new ContextImpl();
+  // context.init(packageInfo, null, this);
+  //
+  // Application app = packageInfo.makeApplication(false, mInstrumentation);
+  // context.setOuterContext(service);
+  // service.attach(context, this, data.info.name, data.token, app,
+  // ActivityManagerNative.getDefault());
+  // service.onCreate();
+  // mServices.put(data.token, service);
+  // try {
+  // ActivityManagerNative.getDefault().serviceDoneExecuting(
+  // data.token, 0, 0, 0);
+  // } catch (RemoteException e) {
+  // // nothing to do.
+  // }
+  // } catch (Exception e) {
+  // if (!mInstrumentation.onException(service, e)) {
+  // throw new RuntimeException(
+  // "Unable to create service " + data.info.name
+  // + ": " + e.toString(), e);
+  // }
+  // }
+  // }
+
+  final void handleResumeActivity(int arg1) {
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
+    // unscheduleGcIdler();
+
+    ActivityClientRecord r = performResumeActivity(arg1);
+    if (r != null) {
+      currentActivity = r;
+      final Activity a = r.activity;
+
+      // if (localLOGV)
+      // Slog.v(TAG, "Resume " + r + " started activity: " + a.mStartedActivity + ", hideForNow: "
+      // + r.hideForNow + ", finished: " + a.mFinished);
+
+      // final int forwardBit = isForward ? WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
+
+      // If the window hasn't yet been added to the window manager,
+      // and this guy didn't finish itself or start another activity,
+      // then go ahead and add the window.
+      // boolean willBeVisible = !a.mStartedActivity;
+      // if (!willBeVisible) {
+      // try {
+      // willBeVisible = ActivityManagerNative.getDefault().willActivityBeVisible(a.getActivityToken());
+      // } catch (RemoteException e) {
+      // }
+      // }
+      // if (r.window == null && !a.mFinished && willBeVisible) {
+      // / r.window = r.activity.getWindow();
+      // View decor = r.window.getDecorView();
+      // decor.setVisibility(View.INVISIBLE);
+      // ViewManager wm = a.getWindowManager();
+      // WindowManager.LayoutParams l = r.window.getAttributes();
+      // a.mDecor = decor;
+      // l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
+      // l.softInputMode |= forwardBit;
+      // if (a.mVisibleFromClient) {
+      // a.mWindowAdded = true;
+      // wm.addView(decor, l);
+      // }
+
+      // If the window has already been added, but during resume
+      // we started another activity, then don't yet make the
+      // window visible.
+      // } else if (!willBeVisible) {
+      // if (localLOGV)
+      // Slog.v(TAG, "Launch " + r + " mStartedActivity set");
+      // r.hideForNow = true;
+      // }
+
+      // Get rid of anything left hanging around.
+      // cleanUpPendingRemoveWindows(r);
+
+      // The window is now visible if it has been added, we are not
+      // simply finishing, and we are not starting another activity.
+      // if (!r.activity.mFinished && willBeVisible && r.activity.mDecor != null && !r.hideForNow) {
+      // if (r.newConfig != null) {
+      // if (DEBUG_CONFIGURATION)
+      // Slog.v(TAG, "Resuming activity " + r.activityInfo.name + " with newConfig " + r.newConfig);
+      // performConfigurationChanged(r.activity, r.newConfig);
+      // r.newConfig = null;
+      // }
+      // if (localLOGV)
+      // Slog.v(TAG, "Resuming " + r + " with isForward=" + isForward);
+      // WindowManager.LayoutParams l = r.window.getAttributes();
+      // if ((l.softInputMode & WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION) != forwardBit) {
+      // l.softInputMode = (l.softInputMode & (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
+      // | forwardBit;
+      // if (r.activity.mVisibleFromClient) {
+      // ViewManager wm = a.getWindowManager();
+      // View decor = r.window.getDecorView();
+      // wm.updateViewLayout(decor, l);
+      // }
+      // }
+      // r.activity.mVisibleFromServer = true;
+      // mNumVisibleActivities++;
+      // if (r.activity.mVisibleFromClient) {
+      // r.activity.makeVisible();
+      // }
+      // }
+
+      // if (!r.onlyLocalRequest) {
+      // r.nextIdle = mNewActivities;
+      // mNewActivities = r;
+      // if (localLOGV)
+      // Slog.v(TAG, "Scheduling idle handler for " + r);
+      // Looper.myQueue().addIdleHandler(new Idler());
+      // }
+      // r.onlyLocalRequest = false;
+
+      // } else {
+      // If an exception was thrown when trying to resume, then
+      // just end this activity.
+      // try {
+      // ActivityManagerNative.getDefault().finishActivity(token, Activity.RESULT_CANCELED, null);
+      // } catch (RemoteException ex) {
+      // }
+    }
+
+  }
+
+  public final ActivityClientRecord performResumeActivity(int token) {
+    ActivityClientRecord r = mActivities.get(token);
+    // if (localLOGV)
+    // Slog.v(TAG, "Performing resume of " + r + " finished=" + r.activity.mFinished);
+    // if (r != null && !r.activity.mFinished) {
+    // if (clearHide) {
+    // r.hideForNow = false;
+    // r.activity.mStartedActivity = false;
+    // }
+    // try {
+    // if (r.pendingIntents != null) {
+    // deliverNewIntents(r, r.pendingIntents);
+    // r.pendingIntents = null;
+    // }
+    // if (r.pendingResults != null) {
+    // deliverResults(r, r.pendingResults);
+    // r.pendingResults = null;
+    // }
+    r.activity.performResume();
+
+    // EventLog.writeEvent(LOG_ON_RESUME_CALLED, r.activity.getComponentName().getClassName());
+
+    r.paused = false;
+    r.stopped = false;
+    r.state = null;
+    // } catch (Exception e) {
+    // / if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to resume activity " + r.intent.getComponent().toShortString()
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    // }
+    return r;
+  }
+
+  final void handleStopActivity(int arg1) {
+    ActivityClientRecord r = mActivities.get(arg1);
+    // r.activity.mConfigChangeFlags |= configChanges;
+
+    // StopInfo info = new StopInfo();
+    performStopActivityInner(r);
+
+    // if (localLOGV)
+    // Slog.v(TAG, "Finishing stop of " + r + ": show=" + show + " win=" + r.window);
+
+    // updateVisibility(r, show);
+
+    // Make sure any pending writes are now committed.
+    // if (!r.isPreHoneycomb()) {
+    // QueuedWork.waitToFinish();
+    // / }
+
+    // Tell activity manager we have been stopped.
+    // // try {
+    // ActivityManagerNative.getDefault().activityStopped(r.token, r.state, info.thumbnail, info.description);
+    // } catch (RemoteException ex) {
+    // }
+
+  }
+
+  /**
+   * Core implementation of stopping an activity. Note this is a little tricky because the server's meaning of
+   * stop is slightly different than our client -- for the server, stop means to save state and give it the
+   * result when it is done, but the window may still be visible. For the client, we want to call
+   * onStop()/onStart() to indicate when the activity's UI visibillity changes.
+   */
+  private void performStopActivityInner(ActivityClientRecord r) {
+    // if (localLOGV) Slog.v(TAG, "Performing stop of " + r);
+    // Bundle state = null;
+    // if (r != null) {
+    // if (!keepShown && r.stopped) {
+    // if (r.activity.mFinished) {
+    // If we are finishing, we won't call onResume() in certain
+    // cases. So here we likewise don't want to call onStop()
+    // if the activity isn't resumed.
+    // return;
+    // }
+    // RuntimeException e = new RuntimeException(
+    // "Performing stop of activity that is not resumed: "
+    // + r.intent.getComponent().toShortString());
+    // S//log.e(TAG, e.getMessage(), e);
+    // }
+
+    // if (info != null) {
+    // try {
+    // First create a thumbnail for the activity...
+    // For now, don't create the thumbnail here; we are
+    // doing that by doing a screen snapshot.
+    // info.thumbnail = null; //createThumbnailBitmap(r);
+    // info.description = r.activity.onCreateDescription();
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException(
+    // "Unable to save state of activity "
+    // + r.intent.getComponent().toShortString()
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    // }
+
+    // Next have the activity save its current state and managed dialogs...
+    // if (!r.activity.mFinished && saveState) {
+    // if (r.state == null) {
+    // state = new Bundle();
+    // state.setAllowFds(false);
+    // mInstrumentation.callActivityOnSaveInstanceState(r.activity, state);
+    // r.state = state;
+    // } else {
+    // state = r.state;
+    // }
+    // }
+
+    // if (!keepShown) {
+    // try {
+    // Now we are idle.
+    r.activity.performStop();
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException(
+    // "Unable to stop activity "
+    // + r.intent.getComponent().toShortString()
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    r.stopped = true;
+    // }
+
+    r.paused = true;
+    // / }
+  }
+
+  private void handleDestroyActivity(int arg1) {
+    ActivityClientRecord r = performDestroyActivity(arg1);
+    if (r != null) {
+      // cleanUpPendingRemoveWindows(r);
+      // WindowManager wm = r.activity.getWindowManager();
+      // View v = r.activity.mDecor;
+      // if (v != null) {
+      // // if (r.activity.mVisibleFromServer) {
+      // mNumVisibleActivities--;
+      // }
+      // IBinder wtoken = v.getWindowToken();
+      // if (r.activity.mWindowAdded) {
+      // if (r.onlyLocalRequest) {
+      // Hold off on removing this until the new activity's
+      // window is being added.
+      // r.mPendingRemoveWindow = v;
+      // r.mPendingRemoveWindowManager = wm;
+      // } else {
+      // wm.removeViewImmediate(v);
+      // }
+      // }
+      // if (wtoken != null && r.mPendingRemoveWindow == null) {
+      // WindowManagerImpl.getDefault().closeAll(wtoken, r.activity.getClass().getName(), "Activity");
+      // }
+      // r.activity.mDecor = null;
+      // }
+      // if (r.mPendingRemoveWindow == null) {
+      // If we are delaying the removal of the activity window, then
+      // we can't clean up all windows here. Note that we can't do
+      // so later either, which means any windows that aren't closed
+      // by the app will leak. Well we try to warning them a lot
+      // about leaking windows, because that is a bug, so if they are
+      // using this recreate facility then they get to live with leaks.
+      // WindowManagerImpl.getDefault().closeAll(token, r.activity.getClass().getName(), "Activity");
+    }
+
+    // Mocked out contexts won't be participating in the normal
+    // process lifecycle, but if we're running with a proper
+    // ApplicationContext we need to have it tear down things
+    // cleanly.
+    // / Context c = r.activity.getBaseContext();
+    // if (c instanceof ContextImpl) {
+    // ((ContextImpl) c).scheduleFinalCleanup(r.activity.getClass().getName(), "Activity");
+    // }
+    // }
+    // if (finishing) {
+    // try {
+    // / ActivityManagerNative.getDefault().activityDestroyed(token);
+    // } catch (RemoteException ex) {
+    // If the system process has died, it's game over for everyone.
+    // }
+    // }
+
+  }
+
+  private ActivityClientRecord performDestroyActivity(int token) {
+    ActivityClientRecord r = mActivities.get(token);
+    Class activityClass = null;
+    // if (localLOGV)
+    // Slog.v(TAG, "Performing finish of " + r);
+    // if (r != null) {
+    // activityClass = r.activity.getClass();
+    // r.activity.mConfigChangeFlags |= configChanges;
+    // if (finishing) {
+    // r.activity.mFinished = true;
+    // }
+    // if (!r.paused) {
+    // try {
+    // r.activity.mCalled = false;
+    // r.activity.onPause();
+    // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
+    // if (!r.activity.mCalled) {
+    // throw new SuperNotCalledException("Activity " + safeToComponentShortString(r.intent)
+    // / + " did not call through to super.onPause()");
+    // }
+    // } catch (SuperNotCalledException e) {
+    // throw e;
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to pause activity " + safeToComponentShortString(r.intent)
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    // r.paused = true;
+    // }
+    // if (!r.stopped) {
+    // try {
+    // r.activity.performStop();
+    // } catch (SuperNotCalledException e) {
+    // throw e;
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to stop activity " + safeToComponentShortString(r.intent)
+    // + ": " + e.toString(), e);
+    // }
+    // // }
+    // r.stopped = true;
+    // }
+    // if (getNonConfigInstance) {
+    // try {
+    // r.lastNonConfigurationInstances = r.activity.retainNonConfigurationInstances();
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to retain activity " + r.intent.getComponent().toShortString()
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    // }
+    // try {
+    r.activity.mCalled = false;
+    r.activity.onDestroy();
+    // if (!r.activity.mCalled) {
+    // throw new SuperNotCalledException("Activity " + safeToComponentShortString(r.intent)
+    // + " did not call through to super.onDestroy()");
+    // }
+    // / if (r.window != null) {
+    // r.window.closeAllPanels();
+    // }
+    // } catch (SuperNotCalledException e) {
+    // throw e;
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to destroy activity " + safeToComponentShortString(r.intent)
+    // + ": " + e.toString(), e);
+    // }
+    // }
+    // }
+    mActivities.remove(token);
+    // StrictMode.decrementExpectedActivityCount(activityClass);
+    return r;
   }
 
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
@@ -298,7 +711,7 @@ public final class ActivityThread {
         // r.intent);
         activity.attach(null, this, new Application(), r.intent, null, "",
             ((currentActivity != null) ? currentActivity.activity : null));
-
+        r.ident = activity.mIdent;
         activity.onCreate(r.state);
         r.activity = activity;
         activity.onStart();
@@ -328,13 +741,13 @@ public final class ActivityThread {
     if (a != null) {
       // r.createdConfig = new Configuration(mConfiguration);
       Bundle oldState = r.state;
-      handleResumeActivity(r);
-
       if (currentActivity != null) {
-        currentActivity.activity.onStop();
         a.mParent = currentActivity.activity;
+        r.parent = currentActivity.activity;
+
       }
-      currentActivity = r;
+
+      handleResumeActivity(r.ident);
 
     } else {
       // If there was an error, for any reason, tell the activity
@@ -345,25 +758,6 @@ public final class ActivityThread {
       // Ignore
       // }
 
-    }
-  }
-
-  final void handleResumeActivity(ActivityClientRecord r) {
-    performResumeActivity(r);
-  }
-
-  public final void performResumeActivity(ActivityClientRecord r) {
-    if (r != null) {
-      try {
-        r.activity.onResume();
-        r.activity.onPostResume();
-        r.paused = false;
-        r.stopped = false;
-        r.state = null;
-      } catch (Exception e) {
-        throw new RuntimeException("Unable to resume activity " + r.intent.getComponent() + ": "
-            + e.toString(), e);
-      }
     }
   }
 
@@ -412,51 +806,45 @@ public final class ActivityThread {
     // if (finished) {
     // r.activity.mFinished = true;
     // }
-    try {
-      // Next have the activity save its current state and managed dialogs...
-      if (!r.activity.mFinished && saveState) {
-        state = new Bundle();
-        state.setAllowFds(false);
-        mInstrumentation.callActivityOnSaveInstanceState(r.activity, state);
-        r.state = state;
-      }
-      // Now we are idle.
-      r.activity.mCalled = false;
-      mInstrumentation.callActivityOnPause(r.activity);
-      EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
-      if (!r.activity.mCalled) {
-        throw new SuperNotCalledException("Activity " + r.intent.getComponent().toShortString()
-            + " did not call through to super.onPause()");
-      }
-
-    } catch (SuperNotCalledException e) {
-      throw e;
-
-    } catch (Exception e) {
-      if (!mInstrumentation.onException(r.activity, e)) {
-        throw new RuntimeException("Unable to pause activity " + r.intent.getComponent().toShortString()
-            + ": " + e.toString(), e);
-      }
+    // try {
+    // Next have the activity save its current state and managed dialogs...
+    // if (!r.activity.mFinished && saveState) {
+    // state = new Bundle();
+    // state.setAllowFds(false);
+    // r.activity.on saveInstanceState(, state);
+    // r.state = state;
+    // }
+    // Now we are idle.
+    r.activity.mCalled = false;
+    r.activity.onPause();
+    // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
+    if (!r.activity.mCalled) {
+      throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+          + " did not call through to super.onPause()");
     }
+
+    // } catch (SuperNotCalledException e) {
+    // throw e;
+
+    // } catch (Exception e) {
+    // if (!mInstrumentation.onException(r.activity, e)) {
+    // throw new RuntimeException("Unable to pause activity " + r.intent.getComponent().toShortString()
+    // + ": " + e.toString(), e);
+    // }
+    // }
     r.paused = true;
 
     // Notify any outstanding on paused listeners
-    ArrayList<OnActivityPausedListener> listeners;
-    synchronized (mOnPauseListeners) {
-      listeners = mOnPauseListeners.remove(r.activity);
-    }
-    int size = (listeners != null ? listeners.size() : 0);
-    for (int i = 0; i < size; i++) {
-      listeners.get(i).onPaused(r.activity);
-    }
+    // ArrayList<OnActivityPausedListener> listeners;
+    // synchronized (mOnPauseListeners) {
+    // listeners = mOnPauseListeners.remove(r.activity);
+    // }
+    // int size = (listeners != null ? listeners.size() : 0);
+    // for (int i = 0; i < size; i++) {
+    // listeners.get(i).onPaused(r.activity);
+    // }
 
     return state;
-  }
-
-  private void handleDestroyActivity(String obj) {
-    currentActivity.activity.onPause();
-    currentActivity.activity.onStop();
-
   }
 
   private void attach() {
