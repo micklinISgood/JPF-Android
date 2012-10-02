@@ -1,7 +1,6 @@
 package com.example.vdm;
 
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -145,6 +144,6 @@ public class SampleProjectActivity extends Activity {
    * @param args
    */
   public static void main(String[] args) {
-    ActivityThread.main(null);
+    // ActivityThread.main(null);
   }
 }

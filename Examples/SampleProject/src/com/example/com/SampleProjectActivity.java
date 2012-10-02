@@ -17,6 +17,11 @@ public class SampleProjectActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
+    // Object state = getLastNonConfigurationInstance();
+    // if (state != null && state.equals(new String("Hallo"))) {
+    // System.out.println("Retained resource");
+    // }
+
     System.out.println("1 onCreate");
 
     Button b1 = (Button) findViewById(R.id.buttonText1);
@@ -46,6 +51,7 @@ public class SampleProjectActivity extends Activity {
       public void onClick(View v) {
         i++;
         System.out.println("Printing text 3: " + i);
+        startActivityForResult(new Intent(SampleProjectActivity.this, ResultActivity.class), 1);
       }
     });
 
@@ -105,6 +111,17 @@ public class SampleProjectActivity extends Activity {
   protected void onPostCreate(Bundle savedInstanceState) {
     super.onPostCreate(savedInstanceState);
 
+  }
+
+  public Object onRetainNonConfigurationInstance() {
+    System.out.println("1 onRetainNonConfigurationInstance()");
+    return new String("Hallo");
+  }
+
+  @Override
+  public void startActivityForResult(Intent intent, int requestCode) {
+    super.startActivityForResult(intent, requestCode);
+    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
   }
 
   @Override
@@ -192,4 +209,5 @@ public class SampleProjectActivity extends Activity {
   public static void main(String[] args) {
     ActivityThread.main(null);
   }
+
 }
