@@ -1,8 +1,11 @@
 package android.app;
 
+import java.util.HashMap;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.ContextThemeWrapper;
@@ -14,6 +17,21 @@ import com.android.internal.policy.PolicyManager;
 
 public class Activity extends ContextThemeWrapper {
   private static int uniqueID = 0;
+  private static final String TAG = "Activity";
+
+  /** Standard activity result: operation cancelled. */
+  public static final int RESULT_CANCELED = 0;
+  /** Standard activity result: operation succeeded. */
+  public static final int RESULT_OK = -1;
+  /** Start of user-defined activity results. */
+  public static final int RESULT_FIRST_USER = 1;
+
+  private static final String WINDOW_HIERARCHY_TAG = "android:viewHierarchyState";
+  private static final String FRAGMENTS_TAG = "android:fragments";
+  private static final String SAVED_DIALOG_IDS_KEY = "android:savedDialogIds";
+  private static final String SAVED_DIALOGS_TAG = "android:savedDialogs";
+  private static final String SAVED_DIALOG_KEY_PREFIX = "android:dialog_";
+  private static final String SAVED_DIALOG_ARGS_KEY_PREFIX = "android:dialog_args_";
 
   private Context mBase;
   private Application mApplication;
@@ -26,14 +44,27 @@ public class Activity extends ContextThemeWrapper {
 
   Activity mParent; // Reference to the activity that started this activity
   boolean mCalled;
-  // Activity Locks
-  boolean mResumed;
+  boolean mCheckedForLoaderManager;
+  boolean mLoadersStarted;
+  /* package */boolean mResumed;
   private boolean mStopped;
   boolean mFinished;
   boolean mStartedActivity;
-
   /** true if the activity is going through a transient pause */
-  boolean mTemporaryPause = false;
+  /* package */boolean mTemporaryPause = false;
+  /** true if the activity is being destroyed in order to recreate it with a new configuration */
+  /* package */boolean mChangingConfigurations = false;
+  /* package */int mConfigChangeFlags;
+  /* package */Configuration mCurrentConfig;
+
+  static final class NonConfigurationInstances {
+    Object activity;
+    HashMap<String, Object> children;
+    // ArrayList<Fragment> fragments;
+    // android.util.SparseArray<LoaderManagerImpl> loaders;
+  }
+
+  /* package */NonConfigurationInstances mLastNonConfigurationInstances;
 
   private Window mWindow;
   // private WindowManager mWindowManager;
@@ -46,7 +77,10 @@ public class Activity extends ContextThemeWrapper {
   private Thread mUiThread;
   final Handler mHandler = new Handler();
 
+  // protected by synchronised (this)
+  int mResultCode = RESULT_CANCELED;
   Intent mResultData = null;
+  int mRequestCode;
 
   public void onCreate(Bundle savedInstanceState) {
     // if (mLastNonConfigurationInstances != null) { -- comes from attach
@@ -55,14 +89,37 @@ public class Activity extends ContextThemeWrapper {
 
     // if (savedInstanceState != null) {
     // Parcelable p = savedInstanceState.getParcelable(FRAGMENTS_TAG);
-    // mFragments.restoreAllState(p, mLastNonConfigurationInstances != null
-    // ? mLastNonConfigurationInstances.fragments : null);
+    // mFragments.restoreAllState(p,
+    // mLastNonConfigurationInstances != null ? mLastNonConfigurationInstances.fragments : null);
     // }
     // mFragments.dispatchCreate();
 
     getApplication().dispatchActivityCreated(this, savedInstanceState);
     mCalled = true;
 
+  }
+
+  /**
+   * The hook for {@link ActivityThread} to restore the state of this activity.
+   * 
+   * Calls {@link #onSaveInstanceState(android.os.Bundle)} and
+   * {@link #restoreManagedDialogs(android.os.Bundle)}.
+   * 
+   * @param savedInstanceState
+   *          contains the saved state
+   */
+  final void performRestoreInstanceState(Bundle savedInstanceState) {
+    onRestoreInstanceState(savedInstanceState);
+    // restoreManagedDialogs(savedInstanceState);
+  }
+
+  protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    if (mWindow != null) {
+      Bundle windowState = savedInstanceState.getBundle(WINDOW_HIERARCHY_TAG);
+      if (windowState != null) {
+        // mWindow.restoreHierarchyState(windowState);
+      }
+    }
   }
 
   protected void onPostCreate(Bundle savedInstanceState) {
@@ -204,7 +261,8 @@ public class Activity extends ContextThemeWrapper {
     intent.setParent(this);
     // onPause();
     // System.out.println("Activity for result");
-    ActivityManagerProxy.startActivityProxy(intent);
+    mRequestCode = requestCode;
+    ActivityManagerProxy.startActivityProxy(intent, requestCode);
     // if (ar != null) {
     // mMainThread.sendActivityResult(
     // mToken, mEmbeddedID, requestCode, ar.getResultCode(),
@@ -224,11 +282,6 @@ public class Activity extends ContextThemeWrapper {
     // } else {
     // mParent.startActivityFromChild(this, intent, requestCode);
     // }
-  }
-
-  public void onRestoreInstanceState(Bundle state) {
-    // TODO Auto-generated method stub
-
   }
 
   public Intent getIntent() {
@@ -502,4 +555,55 @@ public class Activity extends ContextThemeWrapper {
     return result;
   }
 
+  protected void onSaveInstanceState(Bundle outState) {
+    // outState.putBundle(WINDOW_HIERARCHY_TAG, mWindow.saveHierarchyState());
+    // Parcelable p = mFragments.saveAllState();
+    // if (p != null) {
+    // outState.putParcelable(FRAGMENTS_TAG, p);
+    // }
+    getApplication().dispatchActivitySaveInstanceState(this, outState);
+  }
+
+  /**
+   * Check to see whether this activity is in the process of finishing, either because you called
+   * {@link #finish} on it or someone else has requested that it finished. This is often used in
+   * {@link #onPause} to determine whether the activity is simply pausing or completely finishing.
+   * 
+   * @return If the activity is finishing, returns true; else returns false.
+   * 
+   * @see #finish
+   */
+  public boolean isFinishing() {
+    return mFinished;
+  }
+
+  /**
+   * Call this when your activity is done and should be closed. The ActivityResult is propagated back to
+   * whoever launched you via onActivityResult().
+   */
+  public void finish() {
+    // if (mParent == null) {
+    int resultCode;
+    Intent resultData;
+    synchronized (this) {
+      resultCode = mResultCode;
+      resultData = mResultData;
+    }
+    if (resultData != null) {
+      // resultData.setAllowFds(false);
+    }
+    // if (ActivityManagerNative.getDefault().finishActivity(ident, resultCode, resultData)) {
+    mFinished = true;
+    // }
+  }
+
+  /**
+   * Called when the activity has detected the user's press of the back key. The default implementation simply
+   * finishes the current activity, but you can override this to do whatever you want.
+   */
+  public void onBackPressed() {
+    // if (!mFragments.popBackStackImmediate()) {
+    finish();
+    // }
+  }
 }

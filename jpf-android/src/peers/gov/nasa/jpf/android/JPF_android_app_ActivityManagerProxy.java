@@ -79,7 +79,11 @@ public class JPF_android_app_ActivityManagerProxy {
     if (action.action.equals("startActivity")) {
       String intentName = (String) action.arguments[0];
       int intentref = getJPFIntent(env, intentName);
-      startActivity(env, 0, intentref);
+      startActivity(env, 0, intentref, -1);
+    } else if (action.action.equals("changeLayout")) {
+      String layout = (String) action.arguments[0];
+
+      changeLayout(env, 0, 1);
 
     } else if (action.action.equals("backButton")) {
       backButton(env);
@@ -88,12 +92,30 @@ public class JPF_android_app_ActivityManagerProxy {
     }
   }
 
+  /**
+   * This is always called to start an Activity
+   * 
+   * @param env
+   * @param orientation
+   *          the new orientation
+   */
+  private static void changeLayout(MJIEnv env, int clsRef, int orientation) {
+    log.fine("changing layout to " + orientation);
+
+    // schedule launch of activity
+    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
+    String methodName = "performConfigurationChange()V";
+    int[] args = {};
+
+    callMethod(env, appRef, methodName, args);
+
+  }
+
   private static void backButton(MJIEnv env) {
     // schedule launch of activity
     int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performBackPressed()V";
     int[] args = {};
-
     callMethod(env, appRef, methodName, args);
 
   }
@@ -133,13 +155,13 @@ public class JPF_android_app_ActivityManagerProxy {
    * @param clsRef
    * @param intentRef
    */
-  public static void startActivityProxy(MJIEnv env, int clsRef, int intentRef) {
+  public static void startActivityProxy(MJIEnv env, int clsRef, int intentRef, int requestcode) {
     ThreadInfo ti = env.getThreadInfo();
 
     // so that the method is not called twice on return from making direct
     // call
     if (!ti.hasReturnedFromDirectCall(UIACTION)) {
-      startActivity(env, clsRef, intentRef);
+      startActivity(env, clsRef, intentRef, -1);
     }
   }
 
@@ -150,8 +172,7 @@ public class JPF_android_app_ActivityManagerProxy {
    * @param intentRef
    *          the reference to the intent starting the activity
    */
-  private static void startActivity(MJIEnv env, int clsRef, int intentRef) {
-    // TODO pause activity currently active etc
+  private static void startActivity(MJIEnv env, int clsRef, int intentRef, int requestCode) {
     // Lookup the name of the activity to launch
     int activityNameRef = getActivity(env, intentRef);
     String activityName = env.getStringObject(activityNameRef);

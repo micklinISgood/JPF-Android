@@ -40,6 +40,8 @@ public class JPF_android_os_MessageQueue {
     forceActionStates = conf.getBoolean("awt.force_states", true);
 
     String scriptName = conf.getString("awt.script");
+    System.out.println("scriptName");
+
     if (scriptName == null) {
       scriptName = conf.getString("inspect.script");
 

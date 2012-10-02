@@ -1,9 +1,9 @@
 package android.app;
 
 import java.util.HashMap;
-import java.util.List;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -12,6 +12,18 @@ import android.os.Message;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.view.Window;
+
+final class SuperNotCalledException extends android.util.AndroidRuntimeException {
+  public SuperNotCalledException(String msg) {
+    super(msg);
+  }
+}
+
+final class RemoteServiceException extends android.util.AndroidRuntimeException {
+  public RemoteServiceException(String msg) {
+    super(msg);
+  }
+}
 
 /**
  * This manages the execution of the main thread in an application process, scheduling and executing
@@ -34,6 +46,7 @@ public final class ActivityThread {
   final HashMap<IBinder, Service> mServices = new HashMap<IBinder, Service>();
 
   final ApplicationThread mAppThread = new ApplicationThread();
+  Configuration mConfiguration;
 
   private class ApplicationThread {
 
@@ -60,8 +73,8 @@ public final class ActivityThread {
       queueOrSendMessage(H.RESUME_ACTIVITY, null, ident, 0);
     }
 
-    public final void schedulePauseActivity(int ident) {
-      queueOrSendMessage(H.PAUSE_ACTIVITY, null, ident, 0);
+    public final void schedulePauseActivity(int ident, boolean finished) {
+      queueOrSendMessage(finished ? H.PAUSE_ACTIVITY_FINISHING : H.PAUSE_ACTIVITY, null, ident, 0);
     }
 
     public final void scheduleStopActivity(int ident) {
@@ -72,17 +85,22 @@ public final class ActivityThread {
       queueOrSendMessage(H.DESTROY_ACTIVITY, null, ident, 0);
     }
 
-    public final void scheduleSendResult(Activity activity, List<ResultInfo> results) {
-      // ResultData res = new ResultData();
-      // res.token = token;
-      // res.results = results;
-      // queueOrSendMessage(H.SEND_RESULT, res);
+    public final void scheduleSendResult(int ident, ResultInfo result) {
+      queueOrSendMessage(H.SEND_RESULT, result, 0, 0);
     }
+
+    private void scheduleRelaunchActivity() {
+      queueOrSendMessage(H.RELAUNCH_ACTIVITY, null, 0, 0);
+    }
+
+    // ///////////////////////////
+    // //// perform methods //////
+    // ///////////////////////////
 
     private void performLaunchActivity(String activityname, Intent startingIntent) {
       ActivityClientRecord current = currentActivity;
       if (current != null)
-        schedulePauseActivity(current.ident);
+        schedulePauseActivity(current.ident, false);
       scheduleLaunchActivity(activityname, startingIntent);
       if (current != null) {
         scheduleStopActivity(current.ident);
@@ -97,31 +115,58 @@ public final class ActivityThread {
 
     }
 
-    /**
-     * 
-     */
-    private void performConfigChange() {
+    private void killApp() {
 
     }
 
+    /**
+     * 
+     */
+    private void performConfigurationChange() {
+      ActivityClientRecord current = currentActivity;
+      // mConfiguration.orientation = Configuration.ORIENTATION_LANDSCAPE;
+      if (current != null) {
+        scheduleRelaunchActivity();
+      }
+    }
+
     private void performBackPressed() {
+      // ActivityClientRecord current = currentActivity;
+      // if (current != null) {
+      //
+      // schedulePauseActivity(current.ident, true);
+      // }
+      // scheduleResumeActivity(current.parent.mIdent);
+      // if (current != null) {
+      // scheduleStopActivity(current.ident);
+      // scheduleDestroyActivity(current.ident);
+      // }
+      performFinish();
+    }
+
+    private void performHomePressed() {
       ActivityClientRecord current = currentActivity;
       if (current != null) {
-        schedulePauseActivity(current.ident);
+        schedulePauseActivity(current.ident, false);
+        scheduleStopActivity(current.ident);
+      }
+    }
+
+    private void performFinish() {
+      ActivityClientRecord current = currentActivity;
+      schedulePauseActivity(current.ident, true);
+
+      if (current.activity.mParent.mRequestCode > 0) {
+        ResultInfo res = new ResultInfo(current.activity.getPackageName(), current.activity.mRequestCode,
+            current.activity.mResultCode, current.activity.mResultData);
+        scheduleSendResult(current.parent.mIdent, res);
       }
       scheduleResumeActivity(current.parent.mIdent);
       if (current != null) {
         scheduleStopActivity(current.ident);
         scheduleDestroyActivity(current.ident);
       }
-    }
 
-    private void performHomePressed() {
-      ActivityClientRecord current = currentActivity;
-      if (current != null) {
-        schedulePauseActivity(current.ident);
-        scheduleStopActivity(current.ident);
-      }
     }
   }
 
@@ -221,16 +266,16 @@ public final class ActivityThread {
       }
         break;
       case RELAUNCH_ACTIVITY: {
-        ActivityClientRecord r = (ActivityClientRecord) msg.obj;
-        // handleRelaunchActivity(r);
+        ActivityClientRecord r = currentActivity;
+        handleRelaunchActivity(r);
       }
         break;
       case PAUSE_ACTIVITY:
-        handlePauseActivity(msg.arg1);
+        handlePauseActivity(msg.arg1, false);
         // maybeSnapshot();
         break;
       case PAUSE_ACTIVITY_FINISHING:
-        // handlePauseActivity((IBinder) msg.obj, true, msg.arg1 != 0,
+        handlePauseActivity(msg.arg1, true);
         // msg.arg2);
         break;
       case STOP_ACTIVITY_SHOW:
@@ -249,7 +294,7 @@ public final class ActivityThread {
         handleResumeActivity(msg.arg1);
         break;
       case SEND_RESULT:
-        // handleSendResult((ResultData) msg.obj);
+        handleSendResult((ResultInfo) msg.obj);
         break;
       case DESTROY_ACTIVITY: {
         handleDestroyActivity(msg.arg1);
@@ -259,7 +304,6 @@ public final class ActivityThread {
       }
 
     }
-
   }
 
   // private void handleCreateService(CreateServiceData data) {
@@ -305,6 +349,47 @@ public final class ActivityThread {
   // }
   // }
 
+  private void handleSendResult(ResultInfo res) {
+    ActivityClientRecord r = mActivities.get(currentActivity.parent.mIdent);
+    if (r != null) {
+      // final boolean resumed = !r.paused;
+      // if (!r.activity.mFinished && r.activity.mDecor != null && r.hideForNow && resumed) {
+      // // We had hidden the activity because it started another
+      // // one... we have gotten a result back and we are not
+      // // paused, so make sure our window is visible.
+      // updateVisibility(r, true);
+      // }
+      // if (resumed) {
+      try {
+        // Now we are idle.
+        r.activity.mCalled = false;
+        r.activity.mTemporaryPause = true;
+        r.activity.onPause();
+        if (!r.activity.mCalled) {
+          throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+              + " did not call through to super.onPause()");
+        }
+      } catch (SuperNotCalledException e) {
+        throw e;
+      } catch (Exception e) {
+        // if (!mInstrumentation.onException(r.activity, e)) {
+        throw new RuntimeException("Unable to pause activity " + r.intent.getComponent() + ": "
+            + e.toString(), e);
+        // }
+      }
+      deliverResults(r, res);
+      // if (resumed) {
+      r.activity.performResume();
+      r.activity.mTemporaryPause = false;
+      // }
+    }
+  }
+
+  private void deliverResults(ActivityClientRecord r, ResultInfo result) {
+    r.activity.dispatchActivityResult(result.mResultWho, result.mRequestCode, result.mResultCode,
+        result.mData);
+  }
+
   final void handleResumeActivity(int arg1) {
     // If we are getting ready to gc after going to the background, well
     // we are back active so skip it.
@@ -314,10 +399,6 @@ public final class ActivityThread {
     if (r != null) {
       currentActivity = r;
       final Activity a = r.activity;
-
-      // if (localLOGV)
-      // Slog.v(TAG, "Resume " + r + " started activity: " + a.mStartedActivity + ", hideForNow: "
-      // + r.hideForNow + ", finished: " + a.mFinished);
 
       // final int forwardBit = isForward ? WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
 
@@ -381,7 +462,7 @@ public final class ActivityThread {
       // r.activity.mVisibleFromServer = true;
       // mNumVisibleActivities++;
       // if (r.activity.mVisibleFromClient) {
-      // r.activity.makeVisible();
+      r.activity.makeVisible();
       // }
       // }
 
@@ -412,7 +493,7 @@ public final class ActivityThread {
     // if (r != null && !r.activity.mFinished) {
     // if (clearHide) {
     // r.hideForNow = false;
-    // r.activity.mStartedActivity = false;
+    r.activity.mStartedActivity = false;
     // }
     // try {
     // if (r.pendingIntents != null) {
@@ -534,6 +615,120 @@ public final class ActivityThread {
 
     r.paused = true;
     // / }
+  }
+
+  private void handleRelaunchActivity(ActivityClientRecord tmp) {
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
+    // unscheduleGcIdler();
+
+    // Configuration changedConfig = null;
+    // int configChanges = 0;
+
+    // First: make sure we have the most recent configuration and most
+    // recent version of the activity, or skip it if some previous call
+    // had taken a more recent version.
+    // synchronized (mPackages) {
+    // int N = mRelaunchingActivities.size();
+    // IBinder token = tmp.token;
+    // tmp = null;
+    // for (int i = 0; i < N; i++) {
+    // ActivityClientRecord r = mRelaunchingActivities.get(i);
+    // if (r.token == token) {
+    // tmp = r;
+    // // configChanges |= tmp.pendingConfigChanges;
+    // mRelaunchingActivities.remove(i);
+    // i--;
+    // / N--;
+    // }
+    // }
+
+    // if (tmp == null) {
+    // if (DEBUG_CONFIGURATION)
+    // Slog.v(TAG, "Abort, activity not relaunching!");
+    // return;
+    // }
+    //
+    // if (DEBUG_CONFIGURATION)
+    // Slog.v(
+    // TAG,
+    // "Relaunching activity " + tmp.token + " with configChanges=0x"
+    // + Integer.toHexString(configChanges));
+    //
+    // if (mPendingConfiguration != null) {
+    // changedConfig = mPendingConfiguration;
+    // mPendingConfiguration = null;
+    // }
+    // }
+
+    // if (tmp.createdConfig != null) {
+    // // If the activity manager is passing us its current config,
+    // // assume that is really what we want regardless of what we
+    // // may have pending.
+    // if (mConfiguration == null
+    // || (tmp.createdConfig.isOtherSeqNewer(mConfiguration) && mConfiguration.diff(tmp.createdConfig) != 0))
+    // {
+    // if (changedConfig == null || tmp.createdConfig.isOtherSeqNewer(changedConfig)) {
+    // changedConfig = tmp.createdConfig;
+    // }
+    // }
+    // }
+    //
+    // if (DEBUG_CONFIGURATION)
+    // Slog.v(TAG, "Relaunching activity " + tmp.token + ": changedConfig=" + changedConfig);
+    //
+    // // If there was a pending configuration change, execute it first.
+    // if (changedConfig != null) {
+    // handleConfigurationChanged(changedConfig, null);
+    // }
+
+    ActivityClientRecord r = currentActivity;
+    // if (DEBUG_CONFIGURATION)
+    // Slog.v(TAG, "Handling relaunch of " + r);
+    // if (r == null) {
+    // return;
+    // }
+
+    // r.activity.mConfigChangeFlags |= configChanges;
+    // r.onlyLocalRequest = tmp.onlyLocalRequest;
+    Intent currentIntent = r.activity.mIntent;
+
+    r.activity.mChangingConfigurations = true;
+
+    // Need to ensure state is saved.
+    if (!r.paused) {
+      performPauseActivity(r.ident, true);
+    }
+    if (r.state == null && !r.stopped) {
+      r.state = new Bundle();
+      r.state.setAllowFds(false);
+      r.activity.onSaveInstanceState(r.state);
+    }
+
+    handleDestroyActivity(r.ident);
+
+    r.activity = null;
+    r.window = null;
+    r.hideForNow = false;
+    // r.nextIdle = null;
+    // Merge any pending results and pending intents; don't just replace them
+    // if (tmp.pendingResults != null) {
+    // if (r.pendingResults == null) {
+    // r.pendingResults = tmp.pendingResults;
+    // } else {
+    // r.pendingResults.addAll(tmp.pendingResults);
+    // }
+    // }
+    // if (tmp.pendingIntents != null) {
+    // if (r.pendingIntents == null) {
+    // r.pendingIntents = tmp.pendingIntents;
+    // } else {
+    // r.pendingIntents.addAll(tmp.pendingIntents);
+    // }
+    // }
+    // r.startsNotResumed = tmp.startsNotResumed;
+
+    handleLaunchActivity(r, currentIntent);
   }
 
   private void handleDestroyActivity(int arg1) {
@@ -713,10 +908,20 @@ public final class ActivityThread {
             ((currentActivity != null) ? currentActivity.activity : null));
         r.ident = activity.mIdent;
         activity.onCreate(r.state);
+        if (!activity.mCalled) {
+          throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+              + " did not call through to super.onCreate()");
+        }
         r.activity = activity;
-        activity.onStart();
-        if (r.state != null) {
-          activity.onRestoreInstanceState(r.state);
+        r.stopped = true;
+        if (!r.activity.mFinished) {
+          activity.performStart();
+          r.stopped = false;
+        }
+        if (!r.activity.mFinished) {
+          if (r.state != null) {
+            activity.onRestoreInstanceState(r.state);
+          }
         }
         activity.onPostCreate(r.state);
         r.paused = true;
@@ -761,7 +966,7 @@ public final class ActivityThread {
     }
   }
 
-  private void handlePauseActivity(int ident) {
+  private void handlePauseActivity(int ident, boolean finished) {
     ActivityClientRecord r = mActivities.get(ident);
     if (r != null) {
       // Slog.v(TAG, "userLeaving=" + userLeaving + " handling pause of " + r);
@@ -770,7 +975,7 @@ public final class ActivityThread {
       // }
 
       // r.activity.mConfigChangeFlags |= configChanges;
-      performPauseActivity(ident);
+      performPauseActivity(ident, finished);
 
       // Make sure any pending writes are now committed.
       // if (r.isPreHoneycomb()) {
@@ -785,53 +990,52 @@ public final class ActivityThread {
     }
   }
 
-  final Bundle performPauseActivity(int ident) {
+  final Bundle performPauseActivity(int ident, boolean finished) {
     ActivityClientRecord r = mActivities.get(ident);
-    return performPauseActivity(r);
+    return performPauseActivity(r, finished);
   }
 
-  final Bundle performPauseActivity(ActivityClientRecord r) {
-    // if (r.paused) {
-    // if (r.activity.mFinished) {
-    // // If we are finishing, we won't call onResume() in certain cases.
-    // // So here we likewise don't want to call onPause() if the activity
-    // // isn't resumed.
-    // return null;
-    // }
-    // RuntimeException e = new RuntimeException("Performing pause of activity that is not resumed: "
-    // + r.intent.getComponent());
-    // // Slog.e(TAG, e.getMessage(), e);
-    // }
-    Bundle state = null;
-    // if (finished) {
-    // r.activity.mFinished = true;
-    // }
-    // try {
-    // Next have the activity save its current state and managed dialogs...
-    // if (!r.activity.mFinished && saveState) {
-    // state = new Bundle();
-    // state.setAllowFds(false);
-    // r.activity.on saveInstanceState(, state);
-    // r.state = state;
-    // }
-    // Now we are idle.
-    r.activity.mCalled = false;
-    r.activity.onPause();
-    // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
-    if (!r.activity.mCalled) {
-      throw new SuperNotCalledException("Activity " + r.intent.getComponent()
-          + " did not call through to super.onPause()");
+  final Bundle performPauseActivity(ActivityClientRecord r, boolean finished) {
+    if (r.paused) {
+      if (r.activity.mFinished) {
+        // If we are finishing, we won't call onResume() in certain cases.
+        // So here we likewise don't want to call onPause() if the activity
+        // isn't resumed.
+        return null;
+      }
+      RuntimeException e = new RuntimeException("Performing pause of activity that is not resumed: "
+          + r.intent.getComponent());
+      // Slog.e(TAG, e.getMessage(), e);
     }
+    Bundle state = null;
+    if (finished) {
+      r.activity.mFinished = true;
+    }
+    try {
+      // Next have the activity save its current state and managed dialogs...
+      if (!r.activity.mFinished) {
+        state = new Bundle();
+        state.setAllowFds(false);
+        r.activity.onSaveInstanceState(state);
+        r.state = state;
+      }
+      // Now we are idle.
+      r.activity.mCalled = false;
+      r.activity.onPause();
+      if (!r.activity.mCalled) {
+        throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+            + " did not call through to super.onPause()");
+      }
 
-    // } catch (SuperNotCalledException e) {
-    // throw e;
+    } catch (SuperNotCalledException e) {
+      throw e;
 
-    // } catch (Exception e) {
-    // if (!mInstrumentation.onException(r.activity, e)) {
-    // throw new RuntimeException("Unable to pause activity " + r.intent.getComponent().toShortString()
-    // + ": " + e.toString(), e);
-    // }
-    // }
+    } catch (Exception e) {
+      // if (!mInstrumentation.onException(r.activity, e)) {
+      throw new RuntimeException("Unable to pause activity " + r.intent.getComponent() + ": " + e.toString(),
+          e);
+      // }
+    }
     r.paused = true;
 
     // Notify any outstanding on paused listeners
