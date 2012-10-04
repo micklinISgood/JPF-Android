@@ -8,17 +8,19 @@
         android:id="@+id/buttonText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Print 'Hallo'" />
-      <Button
+        android:text="Print &apos;Hallo&apos;" />
+
+    <Button
         android:id="@+id/buttonText2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Print text2" />
-        <Button
+
+    <Button
         android:id="@+id/buttonText3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Print text3" />
+        android:text="StartForResult" />
 
     <Button
         android:id="@+id/buttonPrint2"

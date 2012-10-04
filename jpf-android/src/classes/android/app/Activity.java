@@ -8,10 +8,12 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 
 import com.android.internal.policy.PolicyManager;
 
@@ -25,6 +27,9 @@ public class Activity extends ContextThemeWrapper {
   public static final int RESULT_OK = -1;
   /** Start of user-defined activity results. */
   public static final int RESULT_FIRST_USER = 1;
+  // protected by synchronised (this)
+  int mResultCode = RESULT_CANCELED;
+  Intent mResultData = null;
 
   private static final String WINDOW_HIERARCHY_TAG = "android:viewHierarchyState";
   private static final String FRAGMENTS_TAG = "android:fragments";
@@ -33,25 +38,40 @@ public class Activity extends ContextThemeWrapper {
   private static final String SAVED_DIALOG_KEY_PREFIX = "android:dialog_";
   private static final String SAVED_DIALOG_ARGS_KEY_PREFIX = "android:dialog_args_";
 
-  private Context mBase;
-  private Application mApplication;
+  // private static class ManagedDialog {
+  // Dialog mDialog;
+  // Bundle mArgs;
+  // }
+  //
+  // private SparseArray<ManagedDialog> mManagedDialogs;
+
+  // set by the thread after the constructor and before onCreate(Bundle savedInstanceState) is called.
+  private Instrumentation mInstrumentation;
+  private IBinder mToken;
   int mIdent; // unique identifier
+  /* package */String mEmbeddedID; // Used for ActivityGroups
+  private Application mApplication; // Main application context
 
   Intent mIntent; // Reference to the intent that started this Activity
   private String mComponent;
-  ActivityThread mMainThread; // Reference to the applciation's ActivityThread
-  ActivityInfo mActivityInfo;
+  /* package */ActivityInfo mActivityInfo; // Contains info of this activity from AndroidManifest.xml
+  /* package */ActivityThread mMainThread; // The main thread of this application
+  Activity mParent; // Used by ActivityGroups, stores this Activity's parent Activity
+  boolean mCalled; // Used to make sure super lifecycle methods are called
 
-  Activity mParent; // Reference to the activity that started this activity
-  boolean mCalled;
   boolean mCheckedForLoaderManager;
   boolean mLoadersStarted;
-  /* package */boolean mResumed;
-  private boolean mStopped;
-  boolean mFinished;
-  boolean mStartedActivity;
+
+  // State of the Activity
+  boolean mResumed; // true if this activity is in a resumed state
+  private boolean mStopped; // true if this activity is in a stopped state
+  boolean mFinished; // An Activity is finished when its finish method is called. Used by pause to determine
+                     // if the activity is finishing or just temporarily pausing
+  boolean mStartedActivity; // has this activity started another
+
   /** true if the activity is going through a transient pause */
   /* package */boolean mTemporaryPause = false;
+
   /** true if the activity is being destroyed in order to recreate it with a new configuration */
   /* package */boolean mChangingConfigurations = false;
   /* package */int mConfigChangeFlags;
@@ -67,22 +87,45 @@ public class Activity extends ContextThemeWrapper {
   /* package */NonConfigurationInstances mLastNonConfigurationInstances;
 
   private Window mWindow;
-  // private WindowManager mWindowManager;
+  private WindowManager mWindowManager;
+  /* package */View mDecor = null;
+  /* package */boolean mWindowAdded = false;
+  /* package */boolean mVisibleFromServer = false;
+  /* package */boolean mVisibleFromClient = true;
+  // /* package */ActionBarImpl mActionBar = null;
 
-  boolean mWindowAdded = false;
+  // final FragmentManagerImpl mFragments = new FragmentManagerImpl();
+  //
+  // SparseArray<LoaderManagerImpl> mAllLoaderManagers;
+  // LoaderManagerImpl mLoaderManager;
+
+  // private static final class ManagedCursor {
+  // ManagedCursor(Cursor cursor) {
+  // mCursor = cursor;
+  // mReleased = false;
+  // mUpdated = false;
+  // }
+  // private final Cursor mCursor;
+  // private boolean mReleased;
+  // private boolean mUpdated;
+  // }
+  // private final ArrayList<ManagedCursor> mManagedCursors = new ArrayList<ManagedCursor>();
 
   private CharSequence mTitle;
   private int mTitleColor = 0;
+  private boolean mTitleReady = false;
+
+  // private int mDefaultKeyMode = DEFAULT_KEYS_DISABLE;
+  // private SpannableStringBuilder mDefaultKeySsb = null;
+
+  // protected static final int[] FOCUSED_STATE_SET = { com.android.internal.R.attr.state_focused };
+
+  // private final Object mInstanceTracker = StrictMode.trackActivity(this);
 
   private Thread mUiThread;
   final Handler mHandler = new Handler();
 
-  // protected by synchronised (this)
-  int mResultCode = RESULT_CANCELED;
-  Intent mResultData = null;
-  int mRequestCode;
-
-  public void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(Bundle savedInstanceState) {
     // if (mLastNonConfigurationInstances != null) { -- comes from attach
     // mAllLoaderManagers = mLastNonConfigurationInstances.loaders;
     // }
@@ -248,7 +291,7 @@ public class Activity extends ContextThemeWrapper {
   @Override
   protected void attachBaseContext(Context newBase) {
     super.attachBaseContext(newBase);
-    mBase = newBase;
+    setBaseContext(newBase);
   }
 
   public void startActivity(Intent intent) {
@@ -261,31 +304,40 @@ public class Activity extends ContextThemeWrapper {
     intent.setParent(this);
     // onPause();
     // System.out.println("Activity for result");
-    mRequestCode = requestCode;
-    ActivityManagerProxy.startActivityProxy(intent, requestCode);
+    ActivityManagerNative.getDefault().startActivity(intent, requestCode);
     // if (ar != null) {
     // mMainThread.sendActivityResult(
     // mToken, mEmbeddedID, requestCode, ar.getResultCode(),
     // ar.getResultData());
     // }
-    // if (requestCode >= 0) {
-    // If this start is requesting a result, we can avoid making
-    // the activity visible until the result is received. Setting
-    // this code during onCreate(Bundle savedInstanceState) or onResume()
-    // will keep the
-    // activity hidden during this time, to avoid flickering.
-    // This can only be done when a result is requested because
-    // that guarantees we will get information back when the
-    // activity is finished, no matter what happens to it.
-    // / mStartedActivity = true;
-    // }
-    // } else {
-    // mParent.startActivityFromChild(this, intent, requestCode);
-    // }
+    if (requestCode >= 0) {
+      // If this start is requesting a result, we can avoid making
+      // the activity visible until the result is received. Setting
+      // this code during onCreate(Bundle savedInstanceState) or onResume()
+      // will keep the
+      // activity hidden during this time, to avoid flickering.
+      // This can only be done when a result is requested because
+      // that guarantees we will get information back when the
+      // activity is finished, no matter what happens to it.
+      mStartedActivity = true;
+    }
+
   }
 
   public Intent getIntent() {
     return mIntent;
+  }
+
+  public void setIntent(Intent newIntent) {
+    mIntent = newIntent;
+  }
+
+  public boolean isChangingConfigurations() {
+    return mChangingConfigurations;
+  }
+
+  public int getChangingConfigurations() {
+    return mConfigChangeFlags;
   }
 
   /**
@@ -311,7 +363,8 @@ public class Activity extends ContextThemeWrapper {
   }
 
   final void attach(Context context, ActivityThread aThread, Application application, Intent intent,
-                    ActivityInfo info, CharSequence title, Activity parent) {
+                    ActivityInfo info, CharSequence title, Activity parent,
+                    NonConfigurationInstances lastNonConfigurationInstances, Configuration config) {
 
     // final void attach(Context context, ActivityThread aThread,
     // Instrumentation instr, IBinder token, int ident,
@@ -346,7 +399,7 @@ public class Activity extends ContextThemeWrapper {
     mTitle = title;
     mParent = parent;
     // mEmbeddedID = id;
-    // mLastNonConfigurationInstances = lastNonConfigurationInstances;
+    mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
     // mWindow.setWindowManager(null, mToken, mComponent.flattenToString(),
     // (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
@@ -354,7 +407,7 @@ public class Activity extends ContextThemeWrapper {
     // mWindow.setContainer(mParent.getWindow());
     // }
     // mWindowManager = mWindow.getWindowManager();
-    // mCurrentConfig = config;
+    mCurrentConfig = config;
   }
 
   final void performCreate(Bundle icicle) {
@@ -461,44 +514,45 @@ public class Activity extends ContextThemeWrapper {
     // if (mLoadersStarted) {
     // mLoadersStarted = false;
     // if (mLoaderManager != null) {
-    // if (!mChangingConfigurations) {
-    // mLoaderManager.doStop();
-    // } else {
-    // mLoaderManager.doRetain();
-    // }
-    // }
-    // }
-
-    // if (!mStopped) {
-    // if (mWindow != null) {
-    // mWindow.closeAllPanels();
-    // }
-    //
-    // if (mToken != null && mParent == null) {
-    // WindowManagerImpl.getDefault().setStoppedState(mToken, true);
-    // }
-    //
-    // mFragments.dispatchStop();
-    //
-    mCalled = false;
-    this.onStop();
-    if (!mCalled) {
-      throw new SuperNotCalledException("Activity " + mComponent + " did not call through to super.onStop()");
+    if (!mChangingConfigurations) {
+      // mLoaderManager.doStop();
+    } else {
+      // mLoaderManager.doRetain();
     }
-
-    // synchronized (mManagedCursors) {
-    // final int N = mManagedCursors.size();
-    // for (int i = 0; i < N; i++) {
-    // ManagedCursor mc = mManagedCursors.get(i);
-    // if (!mc.mReleased) {
-    // mc.mCursor.deactivate();
-    // mc.mReleased = true;
-    // }
     // }
     // }
 
-    mStopped = true;
-    // }
+    if (!mStopped) {
+      // if (mWindow != null) {
+      // mWindow.closeAllPanels();
+      // }
+      //
+      // if (mToken != null && mParent == null) {
+      // WindowManagerImpl.getDefault().setStoppedState(mToken, true);
+      // }
+      //
+      // mFragments.dispatchStop();
+      //
+      mCalled = false;
+      this.onStop();
+      if (!mCalled) {
+        throw new SuperNotCalledException("Activity " + mComponent
+            + " did not call through to super.onStop()");
+      }
+
+      // synchronized (mManagedCursors) {
+      // final int N = mManagedCursors.size();
+      // for (int i = 0; i < N; i++) {
+      // ManagedCursor mc = mManagedCursors.get(i);
+      // if (!mc.mReleased) {
+      // mc.mCursor.deactivate();
+      // mc.mReleased = true;
+      // }
+      // }
+      // }
+
+      mStopped = true;
+    }
     mResumed = false;
   }
 
@@ -524,13 +578,16 @@ public class Activity extends ContextThemeWrapper {
     // + ", resCode=" + resultCode + ", data=" + data);
     // mFragments.noteStateNotSaved();
     // if (who == null) {
-    // onActivityResult(requestCode, resultCode, data);
+    onActivityResult(requestCode, resultCode, data);
     // } else {
     // Fragment frag = mFragments.findFragmentByWho(who);
     // if (frag != null) {
     // frag.onActivityResult(requestCode, resultCode, data);
     // }
     // }
+  }
+
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
   }
 
   @Override
@@ -592,9 +649,8 @@ public class Activity extends ContextThemeWrapper {
     if (resultData != null) {
       // resultData.setAllowFds(false);
     }
-    // if (ActivityManagerNative.getDefault().finishActivity(ident, resultCode, resultData)) {
     mFinished = true;
-    // }
+    ActivityManagerNative.getDefault().finishActivity(resultCode, resultData);
   }
 
   /**
@@ -606,4 +662,57 @@ public class Activity extends ContextThemeWrapper {
     finish();
     // }
   }
+
+  public final void setResult(int resultCode) {
+    synchronized (this) {
+      mResultCode = resultCode;
+      mResultData = null;
+    }
+  }
+
+  public final void setResult(int resultCode, Intent data) {
+    synchronized (this) {
+      mResultCode = resultCode;
+      mResultData = data;
+    }
+  }
+
+  public Object onRetainNonConfigurationInstance() {
+    return null;
+  }
+
+  public Object getLastNonConfigurationInstance() {
+    return mLastNonConfigurationInstances != null ? mLastNonConfigurationInstances.activity : null;
+  }
+
+  NonConfigurationInstances retainNonConfigurationInstances() {
+    Object activity = onRetainNonConfigurationInstance();
+    // HashMap<String, Object> children = onRetainNonConfigurationChildInstances();
+    // ArrayList<Fragment> fragments = mFragments.retainNonConfig();
+    // boolean retainLoaders = false;
+    // if (mAllLoaderManagers != null) {
+    // // prune out any loader managers that were already stopped and so
+    // // have nothing useful to retain.
+    // for (int i = mAllLoaderManagers.size() - 1; i >= 0; i--) {
+    // LoaderManagerImpl lm = mAllLoaderManagers.valueAt(i);
+    // if (lm.mRetaining) {
+    // retainLoaders = true;
+    // } else {
+    // lm.doDestroy();
+    // mAllLoaderManagers.removeAt(i);
+    // }
+    // }
+    // }
+    // if (activity == null && children == null && fragments == null && !retainLoaders) {
+    // return null;
+    // }
+
+    NonConfigurationInstances nci = new NonConfigurationInstances();
+    nci.activity = activity;
+    // nci.children = children;
+    // nci.fragments = fragments;
+    // nci.loaders = mAllLoaderManagers;
+    return nci;
+  }
+
 }

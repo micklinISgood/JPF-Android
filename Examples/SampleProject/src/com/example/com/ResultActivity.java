@@ -19,7 +19,10 @@ public class ResultActivity extends Activity {
     b1.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        setResult(1);
+        Intent t = new Intent();
+        t.putExtra("hallo", true);
+        setResult(RESULT_CANCELED, t);
+        finish();
       }
     });
   }

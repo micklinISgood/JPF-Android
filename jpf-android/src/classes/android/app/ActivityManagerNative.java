@@ -2,9 +2,13 @@ package android.app;
 
 public class ActivityManagerNative {
 
-  public static Object getDefault() {
-    // TODO Auto-generated method stub
-    return null;
+  static ActivityManagerProxy proxy;
+
+  public static ActivityManagerProxy getDefault() {
+    if (proxy == null)
+      return new ActivityManagerProxy();
+    else
+      return proxy;
   }
 
 }

@@ -3,6 +3,7 @@ package com.example.vdm;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -136,6 +137,18 @@ public class SampleProjectActivity extends Activity {
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     System.out.println("2  onActivityResult()");
     super.onActivityResult(requestCode, resultCode, data);
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    System.out.println("2  onKeyDown()");
+    return super.onKeyDown(keyCode, event);
+  }
+
+  @Override
+  public void finish() {
+    System.out.println("2  finish()");
+    super.finish();
   }
 
   /**

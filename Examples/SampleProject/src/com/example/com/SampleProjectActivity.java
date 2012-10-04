@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActivityThread;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -51,7 +52,8 @@ public class SampleProjectActivity extends Activity {
       public void onClick(View v) {
         i++;
         System.out.println("Printing text 3: " + i);
-        startActivityForResult(new Intent(SampleProjectActivity.this, ResultActivity.class), 1);
+        startActivityForResult(new Intent(SampleProjectActivity.this, com.example.com.ResultActivity.class),
+            1);
       }
     });
 
@@ -121,7 +123,6 @@ public class SampleProjectActivity extends Activity {
   @Override
   public void startActivityForResult(Intent intent, int requestCode) {
     super.startActivityForResult(intent, requestCode);
-    System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
   }
 
   @Override
@@ -197,8 +198,21 @@ public class SampleProjectActivity extends Activity {
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    System.out.println("1  onActivityResult()");
+    System.out.println("1  onActivityResult() = " + requestCode + " " + resultCode + " "
+        + data.getExtras().getBoolean("hallo"));
     super.onActivityResult(requestCode, resultCode, data);
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    System.out.println("1  onKeyDown()");
+    return super.onKeyDown(keyCode, event);
+  }
+
+  @Override
+  public void finish() {
+    System.out.println("1  finish()");
+    super.finish();
   }
 
   /**

@@ -57,10 +57,12 @@ public final class ActivityThread {
      *          the name of the Activity to start
      * @param intent
      */
-    public final void scheduleLaunchActivity(String activityName, Intent intent) {
+    public final void scheduleLaunchActivity(String activityName, Intent intent, int requestCode) {
       ActivityClientRecord r = new ActivityClientRecord();
       r.name = activityName;
       r.intent = intent;
+      r.requestCode = requestCode;
+      // r.state = state;
       queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
     }
 
@@ -77,12 +79,12 @@ public final class ActivityThread {
       queueOrSendMessage(finished ? H.PAUSE_ACTIVITY_FINISHING : H.PAUSE_ACTIVITY, null, ident, 0);
     }
 
-    public final void scheduleStopActivity(int ident) {
-      queueOrSendMessage(H.STOP_ACTIVITY_HIDE, null, ident, 0);
+    public final void scheduleStopActivity(int token) {
+      queueOrSendMessage(H.STOP_ACTIVITY_HIDE, null, token, 0);
     }
 
-    public final void scheduleDestroyActivity(int ident) {
-      queueOrSendMessage(H.DESTROY_ACTIVITY, null, ident, 0);
+    public final void scheduleDestroyActivity(int token, boolean finishing) {
+      queueOrSendMessage(H.DESTROY_ACTIVITY, token, finishing ? 1 : 0, 0);
     }
 
     public final void scheduleSendResult(int ident, ResultInfo result) {
@@ -97,11 +99,11 @@ public final class ActivityThread {
     // //// perform methods //////
     // ///////////////////////////
 
-    private void performLaunchActivity(String activityname, Intent startingIntent) {
+    private void performLaunchActivity(String activityname, Intent startingIntent, int requestCode) {
       ActivityClientRecord current = currentActivity;
       if (current != null)
         schedulePauseActivity(current.ident, false);
-      scheduleLaunchActivity(activityname, startingIntent);
+      scheduleLaunchActivity(activityname, startingIntent, requestCode);
       if (current != null) {
         scheduleStopActivity(current.ident);
       }
@@ -131,17 +133,10 @@ public final class ActivityThread {
     }
 
     private void performBackPressed() {
-      // ActivityClientRecord current = currentActivity;
-      // if (current != null) {
-      //
-      // schedulePauseActivity(current.ident, true);
-      // }
-      // scheduleResumeActivity(current.parent.mIdent);
-      // if (current != null) {
-      // scheduleStopActivity(current.ident);
-      // scheduleDestroyActivity(current.ident);
-      // }
-      performFinish();
+      ActivityClientRecord current = currentActivity;
+      if (current != null) {
+        current.activity.onBackPressed();
+      }
     }
 
     private void performHomePressed() {
@@ -152,25 +147,24 @@ public final class ActivityThread {
       }
     }
 
-    private void performFinish() {
+    private void performFinishActivity(int resultCode, Intent resultData) {
       ActivityClientRecord current = currentActivity;
       schedulePauseActivity(current.ident, true);
 
-      if (current.activity.mParent.mRequestCode > 0) {
-        ResultInfo res = new ResultInfo(current.activity.getPackageName(), current.activity.mRequestCode,
+      if (currentActivity.parent.mStartedActivity) {
+        ResultInfo res = new ResultInfo(current.activity.getPackageName(), current.requestCode,
             current.activity.mResultCode, current.activity.mResultData);
         scheduleSendResult(current.parent.mIdent, res);
       }
-      scheduleResumeActivity(current.parent.mIdent);
       if (current != null) {
-        scheduleStopActivity(current.ident);
-        scheduleDestroyActivity(current.ident);
+        scheduleDestroyActivity(current.ident, true);
       }
 
     }
   }
 
   static final class ActivityClientRecord {
+    public int requestCode;
     // IBinder token;
     int ident;
     Intent intent;
@@ -179,7 +173,7 @@ public final class ActivityThread {
     Window window;
     Activity parent;
     // String embeddedID;
-    // Activity.NonConfigurationInstances lastNonConfigurationInstances;
+    Activity.NonConfigurationInstances lastNonConfigurationInstances;
     boolean paused;
     boolean stopped;
     String name;
@@ -297,7 +291,7 @@ public final class ActivityThread {
         handleSendResult((ResultInfo) msg.obj);
         break;
       case DESTROY_ACTIVITY: {
-        handleDestroyActivity(msg.arg1);
+        handleDestroyActivity(msg.arg1, msg.arg1 != 0, msg.arg2, false);
       }
         break;
 
@@ -362,13 +356,13 @@ public final class ActivityThread {
       // if (resumed) {
       try {
         // Now we are idle.
-        r.activity.mCalled = false;
+        // r.activity.mCalled = false;
         r.activity.mTemporaryPause = true;
-        r.activity.onPause();
-        if (!r.activity.mCalled) {
-          throw new SuperNotCalledException("Activity " + r.intent.getComponent()
-              + " did not call through to super.onPause()");
-        }
+        // r.activity.onPause();
+        // if (!r.activity.mCalled) {
+        // throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+        // + " did not call through to super.onPause()");
+        // }
       } catch (SuperNotCalledException e) {
         throw e;
       } catch (Exception e) {
@@ -490,34 +484,34 @@ public final class ActivityThread {
     ActivityClientRecord r = mActivities.get(token);
     // if (localLOGV)
     // Slog.v(TAG, "Performing resume of " + r + " finished=" + r.activity.mFinished);
-    // if (r != null && !r.activity.mFinished) {
-    // if (clearHide) {
-    // r.hideForNow = false;
-    r.activity.mStartedActivity = false;
-    // }
-    // try {
-    // if (r.pendingIntents != null) {
-    // deliverNewIntents(r, r.pendingIntents);
-    // r.pendingIntents = null;
-    // }
-    // if (r.pendingResults != null) {
-    // deliverResults(r, r.pendingResults);
-    // r.pendingResults = null;
-    // }
-    r.activity.performResume();
+    if (r != null && !r.activity.mFinished) {
+      // if (clearHide) {
+      // r.hideForNow = false;
+      r.activity.mStartedActivity = false;
+      // }
+      // try {
+      // if (r.pendingIntents != null) {
+      // deliverNewIntents(r, r.pendingIntents);
+      // r.pendingIntents = null;
+      // }
+      // if (r.pendingResults != null) {
+      // deliverResults(r, r.pendingResults);
+      // r.pendingResults = null;
+      // }
+      r.activity.performResume();
 
-    // EventLog.writeEvent(LOG_ON_RESUME_CALLED, r.activity.getComponentName().getClassName());
+      // EventLog.writeEvent(LOG_ON_RESUME_CALLED, r.activity.getComponentName().getClassName());
 
-    r.paused = false;
-    r.stopped = false;
-    r.state = null;
-    // } catch (Exception e) {
-    // / if (!mInstrumentation.onException(r.activity, e)) {
-    // throw new RuntimeException("Unable to resume activity " + r.intent.getComponent().toShortString()
-    // + ": " + e.toString(), e);
-    // }
-    // }
-    // }
+      r.paused = false;
+      r.stopped = false;
+      r.state = null;
+      // } catch (Exception e) {
+      // / if (!mInstrumentation.onException(r.activity, e)) {
+      // throw new RuntimeException("Unable to resume activity " + r.intent.getComponent().toShortString()
+      // + ": " + e.toString(), e);
+      // }
+      // }
+    }
     return r;
   }
 
@@ -554,7 +548,7 @@ public final class ActivityThread {
    */
   private void performStopActivityInner(ActivityClientRecord r) {
     // if (localLOGV) Slog.v(TAG, "Performing stop of " + r);
-    // Bundle state = null;
+    Bundle state = null;
     // if (r != null) {
     // if (!keepShown && r.stopped) {
     // if (r.activity.mFinished) {
@@ -587,16 +581,16 @@ public final class ActivityThread {
     // }
 
     // Next have the activity save its current state and managed dialogs...
-    // if (!r.activity.mFinished && saveState) {
-    // if (r.state == null) {
-    // state = new Bundle();
-    // state.setAllowFds(false);
-    // mInstrumentation.callActivityOnSaveInstanceState(r.activity, state);
-    // r.state = state;
-    // } else {
-    // state = r.state;
-    // }
-    // }
+    if (!r.activity.mFinished) {
+      if (r.state == null) {
+        state = new Bundle();
+        // state.setAllowFds(false);
+        r.activity.onSaveInstanceState(state);
+        r.state = state;
+      } else {
+        state = r.state;
+      }
+    }
 
     // if (!keepShown) {
     // try {
@@ -705,7 +699,7 @@ public final class ActivityThread {
       r.activity.onSaveInstanceState(r.state);
     }
 
-    handleDestroyActivity(r.ident);
+    handleDestroyActivity(r.ident, false, 0, true);
 
     r.activity = null;
     r.window = null;
@@ -731,8 +725,9 @@ public final class ActivityThread {
     handleLaunchActivity(r, currentIntent);
   }
 
-  private void handleDestroyActivity(int arg1) {
-    ActivityClientRecord r = performDestroyActivity(arg1);
+  private void handleDestroyActivity(int token, boolean finishing, int configChanges,
+                                     boolean getNonConfigInstance) {
+    ActivityClientRecord r = performDestroyActivity(token, finishing, configChanges, getNonConfigInstance);
     if (r != null) {
       // cleanUpPendingRemoveWindows(r);
       // WindowManager wm = r.activity.getWindowManager();
@@ -786,59 +781,52 @@ public final class ActivityThread {
 
   }
 
-  private ActivityClientRecord performDestroyActivity(int token) {
+  private ActivityClientRecord performDestroyActivity(int token, boolean finishing, int configChanges,
+                                                      boolean getNonConfigInstance) {
     ActivityClientRecord r = mActivities.get(token);
     Class activityClass = null;
     // if (localLOGV)
     // Slog.v(TAG, "Performing finish of " + r);
-    // if (r != null) {
-    // activityClass = r.activity.getClass();
-    // r.activity.mConfigChangeFlags |= configChanges;
-    // if (finishing) {
-    // r.activity.mFinished = true;
-    // }
-    // if (!r.paused) {
-    // try {
-    // r.activity.mCalled = false;
-    // r.activity.onPause();
-    // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
-    // if (!r.activity.mCalled) {
-    // throw new SuperNotCalledException("Activity " + safeToComponentShortString(r.intent)
-    // / + " did not call through to super.onPause()");
-    // }
-    // } catch (SuperNotCalledException e) {
-    // throw e;
-    // } catch (Exception e) {
-    // if (!mInstrumentation.onException(r.activity, e)) {
-    // throw new RuntimeException("Unable to pause activity " + safeToComponentShortString(r.intent)
-    // + ": " + e.toString(), e);
-    // }
-    // }
-    // r.paused = true;
-    // }
-    // if (!r.stopped) {
-    // try {
-    // r.activity.performStop();
-    // } catch (SuperNotCalledException e) {
-    // throw e;
-    // } catch (Exception e) {
-    // if (!mInstrumentation.onException(r.activity, e)) {
-    // throw new RuntimeException("Unable to stop activity " + safeToComponentShortString(r.intent)
-    // + ": " + e.toString(), e);
-    // }
-    // // }
-    // r.stopped = true;
-    // }
-    // if (getNonConfigInstance) {
-    // try {
-    // r.lastNonConfigurationInstances = r.activity.retainNonConfigurationInstances();
-    // } catch (Exception e) {
-    // if (!mInstrumentation.onException(r.activity, e)) {
-    // throw new RuntimeException("Unable to retain activity " + r.intent.getComponent().toShortString()
-    // + ": " + e.toString(), e);
-    // }
-    // }
-    // }
+    if (r != null) {
+      // activityClass = r.activity.getClass();
+      // r.activity.mConfigChangeFlags |= configChanges;
+      if (finishing) {
+        r.activity.mFinished = true;
+      }
+      if (!r.paused) {
+        try {
+          r.activity.mCalled = false;
+          r.activity.onPause();
+          if (!r.activity.mCalled) {
+            throw new SuperNotCalledException("Activity " + " did not call through to super.onPause()");
+          }
+        } catch (SuperNotCalledException e) {
+          throw e;
+        } catch (Exception e) {
+          throw new RuntimeException("Unable to pause activity " + ": " + e.toString(), e);
+        }
+      }
+      r.paused = true;
+    }
+    if (!r.stopped) {
+      try {
+        r.activity.performStop();
+      } catch (SuperNotCalledException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException("Unable to stop activity " + ": " + e.toString(), e);
+      }
+      // }
+      r.stopped = true;
+    }
+    if (getNonConfigInstance) {
+      try {
+        r.lastNonConfigurationInstances = r.activity.retainNonConfigurationInstances();
+      } catch (Exception e) {
+        throw new RuntimeException("Unable to retain activity " + r.intent.getComponent() + ": "
+            + e.toString(), e);
+      }
+    }
     // try {
     r.activity.mCalled = false;
     r.activity.onDestroy();
@@ -905,9 +893,18 @@ public final class ActivityThread {
         // activity.attach(this, null, ((currentActivity != null) ? currentActivity.activity : null),
         // r.intent);
         activity.attach(null, this, new Application(), r.intent, null, "",
-            ((currentActivity != null) ? currentActivity.activity : null));
+            ((currentActivity != null) ? currentActivity.activity : null), r.lastNonConfigurationInstances,
+            new Configuration());
         r.ident = activity.mIdent;
+        if (customIntent != null) {
+          activity.mIntent = customIntent;
+        }
+        r.lastNonConfigurationInstances = null;
+        activity.mStartedActivity = false;
+
+        activity.mCalled = false;
         activity.onCreate(r.state);
+
         if (!activity.mCalled) {
           throw new SuperNotCalledException("Activity " + r.intent.getComponent()
               + " did not call through to super.onCreate()");
@@ -923,12 +920,19 @@ public final class ActivityThread {
             activity.onRestoreInstanceState(r.state);
           }
         }
-        activity.onPostCreate(r.state);
-        r.paused = true;
-
-        mActivities.put(r.ident, r);
-
+        if (!r.activity.mFinished) {
+          activity.mCalled = false;
+          activity.onPostCreate(r.state);
+          if (!activity.mCalled) {
+            throw new SuperNotCalledException("Activity " + r.intent.getComponent()
+                + " did not call through to super.onPostCreate()");
+          }
+        }
       }
+      r.paused = true;
+
+      mActivities.put(r.ident, r);
+
     } catch (Exception e) {
       throw new RuntimeException("Unable to start activity " + r.getName() + ": " + e.toString(), e);
     }
@@ -1013,12 +1017,12 @@ public final class ActivityThread {
     }
     try {
       // Next have the activity save its current state and managed dialogs...
-      if (!r.activity.mFinished) {
-        state = new Bundle();
-        state.setAllowFds(false);
-        r.activity.onSaveInstanceState(state);
-        r.state = state;
-      }
+      // if (!r.activity.mFinished) {
+      // state = new Bundle();
+      // state.setAllowFds(false);
+      // r.activity.onSaveInstanceState(state);
+      // r.state = state;
+      // }
       // Now we are idle.
       r.activity.mCalled = false;
       r.activity.onPause();

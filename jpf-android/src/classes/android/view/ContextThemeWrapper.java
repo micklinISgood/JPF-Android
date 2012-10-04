@@ -21,14 +21,14 @@ public class ContextThemeWrapper extends ContextWrapper {
 
 	public ContextThemeWrapper(Context base, int themeres) {
 		super(base);
-		mBase = base;
+		setBaseContext(base);
 		mThemeResource = themeres;
 	}
 
 	@Override
 	protected void attachBaseContext(Context newBase) {
 		super.attachBaseContext(newBase);
-		mBase = newBase;
+		setBaseContext(newBase);
 	}
 
 	// @Override
@@ -42,6 +42,14 @@ public class ContextThemeWrapper extends ContextWrapper {
 	public int getThemeResId() {
 		return mThemeResource;
 	}
+
+  public Context getBaseContext() {
+    return mBase;
+  }
+
+  public void setBaseContext(Context mBase) {
+    this.mBase = mBase;
+  }
 
 	// @Override public Resources.Theme getTheme() {
 	// if (mTheme != null) {

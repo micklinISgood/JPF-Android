@@ -79,7 +79,7 @@ public class JPF_android_app_ActivityManagerProxy {
     if (action.action.equals("startActivity")) {
       String intentName = (String) action.arguments[0];
       int intentref = getJPFIntent(env, intentName);
-      startActivity(env, 0, intentref, -1);
+      startActivityMethod(env, 0, intentref, -1);
     } else if (action.action.equals("changeLayout")) {
       String layout = (String) action.arguments[0];
 
@@ -155,14 +155,46 @@ public class JPF_android_app_ActivityManagerProxy {
    * @param clsRef
    * @param intentRef
    */
-  public static void startActivityProxy(MJIEnv env, int clsRef, int intentRef, int requestcode) {
+  public static void startActivity(MJIEnv env, int clsRef, int intentRef, int requestcode) {
     ThreadInfo ti = env.getThreadInfo();
 
     // so that the method is not called twice on return from making direct
     // call
     if (!ti.hasReturnedFromDirectCall(UIACTION)) {
-      startActivity(env, clsRef, intentRef, -1);
+      startActivityMethod(env, clsRef, intentRef, requestcode);
     }
+  }
+
+  /**
+   * Used by Activity to start an activity
+   * 
+   * @param env
+   * @param clsRef
+   * @param intentRef
+   */
+  public static void finishActivity(MJIEnv env, int clsRef, int resultCode, int resultDataRef) {
+    ThreadInfo ti = env.getThreadInfo();
+
+    // so that the method is not called twice on return from making direct
+    // call
+    if (!ti.hasReturnedFromDirectCall(UIACTION)) {
+      finishMethod(env, clsRef, resultCode, resultDataRef);
+    }
+  }
+
+  private static void finishMethod(MJIEnv env, int clsRef, int resultCode, int resultDataRef) {
+    // Lookup the name of the activity to launch
+    // int activityNameRef = getActivity(env, intentRef);
+    // String activityName = env.getStringObject(activityNameRef);
+    log.fine("Finishing activity ");
+
+    // schedule launch of activity
+    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
+    String methodName = "performFinishActivity(ILandroid/content/Intent;)V";
+    int[] args = { resultCode, resultDataRef };
+
+    callMethod(env, appRef, methodName, args);
+
   }
 
   /**
@@ -172,7 +204,7 @@ public class JPF_android_app_ActivityManagerProxy {
    * @param intentRef
    *          the reference to the intent starting the activity
    */
-  private static void startActivity(MJIEnv env, int clsRef, int intentRef, int requestCode) {
+  private static void startActivityMethod(MJIEnv env, int clsRef, int intentRef, int requestCode) {
     // Lookup the name of the activity to launch
     int activityNameRef = getActivity(env, intentRef);
     String activityName = env.getStringObject(activityNameRef);
@@ -180,8 +212,8 @@ public class JPF_android_app_ActivityManagerProxy {
 
     // schedule launch of activity
     int appRef = JPF_android_app_ActivityThread.getApplicationRef();
-    String methodName = "performLaunchActivity(Ljava/lang/String;Landroid/content/Intent;)V";
-    int[] args = { activityNameRef, intentRef };
+    String methodName = "performLaunchActivity(Ljava/lang/String;Landroid/content/Intent;I)V";
+    int[] args = { activityNameRef, intentRef, requestCode };
 
     callMethod(env, appRef, methodName, args);
 

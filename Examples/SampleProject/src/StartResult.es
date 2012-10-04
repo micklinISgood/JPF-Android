@@ -14,6 +14,6 @@ SECTION com.example.com.MylistView {
 }
 
 SECTION com.example.com.ResultActivity {
-	backButton
+	$buttonText1.onClick()
 }
 
