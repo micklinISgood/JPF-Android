@@ -2,8 +2,8 @@ package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.ChoiceGenerator;
+import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.util.StateExtensionClient;
-import gov.nasa.jpf.util.StateExtensionListener;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -14,128 +14,22 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * class representing a statemachine environment that produces SCEventGenerators from scripts
+ * Represents the script an its current state
  */
 public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implements
-    StateExtensionClient<ScriptingEnvironment<CG>.SectionsSnapshot> {
+    StateExtensionClient<ScriptState> {
 
   static final String DEFAULT = "default";
-
-  static class SectionState implements Cloneable {
-    String sectionName; // the name of the section
-    Section section; // pointer to the section object
-    SequenceInterpreter intrp; // keeps track of the current position of the
-
-    // section events
-
-    public SectionState(String sectionName, Section section, SequenceInterpreter intrp) {
-      this.sectionName = sectionName;
-      this.section = section;
-      this.intrp = intrp;
-    }
-
-    public Object clone() {
-      try {
-        SectionState as = (SectionState) super.clone();
-        as.intrp = (SequenceInterpreter) intrp.clone();
-        return as;
-      } catch (CloneNotSupportedException nonsense) {
-        return null; // we are a Cloneable, so we don't get here
-      }
-    }
-
-    public boolean isDone() {
-      return intrp.isDone();
-    }
-  }
-
-  // --- our state extension - we need this mostly for cloning (deep copy)
-  class SectionsSnapshot implements Cloneable {
-    ArrayList<SectionState> sectionsState; // current state of all Active
-
-    SectionsSnapshot() {
-      sectionsState = new ArrayList<SectionState>();
-    }
-
-    SectionsSnapshot(ArrayList<SectionState> as) {
-      sectionsState = as;
-    }
-
-    public SectionState get(String sectionName) {
-      for (SectionState as : sectionsState) {
-        if (as.sectionName.equals(sectionName)) {
-          return as;
-        }
-      }
-      return null;
-    }
-
-    public Object clone() {
-      try {
-        SectionsSnapshot ss = (SectionsSnapshot) super.clone();
-        for (SectionState as : this.sectionsState) {
-          ss.sectionsState.add((SectionState) as.clone());
-        }
-        return ss;
-      } catch (CloneNotSupportedException nonsense) {
-        return null; // we are a Cloneable, so we don't get here
-      }
-    }
-
-    /**
-     * 
-     * 
-     * @param activeStates
-     *          name of section to advance
-     * @param isReEntered
-     * @return
-     */
-    SectionsSnapshot advance(String activeState, BitSet isReEntered) {
-      ArrayList<SectionState> newActives = new ArrayList<SectionState>(); // new
-
-      // --- carry over the persisting entries
-      for (SectionState as : sectionsState) {
-        // we could use isReEntered to determine if we want to
-        // restart sequences
-        // <2do> how do we factor this out as policy?
-        newActives.add((SectionState) as.clone());
-      }
-
-      // get the script section
-      Section sec = getSection(activeState);
-      if (sec != null) {
-
-        // check if that section is already processed by another
-        // active state, in which case we skip
-        for (SectionState as : newActives) { // *********************
-          if (as != null && as.section == sec) {
-            return new SectionsSnapshot(newActives);
-          }
-        }
-
-        // it's a new one
-        SectionState as = new SectionState(activeState, sec, new SequenceInterpreter(sec));
-        newActives.add(as);
-
-      } else { // sec == null : we didn't find any sequence for
-        // this state
-      }
-
-      return new SectionsSnapshot(newActives);
-    }
-  }
-
-  // --- start of ScriptEnvronment
+  static final String ACTIVE_DEFAULT = DEFAULT;
 
   String scriptName;
   Reader scriptReader;
   Script script;
-  SectionsSnapshot cur;
+  ScriptState cur;
 
-  HashMap<String, Section> sections = new HashMap<String, Section>();
-  Section defaultSection;
+  static HashMap<String, Section> sections = new HashMap<String, Section>();
+  static Section defaultSection;
 
-  // --- initialization
   public ScriptingEnvironment(String fname) throws FileNotFoundException {
     this(fname, new FileReader(fname));
   }
@@ -148,17 +42,14 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
   public void parseScript() throws ESParser.Exception {
     ESParser parser = new ESParser(scriptName, scriptReader);
     script = parser.parse();
-
     initSections();
-
-    cur = new SectionsSnapshot();
+    cur = new ScriptState();
   }
 
   void initSections() {
     Section defSec = new Section(script, DEFAULT);
 
     for (ScriptElement e : script) {
-
       if (e instanceof Section) {
         Section sec = (Section) e;
         List<String> secIds = sec.getIds();
@@ -182,7 +73,7 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
     }
   }
 
-  Section getSection(String id) {
+  static Section getSection(String id) {
     Section sec = null;
 
     while (id != null) {
@@ -199,7 +90,6 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
         id = null;
       }
     }
-
     return defaultSection;
   }
 
@@ -210,8 +100,6 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
       }
     }
   }
-
-  static final String ACTIVE_DEFAULT = DEFAULT;
 
   public CG getNext(String id) {
     return getNext(id, ACTIVE_DEFAULT, null);
@@ -241,10 +129,10 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
    */
   public CG getNext(String id, String activeState, BitSet isReEntered) {
 
-    cur = cur.advance(activeState, isReEntered);
-
+    cur = cur.advance(activeState, getSection(activeState));
     ArrayList<Event> events = new ArrayList<Event>(1); // space
     for (SectionState as : cur.sectionsState) { // for all sections
+
       if (activeState.equals(as.sectionName)) {
         ScriptElement se = as.intrp.getNext();
         if (se != null) {
@@ -265,24 +153,30 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
           break; // process next active sequence
         }
       }
+
     }
-    return createCGFromEvents(id, events);
+
+    CG cg = createCGFromEvents(id, events);
+    return cg;
   }
 
   protected abstract CG createCGFromEvents(String id, List<Event> events);
 
   // --- StateExtension interface
-  public SectionsSnapshot getStateExtension() {
+  public ScriptState getStateExtension() {
     return cur;
   }
 
-  public void restore(SectionsSnapshot stateExtension) {
+  public void restore(ScriptState stateExtension) {
     cur = stateExtension;
   }
 
   public void registerListener(JPF jpf) {
-    StateExtensionListener<SectionsSnapshot> sel = new StateExtensionListener<SectionsSnapshot>(this);
+    ScriptListener sel = new ScriptListener(this);
+
     jpf.addSearchListener(sel);
+    jpf.addPublisherExtension(ConsolePublisher.class, sel);
+    jpf.addVMListener(sel);
   }
 
 }

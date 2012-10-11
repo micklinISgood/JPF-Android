@@ -26,6 +26,7 @@ public class JPF_android_os_MessageQueue {
 
   static int counter; // the number of UIActionCGs generated so far
 
+  public static UIActionGenerator c;
   // static UIActionGeneratorFactory cgFactory;
   static UIScriptEnvironment scriptEnv;
 
@@ -103,11 +104,11 @@ public class JPF_android_os_MessageQueue {
 
       } else { // we should already have a cg (with at least one choice
         // left), retrieve it
-        UIActionGenerator cg = ss.getCurrentChoiceGenerator("processScriptAction", UIActionGenerator.class);
+        c = ss.getCurrentChoiceGenerator("processScriptAction", UIActionGenerator.class);
 
-        assert (cg != null) : "no UIActionGenerator";
-        log.fine("processing UIAction: " + cg);
-        UIAction ac = cg.getNextChoice();
+        assert (c != null) : "no UIActionGenerator";
+        log.fine("processing UIAction: " + c);
+        UIAction ac = c.getNextChoice();
         log.fine("Next choice : " + ac);
         runAction(env, ac);
         env.repeatInvocation(); // this will execute until no more
