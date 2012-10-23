@@ -55,6 +55,7 @@ public class ScientificActivity extends Activity implements android.view.View.On
     } else if (text.equals("=")) {
       value = eval(value, op, Float.parseFloat(valueEdit.getText().toString()));
       valueEdit.setText(String.valueOf(value));
+      System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" + String.valueOf(value));
 
     } else if (text.equals("C")) {
       value = 0;

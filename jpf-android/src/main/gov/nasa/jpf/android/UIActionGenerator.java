@@ -26,17 +26,17 @@ import gov.nasa.jpf.util.script.EventGenerator;
  */
 public abstract class UIActionGenerator extends EventGenerator<UIAction> implements Cloneable {
 
-  protected UIActionGenerator (String id){
+  protected UIActionGenerator(String id) {
     super(id);
   }
 
   public abstract UIAction getNextChoice();
-  
+
   public Class<UIAction> getChoiceType() {
     return UIAction.class;
   }
-  
+
   public EventGenerator<UIAction> clone() throws CloneNotSupportedException {
-    return (EventGenerator<UIAction>)super.clone();
+    return (EventGenerator<UIAction>) super.clone();
   }
 }

@@ -1,12 +1,34 @@
 SECTION default {
-	@intent1.setComponent("com.example.calculator.SimpleActivity")
-	startActivity(@intent1)
+@startIntent.setComponent("com.example.calculator.SimpleActivity")
+startActivity(@startIntent)
+
+
+}
+
+SECTION com.example.calculator.SimpleActivitys {
+$button4.onClick()
+ANY {$button[0-9].onClick()}
+
+
 }
 
 SECTION com.example.calculator.SimpleActivity {
-	$button1.onClick()
-	$buttonDiv.onClick()
-	$button0.onClick()
-	$buttonEquals.onClick()
+	ANY { 
+		REPEAT 1 {  	
+			$button1.onClick(), 
+			$button2.onClick(),
+		 	$button3.onClick()
+		}, 
+		
+		REPEAT 1 {
+			$button0.onClick()
+			}
+	}
+	
+
+
+
+	$button9.onClick()
+	
 }
 

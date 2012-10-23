@@ -1,7 +1,10 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.jvm.ElementInfo;
+import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.SystemState;
 
 import java.util.logging.Logger;
 
@@ -32,13 +35,18 @@ public class JPF_android_app_ActivityThread {
   }
 
   public static String getCurrentActivity(MJIEnv env) {
-
-    int ref = env.getReferenceField(activityThreadRef, "currentActivity");
+    SystemState ss = env.getSystemState();
+    ElementInfo info = env.getElementInfo(activityThreadRef);
+    int ref = -1;
+    if (info != null) {
+      ref = info.getReferenceField("currentActivity");
+    }
     if (ref == -1) {
       return "default";
+    } else {
+      ElementInfo info2 = env.getElementInfo(ref);
+      return info2.getStringField("name");
     }
-    return env.getStringField(ref, "name");
-
   }
 
   public static String getPackageName() {

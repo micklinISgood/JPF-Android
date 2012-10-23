@@ -7,6 +7,8 @@ import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.jvm.bytecode.Instruction;
 import gov.nasa.jpf.util.script.ESParser;
+import gov.nasa.jpf.util.script.ScriptEnvironment;
+import gov.nasa.jpf.util.script.ScriptingEnvironment;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
@@ -26,9 +28,8 @@ public class JPF_android_os_MessageQueue {
 
   static int counter; // the number of UIActionCGs generated so far
 
-  public static UIActionGenerator c;
   // static UIActionGeneratorFactory cgFactory;
-  static UIScriptEnvironment scriptEnv;
+  static ScriptingEnvironment scriptEnv;
 
   /**
    * Called from the MesaageQueue Constructor, i.e. before each application run. It opens and parses the input
@@ -51,7 +52,7 @@ public class JPF_android_os_MessageQueue {
       }
     }
     try {
-      scriptEnv = new UIScriptEnvironment(scriptName);
+      scriptEnv = new ScriptingEnvironment(scriptName);
       scriptEnv.registerListener(env.getJPF());
       scriptEnv.parseScript();
     } catch (FileNotFoundException fnfx) {
@@ -74,46 +75,20 @@ public class JPF_android_os_MessageQueue {
       log.warning("no UIScriptEnvironment, terminating");
       return false;
     }
-
+    System.out.println("//////////////////////////////////////////////////////////////////");
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
-      // handle action
-      if (!ti.isFirstStepInsn()) {
-        String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
-        log.fine("Current Activity: " + currentActivity);
-        // get next action to process of this activity
-        UIActionGenerator cg = scriptEnv.getNext("processScriptAction", currentActivity);
+      String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
+      UIAction action = scriptEnv.getNext("processScriptAction", currentActivity, env);
 
-        if (cg != null) {
-          counter++;
-          if (forceActionStates) {
-            env.setIntField(objref, "forceNewState", counter);
-          }
-          log.fine("setting next cg: " + cg);
-          ss.setNextChoiceGenerator(cg);
-          // ti.skipInstructionLogging();
-          env.repeatInvocation(); // will execute else where first
-          // option of the cg will be
-          // retrieved etc.
-          return true; // doesn't really matter
-        } else {
-          log.fine("cg == null"); // no more events in this event
-          // sequence - either backtrack or
-          // end
-          return false;
-        }
-
-      } else { // we should already have a cg (with at least one choice
-        // left), retrieve it
-        c = ss.getCurrentChoiceGenerator("processScriptAction", UIActionGenerator.class);
-
-        assert (c != null) : "no UIActionGenerator";
-        log.fine("processing UIAction: " + c);
-        UIAction ac = c.getNextChoice();
-        log.fine("Next choice : " + ac);
-        runAction(env, ac);
-        env.repeatInvocation(); // this will execute until no more
-        // choices in this cg.
+      if (forceActionStates) {
+        env.setIntField(objref, "forceNewState", counter);
       }
+      if (action != null) {
+        runAction(env, action);
+        return true;
+      }
+
+      return false;
     }
     return true;
   }

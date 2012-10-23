@@ -94,9 +94,9 @@ public class SimpleActivity extends Activity implements android.view.View.OnClic
       result = v1 * v2;
       break;
     case '/':
-      System.out.println(v2);
-      if (v2 == 0)
-        throw new ArithmeticException("DivisionByZero");
+      // System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+      // if (v2 == 0)
+      // throw new ArithmeticException("DivisionByZero");
       result = v1 / v2;
       break;
 

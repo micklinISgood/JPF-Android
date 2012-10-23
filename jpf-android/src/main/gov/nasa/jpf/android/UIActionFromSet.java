@@ -19,55 +19,54 @@
 
 package gov.nasa.jpf.android;
 
-import java.util.ArrayList;
-
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.jvm.ChoiceGenerator;
+
+import java.util.ArrayList;
 
 public class UIActionFromSet extends UIActionGenerator {
 
   ArrayList<UIAction> values;
   int count;
 
-  public UIActionFromSet (String id) {
+  public UIActionFromSet(String id) {
     super(id);
 
     count = -1;
     values = new ArrayList<UIAction>();
   }
 
-  public void add (UIAction action) {
+  public void add(UIAction action) {
     values.add(action);
   }
 
-  public void advance () {
+  public void advance() {
     count++;
   }
 
-  public int getProcessedNumberOfChoices () {
-    return count+1;
+  public int getProcessedNumberOfChoices() {
+    return count + 1;
   }
 
-  public int getTotalNumberOfChoices () {
+  public int getTotalNumberOfChoices() {
     return values.size();
   }
 
-  public boolean hasMoreChoices () {
-    return !isDone && (count < values.size()-1);
+  public boolean hasMoreChoices() {
+    return !isDone && (count < values.size() - 1);
   }
 
-  public ChoiceGenerator randomize () {
+  public ChoiceGenerator randomize() {
     for (int i = values.size() - 1; i > 0; i--) {
       int j = random.nextInt(i + 1);
       UIAction tmp = values.get(i);
       values.set(i, values.get(j));
-      values.set(j,tmp);
+      values.set(j, tmp);
     }
 
     return this;
   }
 
-  public void reset () {
+  public void reset() {
     count = -1;
   }
 
@@ -79,7 +78,7 @@ public class UIActionFromSet extends UIActionGenerator {
     sb.append(id);
     sb.append("\",");
 
-    for (int i=0; i<values.size(); i++) {
+    for (int i = 0; i < values.size(); i++) {
       if (i > 0) {
         sb.append(',');
       }

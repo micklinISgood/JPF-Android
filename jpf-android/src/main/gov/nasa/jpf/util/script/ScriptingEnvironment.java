@@ -1,7 +1,8 @@
 package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.ChoiceGenerator;
+import gov.nasa.jpf.android.UIAction;
+import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.util.StateExtensionClient;
 
@@ -9,15 +10,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * Represents the script an its current state
  */
-public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implements
-    StateExtensionClient<ScriptState> {
+public class ScriptingEnvironment implements StateExtensionClient<ScriptState> {
 
   static final String DEFAULT = "default";
   static final String ACTIVE_DEFAULT = DEFAULT;
@@ -101,21 +100,6 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
     }
   }
 
-  public CG getNext(String id) {
-    return getNext(id, ACTIVE_DEFAULT, null);
-  }
-
-  /**
-   * gets the new action from the section activestate
-   * 
-   * @param id
-   * @param activeStates
-   * @return
-   */
-  public CG getNext(String id, String activeStates) {
-    return getNext(id, activeStates, null);
-  }
-
   /**
    * this is our main purpose in life, but there is some policy in here
    * 
@@ -127,24 +111,17 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
    * @param isReEntered
    * @return
    */
-  public CG getNext(String id, String activeState, BitSet isReEntered) {
+  public UIAction getNext(String id, String activeState, MJIEnv vm) {
 
     cur = cur.advance(activeState, getSection(activeState));
-    ArrayList<Event> events = new ArrayList<Event>(1); // space
+    UIAction event = null; // space
     for (SectionState as : cur.sectionsState) { // for all sections
 
       if (activeState.equals(as.sectionName)) {
-        ScriptElement se = as.intrp.getNext();
+        ScriptElement se = as.intrp.getNext(vm);
         if (se != null) {
           if (se instanceof Event) {
-            addExpandedEvent(events, (Event) se);
-            break;
-          } else if (se instanceof Alternative) {
-            for (ScriptElement ase : (Alternative) se) {
-              if (ase instanceof Event) {
-                addExpandedEvent(events, (Event) ase);
-              }
-            }
+            event = new UIAction((Event) se);
             break;
           } else {
             // get next event
@@ -155,12 +132,9 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
       }
 
     }
-
-    CG cg = createCGFromEvents(id, events);
-    return cg;
+    cur.actions.push(event);
+    return event;
   }
-
-  protected abstract CG createCGFromEvents(String id, List<Event> events);
 
   // --- StateExtension interface
   public ScriptState getStateExtension() {
@@ -172,7 +146,7 @@ public abstract class ScriptingEnvironment<CG extends ChoiceGenerator<?>> implem
   }
 
   public void registerListener(JPF jpf) {
-    ScriptListener sel = new ScriptListener(this);
+    ResultPublishListener sel = new ResultPublishListener(this);
 
     jpf.addSearchListener(sel);
     jpf.addPublisherExtension(ConsolePublisher.class, sel);

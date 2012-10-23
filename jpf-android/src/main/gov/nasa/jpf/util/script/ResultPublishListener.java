@@ -1,19 +1,14 @@
 package gov.nasa.jpf.util.script;
 
-import gov.nasa.jpf.android.UIActionGenerator;
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.JVM;
+import gov.nasa.jpf.android.UIAction;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.search.Search;
 import gov.nasa.jpf.util.StateExtensionClient;
 import gov.nasa.jpf.util.StateExtensionListener;
 
-import java.util.List;
-import java.util.Stack;
+public class ResultPublishListener extends StateExtensionListener<ScriptState> {
 
-public class ScriptListener extends StateExtensionListener<ScriptState> {
-
-  public ScriptListener(StateExtensionClient<ScriptState> cli) {
+  public ResultPublishListener(StateExtensionClient<ScriptState> cli) {
     super(cli);
   }
 
@@ -21,9 +16,9 @@ public class ScriptListener extends StateExtensionListener<ScriptState> {
 
   @Override
   public void searchFinished(Search search) {
-    JVM jvm = search.getVM();
-    UIActionGenerator[] cgs = jvm.getChoiceGeneratorsOfType(UIActionGenerator.class);
-    for (ChoiceGenerator s : cgs) {
+    ScriptState ss = client.getStateExtension();
+    // UIActionGenerator[] cgs = jvm.getChoiceGeneratorsOfType(UIActionGenerator.class);
+    for (UIAction s : ss.actions) {
       try {
         out += "\n" + s.toString();
       } catch (Exception e) {
@@ -35,13 +30,13 @@ public class ScriptListener extends StateExtensionListener<ScriptState> {
 
   @Override
   public void publishPropertyViolation(Publisher publisher) {
-    publisher.getOut().println("publishPropertyViolation");
-    super.publishPropertyViolation(publisher);
+    publisher.getOut().println("====================================================== error input sequence");
+    // super.publishPropertyViolation(publisher);
   }
 
   @Override
   public void publishConstraintHit(Publisher publisher) {
-    publisher.getOut().println("publishConstraintHit");
+    publisher.getOut().println("====================================================== error input sequence");
   }
 
   @Override
@@ -49,5 +44,4 @@ public class ScriptListener extends StateExtensionListener<ScriptState> {
     publisher.getOut().println(out);
 
   }
-
 }

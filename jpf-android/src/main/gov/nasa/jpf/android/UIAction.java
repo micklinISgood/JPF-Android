@@ -24,28 +24,27 @@ import gov.nasa.jpf.jvm.MethodLocator;
 import gov.nasa.jpf.util.script.Event;
 
 /**
- * this models a single user interaction, which maps to a (reflection) call
- * of a method in a java.awt.Component instance (or a static method if
- * there is no target spec)
+ * this models a single user interaction, which maps to a (reflection) call of a method in a
+ * java.awt.Component instance (or a static method if there is no target spec)
  */
 public class UIAction implements MethodLocator {
   public final static String NONE = "NONE";
   public final char TRANSFER_FOCUS_MARKER = '!';
 
-  protected String target;      // the component id (enumeration number)
-  protected String action;      // the method name
-  
-  protected boolean transferFocus;   // transfer focus before action is executed 
+  protected String target; // the component id (enumeration number)
+  protected String action; // the method name
+
+  protected boolean transferFocus; // transfer focus before action is executed
 
   protected Object[] arguments;
 
-  protected int line;           // from script
+  protected int line; // from script
 
   /**
-   * 'spec' has the form $target.action
-   * target is either a number or a hierarchical string of ids, e.g. $MyFrame/Ok
+   * 'spec' has the form $target.action target is either a number or a hierarchical string of ids, e.g.
+   * $MyFrame/Ok
    */
-  public UIAction (Event e) {
+  public UIAction(Event e) {
 
     String spec = e.getId();
 
@@ -55,15 +54,15 @@ public class UIAction implements MethodLocator {
       arguments = null;
 
     } else {
-      if (spec.charAt(0) == TRANSFER_FOCUS_MARKER){
+      if (spec.charAt(0) == TRANSFER_FOCUS_MARKER) {
         spec = spec.substring(1);
         transferFocus = true;
       }
-      
-      int i=spec.lastIndexOf('.');
+
+      int i = spec.lastIndexOf('.');
       if (i > 0) {
-        target = spec.substring(0,i);
-        spec = spec.substring(i+1);
+        target = spec.substring(0, i);
+        spec = spec.substring(i + 1);
       }
 
       action = spec;
@@ -73,19 +72,19 @@ public class UIAction implements MethodLocator {
     }
   }
 
-  public boolean isNone () {
+  public boolean isNone() {
     return (NONE.equals(action));
   }
 
-  public boolean transferFocus(){
+  public boolean transferFocus() {
     return transferFocus;
   }
-  
+
   public String getTarget() {
     return target;
   }
 
-  public void setTarget (String s) {
+  public void setTarget(String s) {
     target = s;
   }
 
@@ -93,7 +92,7 @@ public class UIAction implements MethodLocator {
     return action;
   }
 
-  public void setAction (String s) {
+  public void setAction(String s) {
     action = s;
   }
 
@@ -101,7 +100,7 @@ public class UIAction implements MethodLocator {
     return arguments;
   }
 
-  public int getLine () {
+  public int getLine() {
     return line;
   }
 
@@ -110,7 +109,7 @@ public class UIAction implements MethodLocator {
       return new Class[0];
     } else {
       Class[] list = new Class[arguments.length];
-      for (int i=0; i<arguments.length; i++) {
+      for (int i = 0; i < arguments.length; i++) {
         Object a = arguments[i];
 
         if (a instanceof String) {
@@ -132,15 +131,15 @@ public class UIAction implements MethodLocator {
       return new Object[0];
     } else {
       Object[] list = new Object[arguments.length];
-      for (int i=0; i<arguments.length; i++) {
+      for (int i = 0; i < arguments.length; i++) {
         Object a = arguments[i];
 
         if (a instanceof String) {
           list[i] = a;
         } else if (a instanceof Double) {
-          list[i] = new Double(((Number)a).doubleValue());
+          list[i] = new Double(((Number) a).doubleValue());
         } else if (a instanceof Integer) {
-          list[i] = new Integer(((Number)a).intValue());
+          list[i] = new Integer(((Number) a).intValue());
         } else {
           assert false : "unsupported argument type in UIAction: " + a;
         }
@@ -150,7 +149,7 @@ public class UIAction implements MethodLocator {
   }
 
   // <2do> this thing is screwed - there is not enough type info in UIAction to get the method
-  public String getMethodName () {
+  public String getMethodName() {
     StringBuilder sb = new StringBuilder(action);
 
     sb.append('(');
@@ -164,7 +163,7 @@ public class UIAction implements MethodLocator {
         } else if (a instanceof Double) {
           sb.append('J');
         } else if (a instanceof Integer) {
-            sb.append('I');
+          sb.append('I');
         } else {
           assert false : "unsupported argument type in UIAction: " + a;
         }
@@ -177,11 +176,11 @@ public class UIAction implements MethodLocator {
     return sb.toString();
   }
 
-  public boolean match (MethodInfo mi) {
+  public boolean match(MethodInfo mi) {
     if (mi.getName().equals(action)) {
       byte[] atypes = mi.getArgumentTypes();
       if (atypes.length == arguments.length) {
-        for (int i=0; i<atypes.length; i++) {
+        for (int i = 0; i < atypes.length; i++) {
           Object a = arguments[i];
 
         }
@@ -192,26 +191,26 @@ public class UIAction implements MethodLocator {
 
   public String toString() {
     StringBuilder b = new StringBuilder();
-    
-    if (transferFocus){
+
+    if (transferFocus) {
       b.append(TRANSFER_FOCUS_MARKER);
     }
-    
+
     if (target != null) {
       b.append(target);
       b.append('.');
     }
-    
+
     if (action != null) {
       b.append(action);
 
-      if (!NONE.equals(action)){
+      if (!NONE.equals(action)) {
         b.append('(');
 
         if (arguments != null) {
-          for (int i=0; i<arguments.length; i++) {
+          for (int i = 0; i < arguments.length; i++) {
             Object a = arguments[i];
-            if (i>0){
+            if (i > 0) {
               b.append(',');
             }
             if (a instanceof String) {
@@ -219,9 +218,9 @@ public class UIAction implements MethodLocator {
               b.append(a);
               b.append('"');
             } else if (a instanceof Integer) {
-              b.append(((Integer)a).intValue());
+              b.append(((Integer) a).intValue());
             } else if (a instanceof Double) {
-              b.append(((Double)a).doubleValue());
+              b.append(((Double) a).doubleValue());
             }
           }
         }
