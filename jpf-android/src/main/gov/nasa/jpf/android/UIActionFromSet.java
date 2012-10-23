@@ -20,10 +20,11 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.jvm.ChoiceGenerator;
+import gov.nasa.jpf.util.script.EventGenerator;
 
 import java.util.ArrayList;
 
-public class UIActionFromSet extends UIActionGenerator {
+public class UIActionFromSet extends EventGenerator<UIAction> implements Cloneable {
 
   ArrayList<UIAction> values;
   int count;
@@ -97,5 +98,13 @@ public class UIActionFromSet extends UIActionGenerator {
     } else {
       return null;
     }
+  }
+
+  public Class<UIAction> getChoiceType() {
+    return UIAction.class;
+  }
+
+  public EventGenerator<UIAction> clone() throws CloneNotSupportedException {
+    return (EventGenerator<UIAction>) super.clone();
   }
 }

@@ -42,6 +42,7 @@ public class ESParser {
   final public static String K_REPEAT = "REPEAT";
   final public static String K_ANY = "ANY";
   final public static String K_SECTION = "SECTION";
+  final public static String K_GROUP = "GROUP";
 
   String file;
   StreamTokenizer scanner;
@@ -140,7 +141,7 @@ public class ESParser {
     s.slashSlashComments(true);
     s.slashStarComments(true);
 
-    s.whitespaceChars(',', ',');
+    // s.whitespaceChars(',', ',');
     s.whitespaceChars(';', ';');
 
     return s;
@@ -320,9 +321,22 @@ public class ESParser {
 
     match('{');
     while (!done && (scanner.ttype != '}')) {
-      sequence(a);
+      group(a);
     }
     match('}');
+  }
+
+  protected void group(ScriptElementContainer parent) throws Exception {
+
+    Group a = new Group(parent, scanner.lineno());
+    parent.add(a);
+
+    while (!done && (scanner.ttype != ',') && (scanner.ttype != '}')) {
+      sequence(a);
+    }
+    isMatch(',');
+    isMatch('}');
+
   }
 
   protected void event(ScriptElementContainer parent) throws Exception {

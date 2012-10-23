@@ -118,7 +118,7 @@ public class ScriptingEnvironment implements StateExtensionClient<ScriptState> {
     for (SectionState as : cur.sectionsState) { // for all sections
 
       if (activeState.equals(as.sectionName)) {
-        ScriptElement se = as.intrp.getNext(vm);
+        ScriptElement se = ((AndroidSequenceIntpr) as.intrp).getNext(vm);
         if (se != null) {
           if (se instanceof Event) {
             event = new UIAction((Event) se);
