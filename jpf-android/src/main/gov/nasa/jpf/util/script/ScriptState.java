@@ -56,7 +56,7 @@ public class ScriptState implements Cloneable {
       // active state, in which case we skip
       for (SectionState as : newActives) { // *********************
         if (as != null && as.section == sec) {
-          ScriptState s = new ScriptState(newActives, actions);
+          ScriptState s = new ScriptState(newActives, (Stack<UIAction>) actions.clone());
           return s;
         }
       }

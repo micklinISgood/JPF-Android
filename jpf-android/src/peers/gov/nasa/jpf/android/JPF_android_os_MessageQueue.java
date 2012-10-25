@@ -7,7 +7,6 @@ import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.jvm.bytecode.Instruction;
 import gov.nasa.jpf.util.script.ESParser;
-import gov.nasa.jpf.util.script.ScriptEnvironment;
 import gov.nasa.jpf.util.script.ScriptingEnvironment;
 
 import java.io.FileNotFoundException;
@@ -75,7 +74,6 @@ public class JPF_android_os_MessageQueue {
       log.warning("no UIScriptEnvironment, terminating");
       return false;
     }
-    System.out.println("//////////////////////////////////////////////////////////////////");
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
       String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
       UIAction action = scriptEnv.getNext("processScriptAction", currentActivity, env);
@@ -90,6 +88,7 @@ public class JPF_android_os_MessageQueue {
 
       return false;
     }
+    System.out.println("DIRECT CALL WAS MADE");
     return true;
   }
 

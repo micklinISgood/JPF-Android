@@ -335,7 +335,6 @@ public class ESParser {
       sequence(a);
     }
     isMatch(',');
-    isMatch('}');
 
   }
 

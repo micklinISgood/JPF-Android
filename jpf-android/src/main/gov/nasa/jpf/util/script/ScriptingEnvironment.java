@@ -19,7 +19,6 @@ import java.util.List;
 public class ScriptingEnvironment implements StateExtensionClient<ScriptState> {
 
   static final String DEFAULT = "default";
-  static final String ACTIVE_DEFAULT = DEFAULT;
 
   String scriptName;
   Reader scriptReader;
@@ -90,14 +89,6 @@ public class ScriptingEnvironment implements StateExtensionClient<ScriptState> {
       }
     }
     return defaultSection;
-  }
-
-  void addExpandedEvent(ArrayList<Event> events, Event se) {
-    for (Event e : se.expand()) {
-      if (!events.contains(e)) {
-        events.add(e);
-      }
-    }
   }
 
   /**

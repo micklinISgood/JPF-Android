@@ -26,6 +26,8 @@ import gov.nasa.jpf.jvm.bytecode.Instruction;
 import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
 import gov.nasa.jpf.util.script.ScriptElementContainer.SECIterator;
 
+import java.util.List;
+
 /**
  * an interpreter that walks a ScriptElementContainer hierarchy, returning Events and Alternatives while
  * expanding loops
@@ -41,22 +43,40 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
     SECIterator topIt = getTop();
     if (topIt != null) {
       ScriptElement e = topIt.next();
-      if (e != null) {
-        if (e instanceof ScriptElementContainer && !(e instanceof Alternative)) {
-          push(((ScriptElementContainer) e).iterator());
-          return getNext(env);
-        } else if (e instanceof Alternative) {
-          return handleAlternative(env, e, topIt);
-        } else {
-          return e;
-        }
-      } else {
-        pop();
-        return (topIt != null) ? getNext(env) : null;
-      }
+      return handleScriptElement(env, topIt, e);
     } else {
       return null;
     }
+  }
+
+  private ScriptElement handleScriptElement(MJIEnv env, SECIterator topIt, ScriptElement e) {
+    if (e != null) {
+      if (e instanceof ScriptElementContainer && !(e instanceof Alternative)) {
+        push(((ScriptElementContainer) e).iterator());
+        return getNext(env);
+      } else if (e instanceof Alternative) {
+        return handleAlternative(env, e, topIt);
+      } else {
+        return addExpandedEvent(env, e, topIt);
+      }
+    } else {
+      pop();
+      return (topIt != null) ? getNext(env) : null;
+    }
+  }
+
+  ScriptElement addExpandedEvent(MJIEnv env, ScriptElement se, SECIterator topIt) {
+    List<Event> eventList = ((Event) se).expand();
+    if (eventList.size() > 1) {
+      ScriptElementContainer s = new Alternative(se.getParent(), se.getLine());
+      for (Event e : eventList) {
+        Group g = new Group(s, se.getLine());
+        g.add((ScriptElement) e);
+        s.add(g);
+      }
+      return handleAlternative(env, s, topIt);
+    } else
+      return se;
   }
 
   // for (ScriptElement ase : (Alternative) e) {
@@ -80,28 +100,39 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
       env.repeatInvocation();
     } else { // bottom half - re-execution at the beginning of the next transition
       if (!(e.getParent() instanceof Section)) {
-        IntIntervalGenerator cg = ss.getCurrentChoiceGenerator("innerNext", IntIntervalGenerator.class);
         if (((Alternative) e).used == false) {
+          IntIntervalGenerator[] list = ss.getChoiceGeneratorsOfType(IntIntervalGenerator.class);
+
+          IntIntervalGenerator cg = ss.getCurrentChoiceGenerator(String.valueOf(e.hashCode()),
+              IntIntervalGenerator.class);
           if (cg == null) {
-            cg = new IntIntervalGenerator("innerNext", 1, ((ScriptElementContainer) e).getNumberOfChildren());
+            cg = new IntIntervalGenerator(String.valueOf(e.hashCode()), 1,
+                ((ScriptElementContainer) e).getNumberOfChildren());
             ss.setForced(true);
             ss.setNextChoiceGenerator(cg);
-
             topIt.previous(e);
-            System.out.println(cg);
+            // System.out.println(cg);
+            // System.out.println(ss.getCurrentChoiceGenerator(String.valueOf(-1243537750),
+            // IntIntervalGenerator.class));
             env.repeatInvocation();
             return null;
           } else {
             int myChoice = cg.getNextChoice();
             push(((Alternative) e).iterator(myChoice));
-            System.out.println(cg);
+            // System.out.println(cg);
+            // System.out.println(ss.getCurrentChoiceGenerator(String.valueOf(-1243537750),
+            // IntIntervalGenerator.class));
             if (cg.getTotalNumberOfChoices() == cg.getProcessedNumberOfChoices())
               ((Alternative) e).used = true;
-            // pop();
             return getNext(env);
           }
         } else {
-          e = e.parent;
+          if (e.parent instanceof Group)
+            e = e.parent.parent;
+          else
+            e = e.parent;
+          return handleScriptElement(env, topIt, e);
+
         }
 
       }
@@ -109,9 +140,28 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
       assert cg != null : "no 'getNext' IntIntervalGenerator found";
       int myChoice = cg.getNextChoice();
       push(((Alternative) e).iterator(myChoice));
-      System.out.println(cg);
+      // System.out.println(cg);
       return getNext(env);
     }
     return null;
   }
+  // public IntIntervalGenerator getCurrentInnerCG(SystemState ss) {
+  // IntIntervalGenerator[] cgs = ss.getChoiceGeneratorsOfType(IntIntervalGenerator.class);
+  // int max = -1;
+  // IntIntervalGenerator maxCG = null;
+  //
+  // for (IntIntervalGenerator cg : cgs) {
+  // String[] name = cg.getId().split(":");
+  // if (name[0].equals("innerNext")) {
+  // int size = Integer.parseInt(name[1]);
+  // if (size > max) {
+  // max = size;
+  // maxCG = cg;
+  // }
+  // }
+  //
+  // }
+  // return maxCG;
+  // }
+
 }
