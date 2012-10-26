@@ -150,12 +150,13 @@ public final class ActivityThread {
     private void performFinishActivity(int resultCode, Intent resultData) {
       ActivityClientRecord current = currentActivity;
       schedulePauseActivity(current.ident, true);
-
+      System.out.println(currentActivity.parent.mStartedActivity);
       if (currentActivity.parent.mStartedActivity) {
         ResultInfo res = new ResultInfo(current.activity.getPackageName(), current.requestCode,
             current.activity.mResultCode, current.activity.mResultData);
         scheduleSendResult(current.parent.mIdent, res);
-      }
+      } else
+        scheduleResumeActivity(currentActivity.parent.mIdent);
       if (current != null) {
         scheduleDestroyActivity(current.ident, true);
       }
@@ -345,6 +346,7 @@ public final class ActivityThread {
 
   private void handleSendResult(ResultInfo res) {
     ActivityClientRecord r = mActivities.get(currentActivity.parent.mIdent);
+    System.out.println(r);
     if (r != null) {
       // final boolean resumed = !r.paused;
       // if (!r.activity.mFinished && r.activity.mDecor != null && r.hideForNow && resumed) {
@@ -372,8 +374,11 @@ public final class ActivityThread {
         // }
       }
       deliverResults(r, res);
+      System.out.println("deliver results");
       // if (resumed) {
       r.activity.performResume();
+      System.out.println("performResume");
+
       r.activity.mTemporaryPause = false;
       // }
     }
