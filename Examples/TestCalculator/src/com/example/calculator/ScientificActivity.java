@@ -6,13 +6,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class ScientificActivity extends Activity implements android.view.View.OnClickListener {
 
-  EditText valueEdit;
-  char op;
+  EditText valueEdit2;
 
-  float value = 0;
+  char op;
+  double value = 0;
+  TextView calc;
 
   // Button add,minus,mult,div;
   /** Called when the activity is first created. */
@@ -21,17 +23,18 @@ public class ScientificActivity extends Activity implements android.view.View.On
     super.onCreate(savedInstanceState);
     setContentView(R.layout.scientific_activity);
 
-    valueEdit = (EditText) findViewById(R.id.editValue);
+    valueEdit2 = (EditText) findViewById(R.id.editValue2);
+    calc = (TextView) findViewById(R.id.lblCalc2);
 
     Bundle exstra = getIntent().getExtras();
-    value = exstra.getFloat("value");
+    value = exstra.getDouble("value");
     op = exstra.getChar("op");
-    valueEdit.setText(exstra.getString("valueEdit"));
+    valueEdit2.setText(exstra.getString("valueEdit"));
+    calc.setText(exstra.getString("calcValue"));
 
-    int[] names = { R.id.buttonSin, R.id.buttonCos, R.id.buttonTan, R.id.buttonCsin, R.id.buttonSec,
-        R.id.buttonCot, R.id.buttonLn, R.id.buttonLog, R.id.buttonExp, R.id.button0, R.id.buttonPlus,
-        R.id.buttonMinus, R.id.buttonMul, R.id.buttonDiv, R.id.buttonDot, R.id.buttonEquals,
-        R.id.buttonClear, R.id.buttonMore };
+    int[] names = { R.id.buttonSin, R.id.buttonCos, R.id.buttonTan, R.id.button1x, R.id.buttonFac,
+        R.id.buttonSqrt, R.id.buttonLn, R.id.buttonLog, R.id.buttonPers, R.id.buttonPi, R.id.buttonPow,
+        R.id.buttonSqr, R.id.buttonClear2, R.id.buttonMore2 };
 
     Button b;
     for (int n : names) {
@@ -45,68 +48,95 @@ public class ScientificActivity extends Activity implements android.view.View.On
   public void onClick(View v) {
     Button button = (Button) v;
     String text = button.getText().toString();
-    String val = valueEdit.getText().toString();
-    if (text.matches("[0-9]") || text.equals(".")) {
-      if (!val.equals("") && Float.parseFloat(val) == 0) {
-        valueEdit.setText(text);
-      } else {
-        valueEdit.setText(val + "" + text);
-      }
-    } else if (text.equals("=")) {
-      value = eval(value, op, Float.parseFloat(valueEdit.getText().toString()));
-      valueEdit.setText(String.valueOf(value));
-      System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" + String.valueOf(value));
+    String val = valueEdit2.getText().toString();
+    double old = Double.parseDouble(val);
+    if (text.equals("sin")) {
+      value = Math.sin(old);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
 
-    } else if (text.equals("C")) {
+    } else if (text.equals("cos")) {
+      value = Math.cos(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("tan")) {
+      value = Math.tan(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("ln")) {
+      value = Math.log(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("log")) {
+      value = Math.log10(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("1/x")) {
+      value = 1 / value;
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("x!")) {
+      if (value < 12) {
+        int fact = 1;
+        for (int i = 1; i <= value; i++) {
+          fact = fact * i;
+        }
+        value = fact;
+        valueEdit2.setText(String.valueOf(value));
+        op = 0;
+      }
+    } else if (text.equals("x^2")) {
+      value = Math.pow(value, 2);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("%")) {
+      value = value / 100;
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("sqrt")) {
+      value = Math.sqrt(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+
+    } else if (text.equals("abs")) {
+      value = Math.abs(value);
+      valueEdit2.setText(String.valueOf(value));
+      op = 0;
+    }
+
+    if (text.equals("C")) {
       value = 0;
       op = 0;
-      valueEdit.setText("0");
+      valueEdit2.setText("0");
+      calc.setText("");
     } else if (text.equals("->")) {
       Intent i = new Intent(ScientificActivity.this, SimpleActivity.class);
       i.putExtras(getExtras());
       startActivity(i);
-
+    } else if (text.equals("x^y")) {
+      valueEdit2.setText("0");
+      op = '^';
+      calc.setText(String.valueOf(value) + "^");
     } else {
-      valueEdit.setText("");
-      value = Float.parseFloat(val);
-      op = text.charAt(0);
+      calc.setText(text + "(" + old + ")" + "=");
     }
 
-  }
-
-  private float eval(float v1, char op, float v2) {
-    float result = 0;
-    switch (op) {
-    case '+':
-      result = v1 + v2;
-      break;
-    case '-':
-      result = v1 - v2;
-      break;
-    case '*':
-      result = v1 * v2;
-      break;
-    case '/':
-      System.out.println("********************************************************** ");
-      if (v2 == 0) {
-        System.out.println("********************************************************** ");
-        throw new ArithmeticException("DivisionByZero");
-      }
-      result = v1 / v2;
-      break;
-
-    default:
-      break;
-    }
-    return result;
   }
 
   private Bundle getExtras() {
-    String val = valueEdit.getText().toString();
+    String val = valueEdit2.getText().toString();
     Bundle b = new Bundle();
-    b.putFloat("value", value);
+    b.putDouble("value", value);
     b.putString("valueEdit", val);
     b.putChar("op", op);
+    b.putString("calcValue", calc.getText().toString());
     return b;
   }
 
