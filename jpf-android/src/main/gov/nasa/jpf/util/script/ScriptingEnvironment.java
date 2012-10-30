@@ -9,7 +9,6 @@ import gov.nasa.jpf.util.StateExtensionClient;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,8 +36,8 @@ public class ScriptingEnvironment implements StateExtensionClient<ScriptState> {
     this.scriptReader = r;
   }
 
-  public void parseScript() throws ESParser.Exception {
-    ESParser parser = new ESParser(scriptName, scriptReader);
+  public void parseScript() throws ESParserE.Exception {
+    ESParserE parser = new ESParserE(scriptName, scriptReader);
     script = parser.parse();
     initSections();
     cur = new ScriptState();

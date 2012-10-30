@@ -6,7 +6,7 @@ import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.util.script.ESParser;
+import gov.nasa.jpf.util.script.ESParserE;
 import gov.nasa.jpf.util.script.ScriptingEnvironment;
 
 import java.io.FileNotFoundException;
@@ -52,7 +52,7 @@ public class JPF_android_os_MessageQueue {
       scriptEnv.parseScript();
     } catch (FileNotFoundException fnfx) {
       log.severe("script file not found: " + scriptName);
-    } catch (ESParser.Exception e) {
+    } catch (ESParserE.Exception e) {
       log.severe(e.toString());
     }
   }

@@ -19,17 +19,49 @@
 
 package gov.nasa.jpf.util.script;
 
-public class Group extends ScriptElementContainer {
+import java.io.Reader;
 
-  public Group(ScriptElement parent, int line) {
-    super(parent, line);
+/**
+ * generic parser for event scripts
+ * 
+ * <2do> this is still awfully hardwired to StringExpander
+ */
+
+public class ESParserE extends ESParser {
+
+  public ESParserE(String fname) throws Exception {
+    super(fname);
   }
 
-  public String toString() {
-    return toString("GROUP ");
+  public ESParserE(String filename, Reader reader) throws Exception {
+    super(filename, reader);
   }
 
-  public void process(ElementProcessor p) {
-    p.process(this);
+  final public static String K_GROUP = "GROUP";
+
+  protected void alternative(ScriptElementContainer parent) throws Exception {
+    // matchKeyword(K_ANY);
+
+    Alternative a = new Alternative(parent, scanner.lineno());
+    parent.add(a);
+
+    match('{');
+    while (!done && (scanner.ttype != '}')) {
+      group(a);
+    }
+    match('}');
   }
+
+  protected void group(ScriptElementContainer parent) throws Exception {
+
+    Group a = new Group(parent, scanner.lineno());
+    parent.add(a);
+
+    while (!done && (scanner.ttype != ',') && (scanner.ttype != '}')) {
+      sequence(a);
+    }
+    isMatch(',');
+
+  }
+
 }
