@@ -6,7 +6,7 @@
 	<classpathentry kind="src" output="build/examples" path="src/examples"/>
 	<classpathentry kind="src" output="build/tests" path="src/tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/home/heila/GSoC-Repos/jpf-android/lib/android"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jpf-core"/>
+	<classpathentry kind="lib" path="lib/android"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
