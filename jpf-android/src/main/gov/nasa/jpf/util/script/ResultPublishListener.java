@@ -1,6 +1,7 @@
 package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.android.UIAction;
+import gov.nasa.jpf.jvm.ChoiceGenerator;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
 import gov.nasa.jpf.report.Publisher;
@@ -14,9 +15,11 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
   public void stateAdvanced(Search search) {
     super.stateAdvanced(search);
     if (search.isEndState()) {
-      if (search.getVM().getChoiceGenerator() instanceof IntIntervalGenerator)
+      ChoiceGenerator<?> cg = search.getVM().getChoiceGenerator();
+      if (cg instanceof IntIntervalGenerator) {
         choices++;
-
+        System.out.println((IntIntervalGenerator) cg);
+      }
     }
   }
 
@@ -29,6 +32,14 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
 
   @Override
   public void searchFinished(Search search) {
+  }
+
+  @Override
+  public void choiceGeneratorRegistered(JVM vm) {
+
+  }
+
+  public void getActions() {
     ScriptState ss = client.getStateExtension();
     // UIActionGenerator[] cgs = jvm.getChoiceGeneratorsOfType(UIActionGenerator.class);
     for (UIAction s : ss.actions) {
@@ -38,28 +49,26 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
 
       }
     }
-
-  }
-
-  @Override
-  public void choiceGeneratorRegistered(JVM vm) {
-
   }
 
   @Override
   public void publishPropertyViolation(Publisher publisher) {
-    publisher.getOut().println("====================================================== error input sequence");
+    getActions();
+    publisher.getOut().println(
+        "====================================================== error input sequence\n" + out);
     // super.publishPropertyViolation(publisher);
   }
 
   @Override
   public void publishConstraintHit(Publisher publisher) {
-    publisher.getOut().println("====================================================== error input sequence");
+    getActions();
+    publisher.getOut().println(
+        "====================================================== error input sequence\n" + out);
   }
 
   @Override
   public void publishFinished(Publisher publisher) {
-    publisher.getOut().println(out);
-    publisher.getOut().println("number of sequences: " + choices);
+    // publisher.getOut().println(out);
+    // publisher.getOut().println("number of sequences: " + publisher.);
   }
 }

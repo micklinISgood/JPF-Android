@@ -22,9 +22,6 @@ public class JPF_android_os_MessageQueue {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
   static final String UIACTION = "[UIAction]";
 
-  // do we want to process all UIActionCGs regardless of state matching
-  static boolean forceActionStates = false;
-
   static int counter; // the number of UIActionCGs generated so far
 
   // static UIActionGeneratorFactory cgFactory;
@@ -38,7 +35,6 @@ public class JPF_android_os_MessageQueue {
     Config conf = env.getConfig();
 
     counter = 0;
-    forceActionStates = conf.getBoolean("awt.force_states", true);
 
     String scriptName = conf.getString("awt.script");
     System.out.println("scriptName");
@@ -78,9 +74,6 @@ public class JPF_android_os_MessageQueue {
       String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
       UIAction action = scriptEnv.getNext("processScriptAction", currentActivity, env);
 
-      if (forceActionStates) {
-        env.setIntField(objref, "forceNewState", counter);
-      }
       if (action != null) {
         runAction(env, action);
         return true;
@@ -88,7 +81,6 @@ public class JPF_android_os_MessageQueue {
 
       return false;
     }
-    System.out.println("DIRECT CALL WAS MADE");
     return true;
   }
 

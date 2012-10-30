@@ -17,8 +17,6 @@ public class MessageQueue {
 
   private boolean mQuiting;
   boolean mQuitAllowed = true;
-  int forceNewState;
-  int count = 0;
 
   public native boolean processScriptAction();
 
@@ -38,8 +36,6 @@ public class MessageQueue {
       if ((m = nextNonBlocked()) != null) {
         return m;
       }
-      count++;
-      System.out.println(count);
     } while (processScriptAction());
     // this must not happen! an ending message (with target will be
     // dispatched before this is executed)

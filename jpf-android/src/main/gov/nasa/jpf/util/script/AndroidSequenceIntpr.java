@@ -79,14 +79,6 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
       return se;
   }
 
-  // for (ScriptElement ase : (Alternative) e) {
-  // if (ase instanceof Event) {
-  // List<Event> ls = ((Event) ase).expand();
-  // ase.
-  // System.out.println();
-  // }
-  // }
-
   public ScriptElement handleAlternative(MJIEnv env, ScriptElement e, SECIterator topIt) {
     ThreadInfo ti = env.getThreadInfo();
     SystemState ss = env.getSystemState();
@@ -111,17 +103,11 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
             ss.setForced(true);
             ss.setNextChoiceGenerator(cg);
             topIt.previous(e);
-            // System.out.println(cg);
-            // System.out.println(ss.getCurrentChoiceGenerator(String.valueOf(-1243537750),
-            // IntIntervalGenerator.class));
             env.repeatInvocation();
             return null;
           } else {
             int myChoice = cg.getNextChoice();
             push(((Alternative) e).iterator(myChoice));
-            // System.out.println(cg);
-            // System.out.println(ss.getCurrentChoiceGenerator(String.valueOf(-1243537750),
-            // IntIntervalGenerator.class));
             if (cg.getTotalNumberOfChoices() == cg.getProcessedNumberOfChoices())
               ((Alternative) e).used = true;
             return getNext(env);
@@ -140,28 +126,9 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
       assert cg != null : "no 'getNext' IntIntervalGenerator found";
       int myChoice = cg.getNextChoice();
       push(((Alternative) e).iterator(myChoice));
-      // System.out.println(cg);
       return getNext(env);
     }
     return null;
   }
-  // public IntIntervalGenerator getCurrentInnerCG(SystemState ss) {
-  // IntIntervalGenerator[] cgs = ss.getChoiceGeneratorsOfType(IntIntervalGenerator.class);
-  // int max = -1;
-  // IntIntervalGenerator maxCG = null;
-  //
-  // for (IntIntervalGenerator cg : cgs) {
-  // String[] name = cg.getId().split(":");
-  // if (name[0].equals("innerNext")) {
-  // int size = Integer.parseInt(name[1]);
-  // if (size > max) {
-  // max = size;
-  // maxCG = cg;
-  // }
-  // }
-  //
-  // }
-  // return maxCG;
-  // }
 
 }

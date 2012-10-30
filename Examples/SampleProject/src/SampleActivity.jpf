@@ -4,7 +4,7 @@ sourcepath=${jpf-android}/../Examples/SampleProject/src;
 path=${jpf-android}/../Examples/SampleProject
 
 #--- which script to run
-awt.script=${config_path}/StartResult.es
+awt.script=${config_path}/SampleScript.es
 
 # the modeled data acquisition thread needs it
 cg.enumerate_random=true
