@@ -1,15 +1,23 @@
 SECTION default {
 	@startIntent.setComponent("com.example.calculator.SimpleActivity")
 	startActivity(@startIntent)
+	
+
+
+		
 }
 
 
 
 
 SECTION com.example.calculator.SimpleActivity {
-	$button[0-2].onClick()
-	$button<Plus|More|Div>.onClick()
-	$button[0-2].onClick()
+ANY {
+		$button1.onClick(),
+	$button[0-1].onClick()
+	$button[2-3].onClick() }	
+	//$button[0-2].onClick()
+	//$button<Plus|More|Div>.onClick()
+	//$button[0-2].onClick()
 	$buttonEquals.onClick()
 	
 }

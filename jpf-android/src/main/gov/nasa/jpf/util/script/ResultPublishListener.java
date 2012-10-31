@@ -1,6 +1,5 @@
 package gov.nasa.jpf.util.script;
 
-import gov.nasa.jpf.android.UIAction;
 import gov.nasa.jpf.jvm.ChoiceGenerator;
 import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
@@ -14,12 +13,10 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
   @Override
   public void stateAdvanced(Search search) {
     super.stateAdvanced(search);
-    if (search.isEndState()) {
-      ChoiceGenerator<?> cg = search.getVM().getChoiceGenerator();
-      if (cg instanceof IntIntervalGenerator) {
-        choices++;
-        System.out.println((IntIntervalGenerator) cg);
-      }
+    ChoiceGenerator<?> cg = search.getVM().getChoiceGenerator();
+    if (cg instanceof IntIntervalGenerator) {
+      //choices++;
+     // System.out.println((IntIntervalGenerator) cg);
     }
   }
 
@@ -32,11 +29,16 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
 
   @Override
   public void searchFinished(Search search) {
+    System.out.println("Choices" + choices);
   }
 
   @Override
   public void choiceGeneratorRegistered(JVM vm) {
-
+    ChoiceGenerator<?> cg = vm.getChoiceGenerator();
+    if (cg instanceof IntIntervalGenerator) {
+      choices++;
+      System.out.println((IntIntervalGenerator) cg);
+    }
   }
 
   public void getActions() {
