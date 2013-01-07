@@ -113,22 +113,27 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
             return getNext(env);
           }
         } else {
-          if (e.parent instanceof Group)
-            e = e.parent.parent;
+          if (e.getParent() instanceof Group)
+            e = e.getParent().getParent();
+          if (e.getParent() instanceof Section){
+            e = e.getParent();
+            return null;
+          }
           else
-            e = e.parent;
+            e = e.getParent();
           return handleScriptElement(env, topIt, e);
 
         }
 
       }
       IntIntervalGenerator cg = ss.getCurrentChoiceGenerator("outerNext", IntIntervalGenerator.class);
-      assert cg != null : "no 'getNext' IntIntervalGenerator found";
-      int myChoice = cg.getNextChoice();
-      push(((Alternative) e).iterator(myChoice));
-      return getNext(env);
+      if (cg != null) {
+        int myChoice = cg.getNextChoice();
+        push(((Alternative) e).iterator(myChoice));
+        return getNext(env);
+      }else
+        return null;
     }
     return null;
   }
-
 }
