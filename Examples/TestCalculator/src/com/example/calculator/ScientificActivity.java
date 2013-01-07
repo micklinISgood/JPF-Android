@@ -101,6 +101,10 @@ public class ScientificActivity extends Activity implements android.view.View.On
       op = 0;
 
     } else if (text.equals("sqrt")) {
+    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    	if (value < 0){
+    		throw new ArithmeticException("Squareroot of negative number");
+    	}
       value = Math.sqrt(value);
       valueEdit2.setText(String.valueOf(value));
       op = 0;
