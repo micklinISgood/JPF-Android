@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -713,6 +714,21 @@ public class Activity extends ContextThemeWrapper {
     // nci.fragments = fragments;
     // nci.loaders = mAllLoaderManagers;
     return nci;
+  }
+  
+  
+  public ComponentName startService(Intent intent){
+	  System.out.println("%%%%%%%%%%%%%%%");
+	  this.mMainThread.mAppThread.performStartService(intent.getComponent(), intent);
+	
+	  return null;
+	  
+  }
+  
+  public boolean stopService(Intent intent){
+	  this.mMainThread.mAppThread.scheduleStopService(intent);
+	  return true;
+
   }
 
 }

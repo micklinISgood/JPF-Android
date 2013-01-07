@@ -111,7 +111,7 @@ public class LayoutInflater {
     String name = getName();
     int id = getID(name);
     result.setName(name);
-    result.setID(id);
+    result.setId(id);
     String text = getText();
     if (!text.equals(""))
       ((TextView) result).setText(text);

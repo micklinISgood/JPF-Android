@@ -29,6 +29,8 @@ import android.util.Log;
 
 public abstract class Service extends ContextWrapper implements ComponentCallbacks2 {
   private static final String TAG = "Service";
+  private static int uniqueID = 0;
+
 
   public Service() {
     super(null);
@@ -43,6 +45,7 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * Called by the system when the service is first created. Do not call this method directly.
    */
   public void onCreate() {
+	  System.out.println("testingONCreate");
   }
 
   /**
@@ -181,6 +184,7 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * directly.
    */
   public void onDestroy() {
+	  System.out.println("testingONDestroy");
   }
 
   public void onConfigurationChanged(Configuration newConfig) {
@@ -488,15 +492,20 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
   /**
    * @hide
    */
-  public final void attach(Context context, ActivityThread thread, String className, Application application) {
+  public final void attach( String className, ActivityThread thread) {
     // attachBaseContext(context);
     mThread = thread; // NOTE: unused - remove?
     mClassName = className;
-    mApplication = application;
+   // mApplication = application;
+    uniqueID++;
   }
 
   final String getClassName() {
     return mClassName;
+  }
+  
+  public int getId(){
+	  return uniqueID;
   }
 
   // set by the thread after the constructor and before onCreate(Bundle icicle) is called.

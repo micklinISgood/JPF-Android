@@ -137,11 +137,11 @@ public class View {
 		return findViewTraversal(id);
 	}
 
-	public int getID() {
+	public int getId() {
 		return mID;
 	}
 
-	public void setID(int mID) {
+	public void setId(int mID) {
 		this.mID = mID;
 	}
 

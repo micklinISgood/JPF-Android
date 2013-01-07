@@ -40,15 +40,14 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
   }
 
   public void getActions() {
-    // ScriptState ss = getClient().getStateExtension();
-    // UIActionGenerator[] cgs = jvm.getChoiceGeneratorsOfType(UIActionGenerator.class);
-    // for (UIAction s : ss.actions) {
-    // try {
-    // out += "\n" + s.toString();
-    // } catch (Exception e) {
-    //
-    // }
-    // }
+     ScriptState ss = client.getStateExtension();
+     for (UIAction s : ss.actions) {
+     try {
+     out += "\n" + s.toString();
+     } catch (Exception e) {
+    
+     }
+     }
   }
 
   @Override
@@ -56,7 +55,6 @@ public class ResultPublishListener extends StateExtensionListener<ScriptState> {
     getActions();
     publisher.getOut().println(
         "====================================================== error input sequence\n" + out);
-    // super.publishPropertyViolation(publisher);
   }
 
   @Override
