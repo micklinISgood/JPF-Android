@@ -1,5 +1,6 @@
 package android.app;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.content.Context;
@@ -7,9 +8,11 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.SparseArray;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,12 +42,13 @@ public class Activity extends ContextThemeWrapper {
   private static final String SAVED_DIALOG_KEY_PREFIX = "android:dialog_";
   private static final String SAVED_DIALOG_ARGS_KEY_PREFIX = "android:dialog_args_";
 
-  // private static class ManagedDialog {
-  // Dialog mDialog;
-  // Bundle mArgs;
-  // }
+  private static class ManagedDialog {
+    Dialog mDialog;
+    Bundle mArgs;
+  }
+
   //
-  // private SparseArray<ManagedDialog> mManagedDialogs;
+  private SparseArray<ManagedDialog> mManagedDialogs;
 
   // set by the thread after the constructor and before onCreate(Bundle savedInstanceState) is called.
   private Instrumentation mInstrumentation;
@@ -54,12 +58,11 @@ public class Activity extends ContextThemeWrapper {
   private Application mApplication; // Main application context
 
   Intent mIntent; // Reference to the intent that started this Activity
-  private String mComponent;
+  private String mComponent; // TODO
   /* package */ActivityInfo mActivityInfo; // Contains info of this activity from AndroidManifest.xml
   /* package */ActivityThread mMainThread; // The main thread of this application
   Activity mParent; // Used by ActivityGroups, stores this Activity's parent Activity
   boolean mCalled; // Used to make sure super lifecycle methods are called
-
   boolean mCheckedForLoaderManager;
   boolean mLoadersStarted;
 
@@ -78,10 +81,13 @@ public class Activity extends ContextThemeWrapper {
   /* package */int mConfigChangeFlags;
   /* package */Configuration mCurrentConfig;
 
+  // private SearchManager mSearchManager; //TODO
+  // private MenuInflater mMenuInflater; //TODO
+
   static final class NonConfigurationInstances {
     Object activity;
     HashMap<String, Object> children;
-    // ArrayList<Fragment> fragments;
+    // ArrayList<Fragment> fragments;//TODO
     // android.util.SparseArray<LoaderManagerImpl> loaders;
   }
 
@@ -93,30 +99,33 @@ public class Activity extends ContextThemeWrapper {
   /* package */boolean mWindowAdded = false;
   /* package */boolean mVisibleFromServer = false;
   /* package */boolean mVisibleFromClient = true;
-  // /* package */ActionBarImpl mActionBar = null;
-
-  // final FragmentManagerImpl mFragments = new FragmentManagerImpl();
-  //
-  // SparseArray<LoaderManagerImpl> mAllLoaderManagers;
-  // LoaderManagerImpl mLoaderManager;
-
-  // private static final class ManagedCursor {
-  // ManagedCursor(Cursor cursor) {
-  // mCursor = cursor;
-  // mReleased = false;
-  // mUpdated = false;
-  // }
-  // private final Cursor mCursor;
-  // private boolean mReleased;
-  // private boolean mUpdated;
-  // }
-  // private final ArrayList<ManagedCursor> mManagedCursors = new ArrayList<ManagedCursor>();
+  // /* package */ActionBarImpl mActionBar = null; //TODO
 
   private CharSequence mTitle;
   private int mTitleColor = 0;
+
+  // final FragmentManagerImpl mFragments = new FragmentManagerImpl(); TODO
+  //
+  // SparseArray<LoaderManagerImpl> mAllLoaderManagers; //TODO
+  // LoaderManagerImpl mLoaderManager;
+
+  private static final class ManagedCursor {
+    ManagedCursor(Cursor cursor) {
+      mCursor = cursor;
+      mReleased = false;
+      mUpdated = false;
+    }
+
+    private final Cursor mCursor;
+    private boolean mReleased;
+    private boolean mUpdated;
+  }
+
+  private final ArrayList<ManagedCursor> mManagedCursors = new ArrayList<ManagedCursor>();
+
   private boolean mTitleReady = false;
 
-  // private int mDefaultKeyMode = DEFAULT_KEYS_DISABLE;
+  // private int mDefaultKeyMode = DEFAULT_KEYS_DISABLE;TODO
   // private SpannableStringBuilder mDefaultKeySsb = null;
 
   // protected static final int[] FOCUSED_STATE_SET = { com.android.internal.R.attr.state_focused };
@@ -154,7 +163,7 @@ public class Activity extends ContextThemeWrapper {
    */
   final void performRestoreInstanceState(Bundle savedInstanceState) {
     onRestoreInstanceState(savedInstanceState);
-    // restoreManagedDialogs(savedInstanceState);
+    restoreManagedDialogs(savedInstanceState);
   }
 
   protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -164,6 +173,34 @@ public class Activity extends ContextThemeWrapper {
         // mWindow.restoreHierarchyState(windowState);
       }
     }
+  }
+
+  private void restoreManagedDialogs(Bundle savedInstanceState) {
+    final Bundle b = savedInstanceState.getBundle(SAVED_DIALOGS_TAG);
+    if (b == null) {
+      return;
+    }
+
+    final int[] ids = b.getIntArray(SAVED_DIALOG_IDS_KEY);
+    final int numDialogs = ids.length;
+    mManagedDialogs = new SparseArray<ManagedDialog>(numDialogs);
+    for (int i = 0; i < numDialogs; i++) {
+      final Integer dialogId = ids[i];
+      Bundle dialogState = b.getBundle(savedDialogKeyFor(dialogId));
+      if (dialogState != null) {
+        // Calling onRestoreInstanceState() below will invoke dispatchOnCreate
+        // so tell createDialog() not to do it, otherwise we get an exception
+        final ManagedDialog md = new ManagedDialog();
+        md.mArgs = b.getBundle(savedDialogArgsKeyFor(dialogId));
+        md.mDialog = createDialog(dialogId, dialogState, md.mArgs);
+        if (md.mDialog != null) {
+          mManagedDialogs.put(dialogId, md);
+          onPrepareDialog(dialogId, md.mDialog, md.mArgs);
+          md.mDialog.onRestoreInstanceState(dialogState);
+        }
+      }
+    }
+
   }
 
   protected void onPostCreate(Bundle savedInstanceState) {
@@ -177,6 +214,11 @@ public class Activity extends ContextThemeWrapper {
   /** Is this activity embedded inside of another activity? */
   public final boolean isChild() {
     return mParent != null;
+  }
+
+  /** Return the parent activity if this view is an embedded child. */
+  public final Activity getParent() {
+    return mParent;
   }
 
   protected void onStart() {
@@ -227,28 +269,28 @@ public class Activity extends ContextThemeWrapper {
     mCalled = true;
     //
     // // dismiss any dialogs we are managing.
-    // if (mManagedDialogs != null) {
-    // final int numDialogs = mManagedDialogs.size();
-    // for (int i = 0; i < numDialogs; i++) {
-    // final ManagedDialog md = mManagedDialogs.valueAt(i);
-    // if (md.mDialog.isShowing()) {
-    // md.mDialog.dismiss();
-    // }
-    // }
-    // mManagedDialogs = null;
-    // }
+    if (mManagedDialogs != null) {
+      final int numDialogs = mManagedDialogs.size();
+      for (int i = 0; i < numDialogs; i++) {
+        final ManagedDialog md = mManagedDialogs.valueAt(i);
+        if (md.mDialog.isShowing()) {
+          md.mDialog.dismiss();
+        }
+      }
+      mManagedDialogs = null;
+    }
     //
     // // close any cursors we are managing.
-    // synchronized (mManagedCursors) {
-    // int numCursors = mManagedCursors.size();
-    // for (int i = 0; i < numCursors; i++) {
-    // ManagedCursor c = mManagedCursors.get(i);
-    // if (c != null) {
-    // c.mCursor.close();
-    // }
-    // }
-    // mManagedCursors.clear();
-    // }
+    synchronized (mManagedCursors) {
+      int numCursors = mManagedCursors.size();
+      for (int i = 0; i < numCursors; i++) {
+        ManagedCursor c = mManagedCursors.get(i);
+        if (c != null) {
+          c.mCursor.close();
+        }
+      }
+      mManagedCursors.clear();
+    }
     //
     // // Close any open search dialog
     // if (mSearchManager != null) {
@@ -260,6 +302,11 @@ public class Activity extends ContextThemeWrapper {
 
   public Window getWindow() {
     return mWindow;
+  }
+
+  /** Retrieve the window manager for showing custom windows. */
+  public WindowManager getWindowManager() {
+    return mWindowManager;
   }
 
   /** Return the application that owns this activity. */
@@ -363,18 +410,20 @@ public class Activity extends ContextThemeWrapper {
     mParent = parent;
   }
 
-  final void attach(Context context, ActivityThread aThread, Application application, Intent intent,
-                    ActivityInfo info, CharSequence title, Activity parent,
-                    NonConfigurationInstances lastNonConfigurationInstances, Configuration config) {
+  final void attach(Context context, ActivityThread aThread, Instrumentation instr, IBinder token,
+                    Application application, Intent intent, ActivityInfo info, CharSequence title,
+                    Activity parent, String id, NonConfigurationInstances lastNonConfigurationInstances,
+                    Configuration config) {
+    attach(context, aThread, instr, token, 0, application, intent, info, title, parent, id,
+        lastNonConfigurationInstances, config);
+  }
 
-    // final void attach(Context context, ActivityThread aThread,
-    // Instrumentation instr, IBinder token, int ident,
-    // Application application, Intent intent, ActivityInfo info,
-    // CharSequence title, Activity parent, String id,
-    // NonConfigurationInstances lastNonConfigurationInstances,
-    // Configuration config) {
+  final void attach(Context context, ActivityThread aThread, Instrumentation instr, IBinder token, int ident,
+                    Application application, Intent intent, ActivityInfo info, CharSequence title,
+                    Activity parent, String id, NonConfigurationInstances lastNonConfigurationInstances,
+                    Configuration config) {
 
-    // attachBaseContext(context);
+    attachBaseContext(context);
 
     // mFragments.attachActivity(this);
 
@@ -389,8 +438,8 @@ public class Activity extends ContextThemeWrapper {
     // }
     mUiThread = Thread.currentThread();
     mMainThread = aThread;
-    // mInstrumentation = instr;
-    // mToken = token;
+    mInstrumentation = instr;
+    mToken = token;
     mIdent = uniqueID;
     uniqueID++;
     mApplication = application;
@@ -399,7 +448,7 @@ public class Activity extends ContextThemeWrapper {
     mActivityInfo = info;
     mTitle = title;
     mParent = parent;
-    // mEmbeddedID = id;
+    mEmbeddedID = id;
     mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
     // mWindow.setWindowManager(null, mToken, mComponent.flattenToString(),
@@ -715,20 +764,132 @@ public class Activity extends ContextThemeWrapper {
     // nci.loaders = mAllLoaderManagers;
     return nci;
   }
-  
-  
-  public ComponentName startService(Intent intent){
-	  System.out.println("%%%%%%%%%%%%%%%");
-	  this.mMainThread.mAppThread.performStartService(intent.getComponent(), intent);
-	
-	  return null;
-	  
-  }
-  
-  public boolean stopService(Intent intent){
-	  this.mMainThread.mAppThread.scheduleStopService(intent);
-	  return true;
 
+  protected void onNewIntent(Intent intent) {
+  }
+
+  final void performSaveInstanceState(Bundle outState) {
+    onSaveInstanceState(outState);
+    saveManagedDialogs(outState);
+  }
+
+  final void performUserLeaving() {
+    // onUserInteraction();
+    // onUserLeaveHint();
+    // TODO
+  }
+
+  private void saveManagedDialogs(Bundle outState) {
+    if (mManagedDialogs == null) {
+      return;
+    }
+
+    final int numDialogs = mManagedDialogs.size();
+    if (numDialogs == 0) {
+      return;
+    }
+
+    Bundle dialogState = new Bundle();
+
+    int[] ids = new int[mManagedDialogs.size()];
+
+    // save each dialog's bundle, gather the ids
+    for (int i = 0; i < numDialogs; i++) {
+      final int key = mManagedDialogs.keyAt(i);
+      ids[i] = key;
+      final ManagedDialog md = mManagedDialogs.valueAt(i);
+      dialogState.putBundle(savedDialogKeyFor(key), md.mDialog.onSaveInstanceState());
+      if (md.mArgs != null) {
+        dialogState.putBundle(savedDialogArgsKeyFor(key), md.mArgs);
+      }
+    }
+
+    dialogState.putIntArray(SAVED_DIALOG_IDS_KEY, ids);
+    outState.putBundle(SAVED_DIALOGS_TAG, dialogState);
+  }
+
+  private static String savedDialogKeyFor(int key) {
+    return SAVED_DIALOG_KEY_PREFIX + key;
+  }
+
+  private static String savedDialogArgsKeyFor(int key) {
+    return SAVED_DIALOG_ARGS_KEY_PREFIX + key;
+  }
+
+  private Dialog createDialog(Integer dialogId, Bundle state, Bundle args) {
+    final Dialog dialog = onCreateDialog(dialogId, args);
+    if (dialog == null) {
+      return null;
+    }
+    dialog.dispatchOnCreate(state);
+    return dialog;
+  }
+
+  protected Dialog onCreateDialog(int id) {
+    return null;
+  }
+
+  protected Dialog onCreateDialog(int id, Bundle args) {
+    return onCreateDialog(id);
+  }
+
+  protected void onPrepareDialog(int id, Dialog dialog) {
+    dialog.setOwnerActivity(this);
+  }
+
+  protected void onPrepareDialog(int id, Dialog dialog, Bundle args) {
+    onPrepareDialog(id, dialog);
+  }
+
+  public final void showDialog(int id) {
+    showDialog(id, null);
+  }
+
+  public final boolean showDialog(int id, Bundle args) {
+    if (mManagedDialogs == null) {
+      mManagedDialogs = new SparseArray<ManagedDialog>();
+    }
+    ManagedDialog md = mManagedDialogs.get(id);
+    if (md == null) {
+      md = new ManagedDialog();
+      md.mDialog = createDialog(id, null, args);
+      if (md.mDialog == null) {
+        return false;
+      }
+      mManagedDialogs.put(id, md);
+    }
+
+    md.mArgs = args;
+    onPrepareDialog(id, md.mDialog, args);
+    md.mDialog.show();
+    return true;
+  }
+
+  public final void dismissDialog(int id) {
+    if (mManagedDialogs == null) {
+      throw missingDialog(id);
+    }
+
+    final ManagedDialog md = mManagedDialogs.get(id);
+    if (md == null) {
+      throw missingDialog(id);
+    }
+    md.mDialog.dismiss();
+  }
+
+  private IllegalArgumentException missingDialog(int id) {
+    return new IllegalArgumentException("no dialog with id " + id + " was ever "
+        + "shown via Activity#showDialog");
+  }
+
+  public final void removeDialog(int id) {
+    if (mManagedDialogs != null) {
+      final ManagedDialog md = mManagedDialogs.get(id);
+      if (md != null) {
+        md.mDialog.dismiss();
+        mManagedDialogs.remove(id);
+      }
+    }
   }
 
 }

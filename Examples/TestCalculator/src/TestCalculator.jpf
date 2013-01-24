@@ -10,10 +10,12 @@ awt.script=${config_path}/TestCalculator.es
 cg.enumerate_random=true
 
 # don't obfuscate things in handlers
-vm.halt_on_throw=java.lang.ArithmeticException
+vm.halt_on_throw=java.lang.Exception
 
 
 # turn off instruction trace
 report.console.property_violation=error
 
 
+#coverage.include = com.example.calculator.SimpleActivity, android.app.Activity
+coverage.show_methods = true

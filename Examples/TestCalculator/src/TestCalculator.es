@@ -8,9 +8,9 @@ SECTION default {
 }
 
 SECTION com.example.calculator.SimpleActivity {
-	$button[0-2].onClick()
-	$button<Plus|Minus|More|Div>.onClick()
-	$button[0-2].onClick()
+	$button[0-9].onClick()
+	$button<Plus|Minus|Mul|Div|More>.onClick()
+	$button[0-9].onClick()
 	$buttonEquals.onClick()	
 
 }
