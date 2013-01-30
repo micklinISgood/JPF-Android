@@ -91,14 +91,14 @@ public class JPF_android_os_MessageQueue {
    * @param action
    */
   private static void runAction(MJIEnv env, UIAction action) {
-    System.out.println("*******************************");
-    System.out.println("ProcessAction: " + action.action + " on " + action.target);
+    log.info("*******************************");
+    log.info("ProcessAction: " + action.action + " on " + action.target);
 
     if (!action.isNone()) {
       if (action.target == null) { // componentAction
         JPF_android_app_ActivityManagerProxy.handleComponentAction(env, action);
       } else if (action.target.startsWith("$")) { // viewAction
-        JPF_android_view_Window.handleViewAction(env, action);
+        JPF_android_view_WindowManager.handleViewAction(env, action);
       } else if (action.target.startsWith("@")) { // intentAction
         JPF_android_app_ActivityManagerProxy.setIntent(env, action);
       }

@@ -334,6 +334,7 @@ public class Activity extends ContextThemeWrapper {
     // mWindowAdded = true;
     // }
     // mDecor.setVisibility(View.VISIBLE);
+    mWindow.setVisible();
   }
 
   @Override
@@ -451,7 +452,7 @@ public class Activity extends ContextThemeWrapper {
     mEmbeddedID = id;
     mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
-    // mWindow.setWindowManager(null, mToken, mComponent.flattenToString(),
+    mWindow.setWindowManager(null, mToken, mComponent, true);
     // (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
     // if (mParent != null) {
     // mWindow.setContainer(mParent.getWindow());

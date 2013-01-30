@@ -42,6 +42,10 @@ public class LayoutInflater {
     nextElement();
     View v = parse();
     print(v);
+    if (root instanceof ViewGroup)
+      ((ViewGroup) root).addView(v);
+    else
+      root = v;
     return v;
 
   }
@@ -102,7 +106,7 @@ public class LayoutInflater {
 
     View result = null;
     // TODO change widget package if widget define in other file
-    Class<View> cls = (Class<View>) Class.forName(WIDGET_PACKAGE + "." + type);
+    Class<? extends View> cls = (Class<? extends View>) Class.forName(WIDGET_PACKAGE + "." + type);
     Class[] intArgsClass = new Class[] { Context.class };
     Object[] intArgs = new Object[] { c };
     Constructor intArgsConstructor = cls.getConstructor(intArgsClass);
@@ -120,19 +124,19 @@ public class LayoutInflater {
     return result;
   }
 
-  static native String setup(int resRef);
+  native String setup(int resRef);
 
-  static native String getType();
+  native String getType();
 
-  static native String getName();
+  native String getName();
 
-  static native String getText();
+  native String getText();
 
-  static native int getID(String name);
+  native int getID(String name);
 
-  static native boolean nextElement();
+  native boolean nextElement();
 
-  static native String getParent();
+  native String getParent();
 
-  static native int getNumChildren();
+  native int getNumChildren();
 }

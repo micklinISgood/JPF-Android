@@ -2,7 +2,6 @@ package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.SystemState;
 

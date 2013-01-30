@@ -15,6 +15,7 @@ import android.os.Message;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.view.Window;
+import android.view.WindowManager;
 
 final class SuperNotCalledException extends android.util.AndroidRuntimeException {
   public SuperNotCalledException(String msg) {
@@ -1217,6 +1218,7 @@ public final class ActivityThread {
 
     sThreadLocal.set(this);
     handleBindApplication();
+    WindowManager.init0();
 
   }
 

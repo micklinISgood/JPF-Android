@@ -1,115 +1,134 @@
 package android.view;
 
-import java.util.HashMap;
+import java.lang.reflect.Method;
 
+import android.app.Activity;
 import android.content.Context;
+import android.os.IBinder;
 import android.util.Log;
+import android.widget.TextView;
 
 /**
- * Models a Window
+ * Models a the Window and PhoneWindow classes. Each {@link Activity} has at least one Window. Each Dialog has
+ * it's own window as well, so if an Activity has one or more Dialogs, it will have more than one window. The
+ * window stores the view hierarchy and allows this hierarchy to be traversed and changed dynamically.
  * 
  * @author "Heila van der Merwe"
  * 
  */
 public class Window extends ViewGroup {
-	private final static String TAG = "Window";
+  private final static String TAG = "Window";
 
-	/** Application context */
-	Context mContext; // The Activity's context to which this window belong
+  // used to store name of the/ activity dialog to which this window belongs
+  String name = "";
 
-	/** Used to inflate layout */
-	private static LayoutInflater mLayoutInflater; // must be the same for the
-													// entire application
-													// context
+  // From Android
+  TextView mTitleView;
 
-	/**
-	 * For now this is the root of the ViewTree (it is suppose to be the
-	 * DecorView but we are not using DecorView yet)
-	 */
-	private ViewGroup mContentParent;
+  private static WindowManager mWindowManager;
 
-	/**Maps the id of the layout to the inflated view hierarchy */
-	static private HashMap<Integer, View> layoutMap = new HashMap<Integer, View>(); 
-																					
-	public Window(Context context) {
-		super(context);
-		Log.i(TAG, "Creating new Window");
-		
-		super.mID = 0; // temp solution the Window must not be a view If you
-						// look at view hierarchy the frame view is the base
-		mContext = context;
-		
-		if (mLayoutInflater == null) {
-			Log.i(TAG, "Creating new LayouInflator");
-			mLayoutInflater = new LayoutInflater(mContext);
-			init();
-		}
-	}
+  /** Activity's context */
+  Context mContext; // The Activity's context to which this window belongs
 
-	/**
-	 * inflates the layouts
-	 */
-	private void init() {
-		init0(); // build component map
-		// build layout map and + component map
-		int[] layouts = getLayouts();
-		for (int i = 0; i < layouts.length; i++) {
-			layoutMap
-					.put(layouts[i], mLayoutInflater.inflate(layouts[i], null));
-		}
+  /** Used to inflate layout */
+  private static LayoutInflater mLayoutInflater;
+  /**
+   * For now this is the root of the ViewTree (it is suppose to be the DecorView but we are not using
+   * DecorView yet)
+   */
+  private ViewGroup mContentParent;
 
-	}
+  public Window(Context context) {
+    super(context);
+    Log.i(TAG, "Creating new Window for " + name);
+    super.mID = 0; // temp solution the Window must not be a view If you
+    // look at view hierarchy the frame view is the base
+    mContext = context;
 
-	/**
-	 * Returns a list of the int id's of the layout resources
-	 * 
-	 * @return
-	 */
-	static native int[] getLayouts();
+    Log.i(TAG, "Creating new LayouInflator");
+    mLayoutInflater = new LayoutInflater(mContext);
+  }
 
-	/**
-	 * Return the Context this window policy is running in, for retrieving
-	 * resources and other information.
-	 * 
-	 * @return Context The Context that was supplied to the constructor.
-	 */
-	public final Context getContext() {
-		return mContext;
-	}
+  /**
+   * Return the Context this window policy is running in, for retrieving resources and other information.
+   * 
+   * @return Context The Context that was supplied to the constructor.
+   */
+  public final Context getContext() {
+    return mContext;
+  }
 
-	public View findViewById(int id) {
-		return mContentParent.findViewById(id);
-	}
+  public View findViewById(int id) {
+    return mContentParent.findViewById(id);
+  }
 
-	/**
-	 * Sets the parent view of this Window
-	 * @param v
-	 */
-	public void setContentView(int layoutResID) {
-		View layout = layoutMap.get(layoutResID); // inflate
-		layout.mParent = null;
-		mContentParent = (ViewGroup) layout;
-		addView(mContentParent);
-		// final Callback cb = getCallback();
-		// //if (cb != null && !isDestroyed()) {
-		// cb.onContentChanged();
-		// }
-		setVisible0("title", true); //TODO add the actual title
-	}
+  protected View findViewByName(String name) {
+    return mContentParent.findViewByName(name);
+  }
 
+  /**
+   * Sets the parent view of this Window
+   * 
+   * @param v
+   */
+  public void setContentView(int layoutResID) {
+    View layout = mLayoutInflater.inflate(layoutResID, null); // inflate
+    layout.mParent = null;
+    setContentView(layout);
+    // final Callback cb = getCallback();
+    // //if (cb != null && !isDestroyed()) {
+    // cb.onContentChanged();
+    // }
+  }
 
-	public void setContentView(View v) {
-		mContentParent = (ViewGroup) v;
-		addView(v);
-		setVisible0("title", true);
-	}
+  public void setContentView(View v) {
+    mContentParent = (ViewGroup) v;
+    addView(v);
+  }
 
-	native void setVisible0(String title, boolean isVisible);
+  public void setVisible() {
+    WindowManager.setWindow(this);
+  }
 
-	native void setTitle0(String oldTitle, String newTitle);
+  private native void setVisible0();
 
-	native void dispose0(String title);
+  public void setWindowManager(WindowManager wm, IBinder appToken, String appName, boolean hardwareAccelerated) {
+    if (wm == null) {
+      wm = new WindowManager();
+    }
+    name = appName;
+    mWindowManager = wm;
+  }
 
-	native static void init0();
+  /**
+   * Return the window manager allowing this Window to display its own windows.
+   * 
+   * @return WindowManager The ViewManager.
+   */
+  public static WindowManager getWindowManager() {
+    return mWindowManager;
+  }
+
+  void handleViewAction(String name, String action) {
+    Log.i(TAG, "Invoking " + action + " on view " + name);
+    // find the view object
+    View view = findViewByName(name.substring(1));
+    if (view == null) {
+      Log.e(TAG, "No view with name " + name + " exists for window " + this.name);
+    } else {
+      // invoke the action on this view object
+      try {
+        Class<? extends View> viewClass = (Class<? extends View>) view.getClass(); // get the class
+        Method m = viewClass.getMethod(action, new Class[] {});
+        m.invoke(view, (Object[]) null);
+
+      } catch (NoSuchMethodException e) {
+        Log.e(TAG, "View " + name + "has no method " + action);
+      } catch (Exception e) {
+        Log.e(TAG, "Could not execute action " + action + " on " + name + " for window " + this.name, e);
+
+      }
+    }
+  }
 
 }

@@ -42,8 +42,9 @@ public class JPF_android_view_LayoutInflater {
   public static int setup(MJIEnv env, int objref, int fileref) {
     Config conf = env.getConfig();
     String lPath = conf.getString("path") + "/res/layout/"; // TODO if specified in
-    String filename = JPF_android_view_Window.getLayoutName(fileref);
 
+    String filename = JPF_android_view_WindowManager.getLayoutName(fileref);
+    log.fine("Inflating file " + filename);
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       InputStream is = new FileInputStream(lPath + filename + ".xml");
@@ -81,9 +82,10 @@ public class JPF_android_view_LayoutInflater {
 
   public static boolean nextElement(MJIEnv env, int objref) {
     currentNode = nodes.poll();
-    log.fine("Current element is:" + currentNode.getNodeName());
-    if (currentNode == null)
+    if (currentNode == null) {
       return false;
+    }
+    log.fine("Current element is:" + currentNode.getNodeName());
     return true;
   }
 
@@ -117,7 +119,7 @@ public class JPF_android_view_LayoutInflater {
     int id = -1;
     String name = "$" + env.getStringObject(nameref);
     log.fine("Getting Id of name: " + name);
-    id = JPF_android_view_Window.getID(name);
+    id = JPF_android_view_WindowManager.getID(name);
     if (id == -1) {
       return count;
     } else

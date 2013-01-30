@@ -36,9 +36,9 @@ public class ViewGroup extends View {
 
     final View[] where = mChildren;
     final int len = mChildrenCount;
-
+    View v = null;
     for (int i = 0; i < len; i++) {
-      View v = where[i];
+      v = where[i];
 
       // if ((v.mPrivateFlags & IS_ROOT_NAMESPACE) == 0) {
       v = v.findViewById(id);
@@ -175,24 +175,25 @@ public class ViewGroup extends View {
     return mChildren[index];
   }
 
-  public ViewGroup findViewGroupByName(String name) {
+  @Override
+  public View findViewTraversal(String name) {
     if (name == this.name) {
       return this;
     }
 
     final View[] where = mChildren;
     final int len = mChildrenCount;
-
+    View v = null;
     for (int i = 0; i < len; i++) {
-      View v = where[i];
-      if (v instanceof ViewGroup)
-        v = ((ViewGroup) v).findViewGroupByName(name);
+      v = where[i];
+      v = v.findViewByName(name);
 
       if (v != null) {
-        return (ViewGroup) v;
+        return v;
       }
     }
 
     return null;
   }
+
 }
