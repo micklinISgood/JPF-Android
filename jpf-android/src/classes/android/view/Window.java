@@ -24,6 +24,7 @@ public class Window extends ViewGroup {
 
   // From Android
   TextView mTitleView;
+  String mTitle;
 
   private static WindowManager mWindowManager;
 
@@ -58,6 +59,10 @@ public class Window extends ViewGroup {
     return mContext;
   }
 
+  public View getContentView() {
+    return mContentParent;
+  }
+
   public View findViewById(int id) {
     return mContentParent.findViewById(id);
   }
@@ -90,6 +95,10 @@ public class Window extends ViewGroup {
     WindowManager.setWindow(this);
   }
 
+  public void setTitle(CharSequence title) {
+    mTitle = title.toString();
+  }
+
   private native void setVisible0();
 
   public void setWindowManager(WindowManager wm, IBinder appToken, String appName, boolean hardwareAccelerated) {
@@ -110,6 +119,7 @@ public class Window extends ViewGroup {
   }
 
   void handleViewAction(String name, String action) {
+
     Log.i(TAG, "Invoking " + action + " on view " + name);
     // find the view object
     View view = findViewByName(name.substring(1));
@@ -129,6 +139,15 @@ public class Window extends ViewGroup {
 
       }
     }
+  }
+
+  public LayoutInflater getLayoutInflater() {
+    return mLayoutInflater;
+  }
+
+  @Override
+  public String toString() {
+    return "Window [name=" + name + ", mTitleView=" + mTitleView + ", mTitle=" + mTitle + "]";
   }
 
 }

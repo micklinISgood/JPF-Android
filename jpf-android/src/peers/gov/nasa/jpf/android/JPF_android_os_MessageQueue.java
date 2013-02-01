@@ -73,8 +73,8 @@ public class JPF_android_os_MessageQueue {
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
       String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
       UIAction action = scriptEnv.getNext("processScriptAction", currentActivity, env);
-
       if (action != null) {
+        System.out.println("[ACTION] " + action.action + " " + action.target);
         runAction(env, action);
         return true;
       }

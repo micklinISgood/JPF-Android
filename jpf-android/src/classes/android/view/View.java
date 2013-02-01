@@ -261,17 +261,17 @@ public class View {
    * @see #onSaveInstanceState()
    */
   protected void dispatchSaveInstanceState(SparseArray<Parcelable> container) {
-    if (mID != NO_ID ) {
-      Parcelable state = onSaveInstanceState();
-      if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
-        throw new IllegalStateException("Derived class did not call super.onSaveInstanceState()");
-      }
-      if (state != null) {
-        // Log.i("View", "Freezing #" + Integer.toHexString(mID)
-        // + ": " + state);
-        container.put(mID, state);
-      }
-    }
+    // if (mID != NO_ID ) {
+    // Parcelable state = onSaveInstanceState();
+    // if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
+    // throw new IllegalStateException("Derived class did not call super.onSaveInstanceState()");
+    // }
+    // if (state != null) {
+    // // Log.i("View", "Freezing #" + Integer.toHexString(mID)
+    // // + ": " + state);
+    // container.put(mID, state);
+    // }
+    // }
   }
 
   /**
@@ -292,8 +292,9 @@ public class View {
    * @see #setSaveEnabled(boolean)
    */
   protected Parcelable onSaveInstanceState() {
-    mPrivateFlags |= SAVE_STATE_CALLED;
-    return BaseSavedState.EMPTY_STATE;
+//    mPrivateFlags |= SAVE_STATE_CALLED;
+//    return BaseSavedState.EMPTY_STATE;
+    return null;
   }
 
   /**
@@ -323,18 +324,18 @@ public class View {
    * @see #onRestoreInstanceState(android.os.Parcelable)
    */
   protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
-    if (mID != NO_ID) {
-      Parcelable state = container.get(mID);
-      if (state != null) {
-        // Log.i("View", "Restoreing #" + Integer.toHexString(mID)
-        // + ": " + state);
-        mPrivateFlags &= ~SAVE_STATE_CALLED;
-        onRestoreInstanceState(state);
-        if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
-          throw new IllegalStateException("Derived class did not call super.onRestoreInstanceState()");
-        }
-      }
-    }
+//    if (mID != NO_ID) {
+//      Parcelable state = container.get(mID);
+//      if (state != null) {
+//        // Log.i("View", "Restoreing #" + Integer.toHexString(mID)
+//        // + ": " + state);
+//        mPrivateFlags &= ~SAVE_STATE_CALLED;
+//        onRestoreInstanceState(state);
+//        if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
+//          throw new IllegalStateException("Derived class did not call super.onRestoreInstanceState()");
+//        }
+//      }
+//    }
   }
 
   /**
@@ -349,14 +350,14 @@ public class View {
    * @see #dispatchRestoreInstanceState(android.util.SparseArray)
    */
   protected void onRestoreInstanceState(Parcelable state) {
-    mPrivateFlags |= SAVE_STATE_CALLED;
-    if (state != BaseSavedState.EMPTY_STATE && state != null) {
-      throw new IllegalArgumentException("Wrong state class, expecting View State but " + "received "
-          + state.getClass().toString() + " instead. This usually happens "
-          + "when two views of different type have the same id in the same hierarchy. "
-          + "This view's id is " + ViewDebug.resolveId(mContext, getId()) + ". Make sure "
-          + "other views do not use the same id.");
-    }
+//    mPrivateFlags |= SAVE_STATE_CALLED;
+//    if (state != BaseSavedState.EMPTY_STATE && state != null) {
+//      throw new IllegalArgumentException("Wrong state class, expecting View State but " + "received "
+//          + state.getClass().toString() + " instead. This usually happens "
+//          + "when two views of different type have the same id in the same hierarchy. "
+//          + "This view's id is " + ViewDebug.resolveId(mContext, getId()) + ". Make sure "
+//          + "other views do not use the same id.");
+//    }
   }
 
   /**
@@ -512,7 +513,7 @@ public class View {
 
   
   public int getVisibility() {
-    return mViewFlags & VISIBILITY_MASK;
+    return 0;//TODO mViewFlags & VISIBILITY_MASK;
 }
 
 /**
@@ -523,7 +524,7 @@ public class View {
  */
 @RemotableViewMethod
 public void setVisibility(int visibility) {
-    setFlags(visibility, VISIBILITY_MASK);
+   //TODO setFlags(visibility, VISIBILITY_MASK);
 }
   
   /**

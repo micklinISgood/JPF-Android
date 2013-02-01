@@ -165,23 +165,23 @@ public abstract class CompoundButton extends Button implements Checkable {
 
   }
 
-  static class SavedState extends BaseSavedState {
+  static class SavedState {
     boolean checked;
 
-    /**
-     * Constructor called from {@link CompoundButton#onSaveInstanceState()}
-     */
-    SavedState(Parcelable superState) {
-      super(superState);
-    }
-
-    /**
-     * Constructor called from {@link #CREATOR}
-     */
-    private SavedState(Parcel in) {
-      super(in);
-      checked = (Boolean) in.readValue(null);
-    }
+//    /**
+//     * Constructor called from {@link CompoundButton#onSaveInstanceState()}
+//     */
+//    SavedState(Parcelable superState) {
+//      super(superState);
+//    }
+//
+//    /**
+//     * Constructor called from {@link #CREATOR}
+//     */
+//    private SavedState(Parcel in) {
+//      super(in);
+//      checked = (Boolean) in.readValue(null);
+//    }
 
     // @Override
     // public void writeToParcel(Parcel out, int flags) {

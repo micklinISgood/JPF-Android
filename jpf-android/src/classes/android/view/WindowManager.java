@@ -8,6 +8,7 @@ public class WindowManager {
   public native static void init0();
 
   public static void setWindow(Window window) {
+    System.out.println("Changing from Window " + currentWindow + " to  " + window);
     currentWindow = window;
   }
 

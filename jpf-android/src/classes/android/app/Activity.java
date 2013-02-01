@@ -196,7 +196,7 @@ public class Activity extends ContextThemeWrapper {
         if (md.mDialog != null) {
           mManagedDialogs.put(dialogId, md);
           onPrepareDialog(dialogId, md.mDialog, md.mArgs);
-          md.mDialog.onRestoreInstanceState(dialogState);
+         //TODO md.mDialog.onRestoreInstanceState(dialogState);
         }
       }
     }
@@ -799,7 +799,7 @@ public class Activity extends ContextThemeWrapper {
       final int key = mManagedDialogs.keyAt(i);
       ids[i] = key;
       final ManagedDialog md = mManagedDialogs.valueAt(i);
-      dialogState.putBundle(savedDialogKeyFor(key), md.mDialog.onSaveInstanceState());
+     //TODO dialogState.putBundle(savedDialogKeyFor(key), md.mDialog.onSaveInstanceState());
       if (md.mArgs != null) {
         dialogState.putBundle(savedDialogArgsKeyFor(key), md.mArgs);
       }
