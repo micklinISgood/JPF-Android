@@ -74,7 +74,7 @@ class ContextImpl extends Context {
 
   final void init(LoadedApk packageInfo, IBinder activityToken, ActivityThread mainThread,
                   Resources container, String basePackageName) {
-    // mPackageInfo = packageInfo;
+    mPackageInfo = packageInfo;
     // mBasePackageName = basePackageName != null ? basePackageName : packageInfo.mPackageName;
     // mResources = mPackageInfo.getResources(mainThread);
 
@@ -154,8 +154,10 @@ class ContextImpl extends Context {
 
   @Override
   public String getPackageName() {
-    // TODO Auto-generated method stub
-    return null;
+    if (mPackageInfo != null) {
+      return mPackageInfo.getPackageName();
+    }
+    throw new RuntimeException("Not supported in system context");
   }
 
   @Override
@@ -473,60 +475,81 @@ class ContextImpl extends Context {
 
   @Override
   public ComponentName startService(Intent service) {
-   // this.mMainThread.mAppThread.performStartService(service.getComponent(), service);
-    return null;
+    try {
+      service.setAllowFds(false);
+      ComponentName cn = ActivityManagerNative.getDefault().startService(mMainThread.getApplicationThread(),
+          service, service.resolveTypeIfNeeded(getContentResolver()));
+      if (cn != null && cn.getPackageName().equals("!")) {
+        throw new SecurityException("Not allowed to start service " + service + " without permission "
+            + cn.getClassName());
+      }
+      return cn;
+    } catch (RemoteException e) {
+      return null;
+    }
   }
 
   @Override
   public boolean stopService(Intent service) {
-    this.mMainThread.mAppThread.scheduleStopService(service);
-    return true;
+    try {
+      service.setAllowFds(false);
+      int res = ActivityManagerNative.getDefault().stopService(mMainThread.getApplicationThread(), service,
+          service.resolveTypeIfNeeded(getContentResolver()));
+      if (res < 0) {
+        throw new SecurityException("Not allowed to stop service " + service);
+      }
+      return res != 0;
+    } catch (RemoteException e) {
+      return false;
+    }
 
+  }
+
+  final IBinder getActivityToken() {
+    return null;// TODO mActivityToken;
   }
 
   @Override
   public boolean bindService(Intent service, ServiceConnection conn, int flags) {
-    // IServiceConnection sd;
+    ServiceConnection sd;
     // if (mPackageInfo != null) {
-    // sd = mPackageInfo.getServiceDispatcher(conn, getOuterContext(), mMainThread.getHandler(), flags);
+    // sd = mPackageInfo.getServiceDisPapatcher(conn, getOuterContext(), mMainThread.getHandler(), flags);
     // } else {
     // throw new RuntimeException("Not supported in system context");
     // }
-    // try {
-    // IBinder token = getActivityToken();
-    // if (token == null
-    // && (flags & BIND_AUTO_CREATE) == 0
-    // && mPackageInfo != null
-    // && mPackageInfo.getApplicationInfo().targetSdkVersion <
-    // android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-    // flags |= BIND_WAIVE_PRIORITY;
-    // }
-    // service.setAllowFds(false);
-    // int res = ActivityManagerNative.getDefault().bindService(mMainThread.getApplicationThread(),
-    // getActivityToken(), service, service.resolveTypeIfNeeded(getContentResolver()), sd, flags);
-    // if (res < 0) {
-    // throw new SecurityException("Not allowed to bind to service " + service);
-    // }
-    // return res != 0;
-    // } catch (RemoteException e) {
-    // return false;
-    // }
-
-    return true;
+    try {
+      IBinder token = getActivityToken();
+      // if (token == null
+      // && (flags & BIND_AUTO_CREATE) == 0
+      // && mPackageInfo != null
+      // && mPackageInfo.getApplicationInfo().targetSdkVersion <
+      // android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+      // flags |= BIND_WAIVE_PRIORITY;
+      // }
+      service.setAllowFds(false);
+      int res = ActivityManagerNative.getDefault().bindService(mMainThread.getApplicationThread(),
+          getActivityToken(), service, service.resolveTypeIfNeeded(getContentResolver()), conn, flags);
+      if (res < 0) {
+        throw new SecurityException("Not allowed to bind to service " + service);
+      }
+      return res != 0;
+    } catch (RemoteException e) {
+      return false;
+    }
   }
 
   @Override
   public void unbindService(ServiceConnection conn) {
-    // if (mPackageInfo != null) {
-    // IServiceConnection sd = mPackageInfo.forgetServiceDispatcher(getOuterContext(), conn);
-    // try {
-    // ActivityManagerNative.getDefault().unbindService(sd);
-    // } catch (RemoteException e) {
-    // }
-    // } else {
-    // throw new RuntimeException("Not supported in system context");
-    // }
-
+    if (mPackageInfo != null) {
+      // IServiceConnection sd = mPackageInfo.forgetServiceDispatcher(
+      // getOuterContext(), conn);
+      try {
+        ActivityManagerNative.getDefault().unbindService(conn);
+      } catch (RemoteException e) {
+      }
+    } else {
+      throw new RuntimeException("Not supported in system context");
+    }
   }
 
   @Override
@@ -627,6 +650,11 @@ class ContextImpl extends Context {
   public Context createPackageContext(String packageName, int flags) throws NameNotFoundException {
     // TODO
     return null;
+  }
+
+  public void scheduleFinalCleanup(String who, String string) {
+    // TODO Auto-generated method stub
+
   }
 
 }

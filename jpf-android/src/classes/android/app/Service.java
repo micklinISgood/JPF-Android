@@ -20,17 +20,18 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
 import android.content.ComponentCallbacks2;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
 public abstract class Service extends ContextWrapper implements ComponentCallbacks2 {
   private static final String TAG = "Service";
   private static int uniqueID = 0;
-
 
   public Service() {
     super(null);
@@ -45,7 +46,6 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * Called by the system when the service is first created. Do not call this method directly.
    */
   public void onCreate() {
-	  System.out.println("testingONCreate");
   }
 
   /**
@@ -174,7 +174,7 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    */
   public int onStartCommand(Intent intent, int flags, int startId) {
     onStart(intent, startId);
-    return START_STICKY; // TODO
+    return START_STICKY; // Assume is compatible
   }
 
   /**
@@ -184,7 +184,6 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * directly.
    */
   public void onDestroy() {
-	  System.out.println("testingONDestroy");
   }
 
   public void onConfigurationChanged(Configuration newConfig) {
@@ -205,100 +204,7 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * <em>Note that unlike other application components, calls on to the
    * IBinder interface returned here may not happen on the main thread
    * of the process</em>.  More information about the main thread can be found in
-     * <a href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
-   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
-   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
-   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * <a href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
    * information about the main thread can be found in <a href="{@docRoot}. More information about the main
    * thread can be found in <a href="{@docRoot}
    * guide/topics/fundamentals/processes-and-threads.html">Processes and Threads</a>.
@@ -370,10 +276,13 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * @see #stopSelfResult
    */
   public final void stopSelf(int startId) {
-    // try {
-    // mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
-    // } catch (RemoteException ex) {
-    // }
+    if (mActivityManager == null) {
+      return;
+    }
+    try {
+      mActivityManager.stopServiceToken(new ComponentName(this, mClassName), mToken, startId);
+    } catch (RemoteException ex) {
+    }
   }
 
   /**
@@ -489,27 +398,31 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
 
   // ------------------ Internal API ------------------
 
-  /**
-   * @hide
-   */
-  public final void attach( String className, ActivityThread thread) {
-    // attachBaseContext(context);
+  public final void attach(Context context, ActivityThread thread, String className, IBinder token,
+                           Application application, Object activityManager) {
+    attachBaseContext(context);
     mThread = thread; // NOTE: unused - remove?
     mClassName = className;
-   // mApplication = application;
+    mToken = token;
+    mApplication = application;
+    mActivityManager = (IActivityManager) activityManager;
+    // mStartCompatibility = getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.ECLAIR;
     uniqueID++;
   }
 
   final String getClassName() {
     return mClassName;
   }
-  
-  public int getId(){
-	  return uniqueID;
+
+  public int getId() {
+    return uniqueID;
   }
 
   // set by the thread after the constructor and before onCreate(Bundle icicle) is called.
   private ActivityThread mThread = null;
   private String mClassName = null;
+  private IBinder mToken = null;
   private Application mApplication = null;
+  private IActivityManager mActivityManager = null;
+  private boolean mStartCompatibility = false;
 }

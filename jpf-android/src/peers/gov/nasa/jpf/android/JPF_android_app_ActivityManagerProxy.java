@@ -33,6 +33,12 @@ public class JPF_android_app_ActivityManagerProxy {
 
   /** Stores details of Intent objects variables used in the scripting file */
   private static HashMap<String, IntentEntry> intentMap = new HashMap<String, IntentEntry>();
+  
+  
+  private static void init(){
+    //parse Android.xml
+    
+  }
 
   /**
    * Retrieves the reference to an intent in the intentMap using its name specified by action.target. If no

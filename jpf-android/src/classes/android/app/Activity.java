@@ -6,6 +6,7 @@ import java.util.HashMap;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -58,7 +59,7 @@ public class Activity extends ContextThemeWrapper {
   private Application mApplication; // Main application context
 
   Intent mIntent; // Reference to the intent that started this Activity
-  private String mComponent; // TODO
+  private ComponentName mComponent;
   /* package */ActivityInfo mActivityInfo; // Contains info of this activity from AndroidManifest.xml
   /* package */ActivityThread mMainThread; // The main thread of this application
   Activity mParent; // Used by ActivityGroups, stores this Activity's parent Activity
@@ -196,7 +197,7 @@ public class Activity extends ContextThemeWrapper {
         if (md.mDialog != null) {
           mManagedDialogs.put(dialogId, md);
           onPrepareDialog(dialogId, md.mDialog, md.mArgs);
-         //TODO md.mDialog.onRestoreInstanceState(dialogState);
+          // TODO md.mDialog.onRestoreInstanceState(dialogState);
         }
       }
     }
@@ -799,7 +800,7 @@ public class Activity extends ContextThemeWrapper {
       final int key = mManagedDialogs.keyAt(i);
       ids[i] = key;
       final ManagedDialog md = mManagedDialogs.valueAt(i);
-     //TODO dialogState.putBundle(savedDialogKeyFor(key), md.mDialog.onSaveInstanceState());
+      // TODO dialogState.putBundle(savedDialogKeyFor(key), md.mDialog.onSaveInstanceState());
       if (md.mArgs != null) {
         dialogState.putBundle(savedDialogArgsKeyFor(key), md.mArgs);
       }

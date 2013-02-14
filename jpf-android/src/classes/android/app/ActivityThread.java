@@ -1,19 +1,23 @@
 package android.app;
 
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.ServiceInfo;
+import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 import android.util.LogPrinter;
+import android.util.Slog;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -38,6 +42,7 @@ final class RemoteServiceException extends android.util.AndroidRuntimeException 
 public final class ActivityThread {
   public static final String TAG = "ActivityThread";
   public static boolean DEBUG = true;
+  static final boolean localLOGV = true;
 
   final Looper mLooper = Looper.myLooper();
   final H mH = new H();
@@ -47,8 +52,7 @@ public final class ActivityThread {
   // stores the current running Activity
   ActivityClientRecord currentActivity;
 
-  final HashMap<Integer, Service> mServices = new HashMap<Integer, Service>();
-
+  final HashMap<IBinder, Service> mServices = new HashMap<IBinder, Service>();
   final ApplicationThread mAppThread = new ApplicationThread();
   Configuration mConfiguration;
   static final ThreadLocal<ActivityThread> sThreadLocal = new ThreadLocal<ActivityThread>();
@@ -104,41 +108,46 @@ public final class ActivityThread {
       queueOrSendMessage(H.RELAUNCH_ACTIVITY, null, 0, 0);
     }
 
-//    public final void scheduleCreateService(CreateServiceData csd) {
-//
-//      queueOrSendMessage(H.CREATE_SERVICE, csd, 0, 0);
-//    }
+    public final void scheduleCreateService(IBinder token, ServiceInfo info, CompatibilityInfo compatInfo) {
+      CreateServiceData s = new CreateServiceData();
+      s.token = token;
+      s.info = info;
+      s.compatInfo = compatInfo;
 
-    // public final void scheduleBindService(IBinder token, Intent intent,
-    // boolean rebind) {
-    // BindServiceData s = new BindServiceData();
-    // s.token = token;
-    // s.intent = intent;
-    // s.rebind = rebind;
-    //
-    // queueOrSendMessage(H.BIND_SERVICE, s);
-    // }
-    //
-    // public final void scheduleUnbindService(IBinder token, Intent intent)
-    // {
-    // BindServiceData s = new BindServiceData();
-    // s.token = token;
-    // s.intent = intent;
-    //
-    // queueOrSendMessage(H.UNBIND_SERVICE, s);
-    // }
-
-    public final void scheduleStopService(Intent intent) {
-      for (Entry<Integer, Service> s : mServices.entrySet()) {
-        if (s.getValue().getClassName().equals(intent.getComponent())) {
-          queueOrSendMessage(H.STOP_SERVICE, null, s.getKey(), 0);
-        }
-      }
-
+      queueOrSendMessage(H.CREATE_SERVICE, s);
     }
 
-    private void scheduleServiceArgs(int id, Intent intent) {
-      queueOrSendMessage(H.SERVICE_ARGS, intent, id, 0);
+    public final void scheduleBindService(IBinder token, Intent intent, boolean rebind) {
+      BindServiceData s = new BindServiceData();
+      s.token = token;
+      s.intent = intent;
+      s.rebind = rebind;
+
+      queueOrSendMessage(H.BIND_SERVICE, s);
+    }
+
+    public final void scheduleUnbindService(IBinder token, Intent intent) {
+      BindServiceData s = new BindServiceData();
+      s.token = token;
+      s.intent = intent;
+
+      queueOrSendMessage(H.UNBIND_SERVICE, s);
+    }
+
+    public final void scheduleServiceArgs(IBinder token, boolean taskRemoved, int startId, int flags,
+                                          Intent args) {
+      ServiceArgsData s = new ServiceArgsData();
+      s.token = token;
+      s.taskRemoved = taskRemoved;
+      s.startId = startId;
+      s.flags = flags;
+      s.args = args;
+
+      queueOrSendMessage(H.SERVICE_ARGS, s);
+    }
+
+    public final void scheduleStopService(IBinder token) {
+      queueOrSendMessage(H.STOP_SERVICE, token);
     }
 
     // ///////////////////////////
@@ -210,33 +219,44 @@ public final class ActivityThread {
         scheduleDestroyActivity(current.ident, true);
       }
 
-    }
+      // stop all binds to services
 
-//    public void performStartService(String serviceName, Intent intent) {
-//      Service serv = null;
-//      for (Entry<Integer, Service> s : mServices.entrySet()) {
-//        if (s.getValue().getClassName().equals(serviceName)) {
-//          serv = s.getValue();
-//        }
-//      }
-//
-//      if (serv == null) {
-//        CreateServiceData csd = new CreateServiceData();
-//        csd.info = serviceName;
-//        csd.intent = intent;
-//        scheduleCreateService(csd);
-//      } else {
-//        scheduleServiceArgs(serv.getId(), intent);
-//      }
-//    }
+    }
 
   }
 
   static final class CreateServiceData {
-    int token;
-    String info;
-    // CompatibilityInfo compatInfo;
+    IBinder token;
+    ServiceInfo info;
+    CompatibilityInfo compatInfo;
     Intent intent;
+
+    public String toString() {
+      return "CreateServiceData{token=" + token + " className=" + info.name + " packageName="
+          + info.packageName + " intent=" + intent + "}";
+    }
+  }
+
+  static final class BindServiceData {
+    IBinder token;
+    Intent intent;
+    boolean rebind;
+
+    public String toString() {
+      return "BindServiceData{token=" + token + " intent=" + intent + "}";
+    }
+  }
+
+  static final class ServiceArgsData {
+    IBinder token;
+    boolean taskRemoved;
+    int startId;
+    int flags;
+    Intent args;
+
+    public String toString() {
+      return "ServiceArgsData{token=" + token + " startId=" + startId + " args=" + args + "}";
+    }
   }
 
   static final class ActivityClientRecord {
@@ -254,7 +274,6 @@ public final class ActivityThread {
     boolean stopped;
     String name;
     boolean hideForNow;
-
     // Configuration newConfig;
     // Configuration createdConfig;
     // ActivityClientRecord nextIdle;
@@ -298,6 +317,16 @@ public final class ActivityThread {
     }
   }
 
+  // if the thread hasn't started yet, we don't have the handler, so just
+  // save the messages until we're ready.
+  private void queueOrSendMessage(int what, Object obj) {
+    queueOrSendMessage(what, obj, 0, 0);
+  }
+
+  private void queueOrSendMessage(int what, Object obj, int arg1) {
+    queueOrSendMessage(what, obj, arg1, 0);
+  }
+
   private void queueOrSendMessage(int what, Object obj, int arg1, int arg2) {
     synchronized (this) {
       Message msg = new Message();
@@ -325,6 +354,8 @@ public final class ActivityThread {
     public static final int CREATE_SERVICE = 114;
     public static final int SERVICE_ARGS = 115;
     public static final int STOP_SERVICE = 116;
+    public static final int BIND_SERVICE = 121;
+    public static final int UNBIND_SERVICE = 122;
     public static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
     public static final int RELAUNCH_ACTIVITY = 126;
 
@@ -366,19 +397,24 @@ public final class ActivityThread {
       case SEND_RESULT:
         handleSendResult((ResultInfo) msg.obj);
         break;
-      case DESTROY_ACTIVITY: {
+      case DESTROY_ACTIVITY:
         handleDestroyActivity(msg.arg1, msg.arg1 != 0, msg.arg2, false);
-      }
       case CREATE_SERVICE:
-       // handleCreateService((CreateServiceData) msg.obj);
+        handleCreateService((CreateServiceData) msg.obj);
+        break;
+      case BIND_SERVICE:
+        handleBindService((BindServiceData) msg.obj);
+        break;
+      case UNBIND_SERVICE:
+        handleUnbindService((BindServiceData) msg.obj);
+        break;
+      case SERVICE_ARGS:
+        handleServiceArgs((ServiceArgsData) msg.obj);
         break;
       case STOP_SERVICE:
-        handleStopService(msg.arg1);
+        handleStopService((IBinder) msg.obj);
+        // maybeSnapshot();
         break;
-
-      case SERVICE_ARGS:
-        handleServiceArgs(msg.arg1, (Intent) msg.obj);
-
       }
 
     }
@@ -388,83 +424,154 @@ public final class ActivityThread {
     return sThreadLocal.get();
   }
 
-  private void handleCreateService(CreateServiceData name) {
-    Service service = null;
-    System.out.println("testingONCreate handleCreateService");
+  private void handleCreateService(CreateServiceData data) {
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
+    unscheduleGcIdler();
 
+    LoadedApk packageInfo = getPackageInfoNoCheck(data.info.applicationInfo, data.compatInfo);
+    Service service = null;
     try {
-      Class<Service> cls = (Class<Service>) Class.forName(name.info);
-      service = cls.newInstance();
+      java.lang.ClassLoader cl = packageInfo.getClassLoader();
+      service = (Service) cl.loadClass(data.info.name).newInstance();
     } catch (Exception e) {
-      throw new RuntimeException("Unable to instantiate service " + ": " + e.toString(), e);
+      if (!mInstrumentation.onException(service, e)) {
+        throw new RuntimeException("Unable to instantiate service " + data.info.name + ": " + e.toString(), e);
+      }
     }
 
-    service.attach(name.info, ActivityThread.this);
-    service.onCreate();
-    mServices.put(service.getId(), service);
-    handleServiceArgs(service.getId(), name.intent);
+    try {
+      if (localLOGV)
+        Slog.v(TAG, "Creating service " + data.info.name);
 
+      ContextImpl context = new ContextImpl();
+      context.init(packageInfo, null, this);
+
+      Application app = packageInfo.makeApplication(false, mInstrumentation);
+      context.setOuterContext(service);
+      service.attach(context, this, data.info.name, data.token, app, ActivityManagerNative.getDefault());
+      service.onCreate();
+      mServices.put(data.token, service);
+      try {
+        ActivityManagerNative.getDefault().serviceDoneExecuting(data.token, 0, 0, 0);
+      } catch (RemoteException e) {
+        // nothing to do.
+      }
+    } catch (Exception e) {
+      if (!mInstrumentation.onException(service, e)) {
+        throw new RuntimeException("Unable to create service " + data.info.name + ": " + e.toString(), e);
+      }
+    }
   }
 
-  private void handleStopService(int token) {
+  private void handleBindService(BindServiceData data) {
+    Service s = mServices.get(data.token);
+    if (s != null) {
+      try {
+        data.intent.setExtrasClassLoader(s.getClassLoader());
+        try {
+          if (!data.rebind) {
+            IBinder binder = s.onBind(data.intent);
+            ActivityManagerNative.getDefault().publishService(data.token, data.intent, binder);
+          } else {
+            s.onRebind(data.intent);
+            ActivityManagerNative.getDefault().serviceDoneExecuting(data.token, 0, 0, 0);
+          }
+          ensureJitEnabled();
+        } catch (RemoteException ex) {
+        }
+      } catch (Exception e) {
+        if (!mInstrumentation.onException(s, e)) {
+          throw new RuntimeException("Unable to bind to service " + s + " with " + data.intent + ": "
+              + e.toString(), e);
+        }
+      }
+    }
+  }
+
+  private void handleServiceArgs(ServiceArgsData data) {
+    Service s = mServices.get(data.token);
+    if (s != null) {
+      try {
+        if (data.args != null) {
+          data.args.setExtrasClassLoader(s.getClassLoader());
+        }
+        int res;
+        if (!data.taskRemoved) {
+          res = s.onStartCommand(data.args, data.flags, data.startId);
+        } else {
+          s.onTaskRemoved(data.args);
+          res = Service.START_TASK_REMOVED_COMPLETE;
+        }
+
+        QueuedWork.waitToFinish();
+
+        try {
+          ActivityManagerNative.getDefault().serviceDoneExecuting(data.token, 1, data.startId, res);
+        } catch (RemoteException e) {
+          // nothing to do.
+        }
+        ensureJitEnabled();
+      } catch (Exception e) {
+        if (!mInstrumentation.onException(s, e)) {
+          throw new RuntimeException("Unable to start service " + s + " with " + data.args + ": "
+              + e.toString(), e);
+        }
+      }
+    }
+  }
+
+  private void handleStopService(IBinder token) {
     Service s = mServices.remove(token);
     if (s != null) {
-      s.onDestroy();
+      try {
+        if (localLOGV)
+          Slog.v(TAG, "Destroying service " + s);
+        s.onDestroy();
+        Context context = s.getBaseContext();
+        if (context instanceof ContextImpl) {
+          final String who = s.getClassName();
+          ((ContextImpl) context).scheduleFinalCleanup(who, "Service");
+        }
+
+        QueuedWork.waitToFinish();
+
+        try {
+          ActivityManagerNative.getDefault().serviceDoneExecuting(token, 0, 0, 0);
+        } catch (RemoteException e) {
+          // nothing to do.
+        }
+      } catch (Exception e) {
+        if (!mInstrumentation.onException(s, e)) {
+          throw new RuntimeException("Unable to stop service " + s + ": " + e.toString(), e);
+        }
+      }
     }
     // Slog.i(TAG, "Running services: " + mServices);
   }
 
-  private void handleServiceArgs(int data, Intent intent) {
-    Service s = mServices.get(data);
+  private void handleUnbindService(BindServiceData data) {
+    Service s = mServices.get(data.token);
     if (s != null) {
-      s.onStartCommand(intent, 0, 0);
-
+      try {
+        data.intent.setExtrasClassLoader(s.getClassLoader());
+        boolean doRebind = s.onUnbind(data.intent);
+        try {
+          if (doRebind) {
+            ActivityManagerNative.getDefault().unbindFinished(data.token, data.intent, doRebind);
+          } else {
+            ActivityManagerNative.getDefault().serviceDoneExecuting(data.token, 0, 0, 0);
+          }
+        } catch (RemoteException ex) {
+        }
+      } catch (Exception e) {
+        if (!mInstrumentation.onException(s, e)) {
+          throw new RuntimeException("Unable to unbind to service " + s + " with " + data.intent + ": "
+              + e.toString(), e);
+        }
+      }
     }
   }
-
-  // private void handleCreateService(CreateServiceData data) {
-  // // If we are getting ready to gc after going to the background, well
-  // // we are back active so skip it.
-  // // unscheduleGcIdler();
-  //
-  // LoadedApk packageInfo = getPackageInfoNoCheck(
-  // data.info.applicationInfo, data.compatInfo);
-  // Service service = null;
-  // try {
-  // Class<Service> cls = (Class<Service>) Class.forName(r.getName());
-  // activity = cls.newInstance();
-  // } catch (Exception e) {
-  // throw new RuntimeException("Unable to instantiate activity " + ": " +
-  // e.toString(), e);
-  // }
-  //
-  //
-  // try {
-  // if (localLOGV) Slog.v(TAG, "Creating service " + data.info.name);
-  //
-  // ContextImpl context = new ContextImpl();
-  // context.init(packageInfo, null, this);
-  //
-  // Application app = packageInfo.makeApplication(false, mInstrumentation);
-  // context.setOuterContext(service);
-  // service.attach(context, this, data.info.name, data.token, app,
-  // ActivityManagerNative.getDefault());
-  // service.onCreate();
-  // mServices.put(data.token, service);
-  // try {
-  // ActivityManagerNative.getDefault().serviceDoneExecuting(
-  // data.token, 0, 0, 0);
-  // } catch (RemoteException e) {
-  // // nothing to do.
-  // }
-  // } catch (Exception e) {
-  // if (!mInstrumentation.onException(service, e)) {
-  // throw new RuntimeException(
-  // "Unable to create service " + data.info.name
-  // + ": " + e.toString(), e);
-  // }
-  // }
-  // }
 
   private void handleSendResult(ResultInfo res) {
     ActivityClientRecord r = mActivities.get(currentActivity.parent.mIdent);
@@ -1006,7 +1113,7 @@ public final class ActivityThread {
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
 
     // Resolve Component
-    String component = r.intent.getComponent();
+    String component = r.intent.getComponent().getClassName();
     // if (component == null) {
     // component = r.intent.resolveActivity(
     // mInitialApplication.getPackageManager());
@@ -1210,6 +1317,30 @@ public final class ActivityThread {
     // }
 
     return state;
+  }
+
+  void unscheduleGcIdler() {
+    // if (mGcIdlerScheduled) {
+    // mGcIdlerScheduled = false;
+    // Looper.myQueue().removeIdleHandler(mGcIdler);
+    // }
+    // mH.removeMessages(H.GC_WHEN_IDLE);
+    // TODO STUB\
+  }
+
+  void ensureJitEnabled() {
+    // if (!mJitEnabled) {
+    // mJitEnabled = true;
+    // dalvik.system.VMRuntime.getRuntime().startJitCompilation();
+    // }
+    // TODO STUB
+  }
+
+  public final LoadedApk getPackageInfoNoCheck(ApplicationInfo aInfo, CompatibilityInfo compatInfo) {
+    // return getPackageInfo(ai, compatInfo, null, false, true);
+    // TODO STUB
+
+    return new LoadedApk(this, aInfo, compatInfo, this, null, false, true);
   }
 
   private void attach() {
