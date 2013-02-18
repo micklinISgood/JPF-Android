@@ -30,7 +30,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
-import android.content.IntentSender.SendIntentException;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -50,8 +49,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
-import android.util.AndroidRuntimeException;
-import android.util.Log;
 
 /**
  * Common implementation of Context API, which provides the base context object for Activity and other
@@ -92,7 +89,7 @@ class ContextImpl extends Context {
     mMainThread = mainThread;
     // mContentResolver = new ApplicationContentResolver(this, mainThread);
 
-    // setActivityToken(activityToken);
+    //TODO setActivityToken(activityToken);
   }
 
   final void setOuterContext(Context context) {

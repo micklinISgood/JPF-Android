@@ -16,18 +16,18 @@
 
 package android.app;
 
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
-
 import android.content.ComponentCallbacks2;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 
 public abstract class Service extends ContextWrapper implements ComponentCallbacks2 {
   private static final String TAG = "Service";
@@ -205,6 +205,15 @@ public abstract class Service extends ContextWrapper implements ComponentCallbac
    * IBinder interface returned here may not happen on the main thread
    * of the process</em>.  More information about the main thread can be found in
    * <a href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
+   * information about the main thread can be found in <a href="{@docRoot}. More information about the main
+   * thread can be found in <a href="{@docRoot}. More information about the main thread can be found in <a
+   * href="{@docRoot}. More information about the main thread can be found in <a href="{@docRoot}. More
    * information about the main thread can be found in <a href="{@docRoot}. More information about the main
    * thread can be found in <a href="{@docRoot}
    * guide/topics/fundamentals/processes-and-threads.html">Processes and Threads</a>.

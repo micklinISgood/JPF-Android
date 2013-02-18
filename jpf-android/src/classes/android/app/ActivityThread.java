@@ -57,6 +57,8 @@ public final class ActivityThread {
   Configuration mConfiguration;
   static final ThreadLocal<ActivityThread> sThreadLocal = new ThreadLocal<ActivityThread>();
   Application mInitialApplication;
+  
+  LoadedApk mPackage;
 
   Instrumentation mInstrumentation;
 
