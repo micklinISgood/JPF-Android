@@ -453,7 +453,7 @@ public class Activity extends ContextThemeWrapper {
     mEmbeddedID = id;
     mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
-    mWindow.setWindowManager(null, mToken, mComponent, true);
+    mWindow.setWindowManager(null, mToken, mComponent.flattenToString(), true);
     // (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
     // if (mParent != null) {
     // mWindow.setContainer(mParent.getWindow());

@@ -156,11 +156,11 @@ public final class ActivityThread {
     // //// perform methods //////
     // ///////////////////////////
 
-    private void performLaunchActivity(String activityname, Intent startingIntent, int requestCode) {
+    private void performLaunchActivity(Intent startingIntent, int requestCode) {
       ActivityClientRecord current = currentActivity;
       if (current != null)
         schedulePauseActivity(current.ident, false);
-      scheduleLaunchActivity(activityname, startingIntent, requestCode);
+      scheduleLaunchActivity(startingIntent.getComponent().flattenToShortString(), startingIntent, requestCode);
       if (current != null) {
         scheduleStopActivity(current.ident);
       }

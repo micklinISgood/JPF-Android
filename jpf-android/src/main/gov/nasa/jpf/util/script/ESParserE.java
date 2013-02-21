@@ -20,6 +20,7 @@
 package gov.nasa.jpf.util.script;
 
 import java.io.Reader;
+import java.io.StreamTokenizer;
 
 /**
  * generic parser for event scripts
@@ -39,6 +40,44 @@ public class ESParserE extends ESParser {
 
   final public static String K_GROUP = "GROUP";
 
+  @Override
+  public StreamTokenizer createScanner (Reader r) {
+    StreamTokenizer s = new StreamTokenizer(r);
+
+    // disable number parsing, since it doesn't work in the context of string expansion
+    // and we also would have to preserve the number type (int or double)
+    s.ordinaryChars('0','9');
+    s.wordChars('0','9');
+    //s.wordChars('"', '"');
+
+    // those are used to expand events
+    s.wordChars('[','[');
+    s.wordChars(']',']');
+    s.wordChars('|','|');
+    s.wordChars('-','-');
+    s.wordChars('<','<');
+    s.wordChars('>','>');
+
+    // those can be part of Event IDs
+    s.wordChars('_','_');
+    s.wordChars('#', '#');
+    s.wordChars('*','*');
+    s.wordChars('@','@');
+    s.wordChars('$','$');
+    s.wordChars(':',':');
+    s.wordChars('~','~');
+    s.wordChars('!', '!');
+
+    s.quoteChar('"');
+
+    s.slashSlashComments(true);
+    s.slashStarComments(true);
+
+//    s.whitespaceChars(',', ',');
+    s.whitespaceChars(';', ';');
+
+    return s;
+  }
   protected void alternative(ScriptElementContainer parent) throws Exception {
     // matchKeyword(K_ANY);
 

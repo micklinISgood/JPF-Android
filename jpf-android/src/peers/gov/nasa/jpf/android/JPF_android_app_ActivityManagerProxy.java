@@ -33,11 +33,10 @@ public class JPF_android_app_ActivityManagerProxy {
 
   /** Stores details of Intent objects variables used in the scripting file */
   private static HashMap<String, IntentEntry> intentMap = new HashMap<String, IntentEntry>();
-  
-  
-  private static void init(){
-    //parse Android.xml
-    
+
+  private static void init() {
+    // parse Android.xml
+
   }
 
   /**
@@ -147,8 +146,16 @@ public class JPF_android_app_ActivityManagerProxy {
     IntentEntry intent = intentMap.get(intentName);
 
     int intentRef = env.newObject("android.content.Intent");
+    int componentRef = env.newObject("android.content.ComponentName");
+    ElementInfo eiComp = env.getElementInfo(componentRef);
+    
+    int nameRef = env.newString(intent.getComponent());
+    int packageRef = env.newString(intent.get);
+    
+    eiComp.setReferenceField(fname, value);
+    eiComp.setReferenceField(fname, value);
+    
     ElementInfo ei = env.getElementInfo(intentRef);
-    int componentRef = env.newString(intent.getComponent());
     ei.setReferenceField("mComponent", componentRef);
     return intentRef;
 
@@ -212,14 +219,14 @@ public class JPF_android_app_ActivityManagerProxy {
    */
   private static void startActivityMethod(MJIEnv env, int clsRef, int intentRef, int requestCode) {
     // Lookup the name of the activity to launch
-    int activityNameRef = getActivity(env, intentRef);
-    String activityName = env.getStringObject(activityNameRef);
-    log.fine("Start activity " + activityName);
+    // int activityNameRef = getActivity(env, intentRef);
+    // String activityName = env.getStringObject(activityNameRef);
+    // log.fine("Start activity " + activityName);
 
     // schedule launch of activity
     int appRef = JPF_android_app_ActivityThread.getApplicationRef();
-    String methodName = "performLaunchActivity(Ljava/lang/String;Landroid/content/Intent;I)V";
-    int[] args = { activityNameRef, intentRef, requestCode };
+    String methodName = "performLaunchActivity(Landroid/content/Intent;I)V";
+    int[] args = { intentRef, requestCode };
 
     callMethod(env, appRef, methodName, args);
 
@@ -227,7 +234,10 @@ public class JPF_android_app_ActivityManagerProxy {
 
   private static int getActivity(MJIEnv env, int intentRef) {
     // TODO lookup other fields through intent filters
-    return env.getReferenceField(intentRef, "mComponent");
+    int i = env.getReferenceField(intentRef, "mComponent");
+
+    return i;
+
   }
 
   private static void stopActivity(MJIEnv env, int clsRef, int intentRef) {
