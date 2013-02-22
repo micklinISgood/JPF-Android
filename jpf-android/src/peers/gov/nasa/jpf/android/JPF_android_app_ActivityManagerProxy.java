@@ -148,13 +148,10 @@ public class JPF_android_app_ActivityManagerProxy {
     int intentRef = env.newObject("android.content.Intent");
     int componentRef = env.newObject("android.content.ComponentName");
     ElementInfo eiComp = env.getElementInfo(componentRef);
-    
-    int nameRef = env.newString(intent.getComponent());
-    int packageRef = env.newString(intent.get);
-    
-    eiComp.setReferenceField(fname, value);
-    eiComp.setReferenceField(fname, value);
-    
+    int packageRef = env.newString(intent.getPackage());
+    int classRef = env.newString(intent.getClassName());
+    eiComp.setReferenceField("mPackage", packageRef);
+    eiComp.setReferenceField("mClass", classRef);
     ElementInfo ei = env.getElementInfo(intentRef);
     ei.setReferenceField("mComponent", componentRef);
     return intentRef;
@@ -218,25 +215,12 @@ public class JPF_android_app_ActivityManagerProxy {
    *          the reference to the intent starting the activity
    */
   private static void startActivityMethod(MJIEnv env, int clsRef, int intentRef, int requestCode) {
-    // Lookup the name of the activity to launch
-    // int activityNameRef = getActivity(env, intentRef);
-    // String activityName = env.getStringObject(activityNameRef);
-    // log.fine("Start activity " + activityName);
-
     // schedule launch of activity
     int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performLaunchActivity(Landroid/content/Intent;I)V";
     int[] args = { intentRef, requestCode };
 
     callMethod(env, appRef, methodName, args);
-
-  }
-
-  private static int getActivity(MJIEnv env, int intentRef) {
-    // TODO lookup other fields through intent filters
-    int i = env.getReferenceField(intentRef, "mComponent");
-
-    return i;
 
   }
 

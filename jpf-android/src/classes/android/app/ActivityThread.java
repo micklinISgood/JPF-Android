@@ -57,7 +57,7 @@ public final class ActivityThread {
   Configuration mConfiguration;
   static final ThreadLocal<ActivityThread> sThreadLocal = new ThreadLocal<ActivityThread>();
   Application mInitialApplication;
-  
+
   LoadedApk mPackage;
 
   Instrumentation mInstrumentation;
@@ -157,10 +157,13 @@ public final class ActivityThread {
     // ///////////////////////////
 
     private void performLaunchActivity(Intent startingIntent, int requestCode) {
+      System.out.println(startingIntent.getComponent().getPackageName() + "."
+          + startingIntent.getComponent().getClassName());
       ActivityClientRecord current = currentActivity;
       if (current != null)
         schedulePauseActivity(current.ident, false);
-      scheduleLaunchActivity(startingIntent.getComponent().flattenToShortString(), startingIntent, requestCode);
+      scheduleLaunchActivity(startingIntent.getComponent().flattenToShortString(), startingIntent,
+          requestCode);
       if (current != null) {
         scheduleStopActivity(current.ident);
       }
@@ -365,6 +368,7 @@ public final class ActivityThread {
       switch (msg.what) {
       case LAUNCH_ACTIVITY: {
         ActivityClientRecord r = (ActivityClientRecord) msg.obj;
+        r.packageInfo = getPackageInfoNoCheck(r.activityInfo.applicationInfo, r.compatInfo);
         handleLaunchActivity(r, null);
       }
         break;
@@ -1115,7 +1119,8 @@ public final class ActivityThread {
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
 
     // Resolve Component
-    String component = r.intent.getComponent().getClassName();
+    String component = r.intent.getComponent().getPackageName() + "."
+        + r.intent.getComponent().getClassName();
     // if (component == null) {
     // component = r.intent.resolveActivity(
     // mInitialApplication.getPackageManager());

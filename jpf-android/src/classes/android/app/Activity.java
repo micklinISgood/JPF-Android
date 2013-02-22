@@ -3,10 +3,9 @@ package android.app;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
