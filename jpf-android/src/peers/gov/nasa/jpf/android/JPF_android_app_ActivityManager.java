@@ -1,3 +1,22 @@
+//
+// Copyright (C) 2006 United States Government as represented by the
+// Administrator of the National Aeronautics and Space Administration
+// (NASA).  All Rights Reserved.
+//
+// This software is distributed under the NASA Open Source Agreement
+// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
+// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// directory tree for the complete NOSA document.
+//
+// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
+// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
+// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
+// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
+// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
+// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
+//
+
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
@@ -18,15 +37,23 @@ import java.util.logging.Logger;
  * testing purposes this class only supports this one application and assumes that for now no other
  * applications are install
  * 
- * @see com.android.server.amn.ActivityManagerService
+ * @see com.android.server.am.ActivityManagerService
  * @see android.app.ActivityManagerProxy
  * @see android.app.ActivityManagerNative
  * 
  * @author Heila van der Merwe
  * 
  */
-public class JPF_android_app_ActivityManagerProxy {
+public class JPF_android_app_ActivityManager {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
+
+  /**
+   * Reference to the instance of this class. This is so that we can call its modelled methods such as
+   * startActivity() from the native side even if it is started from the native massageQueue class.
+   */
+  private static int activityManagerRef;
+
+  private static ApplicationInfo appInfo;
 
   /** ID for stack frames pushed by direct calls from the native code */
   private static final String UIACTION = "[UIAction]";
@@ -34,9 +61,18 @@ public class JPF_android_app_ActivityManagerProxy {
   /** Stores details of Intent objects variables used in the scripting file */
   private static HashMap<String, IntentEntry> intentMap = new HashMap<String, IntentEntry>();
 
-  private static void init() {
-    // parse Android.xml
+  /**
+   * Setup method that parses the Application's packageInfo.
+   * 
+   * @param env
+   * @param objectRef
+   */
+  private static void init0(MJIEnv env, int objectRef) {
+    activityManagerRef = objectRef;
 
+    // parse AndroidManifest.xml
+    appInfo = new ApplicationInfo();
+    appInfo.init(env);
   }
 
   /**
@@ -71,8 +107,9 @@ public class JPF_android_app_ActivityManagerProxy {
   }
 
   /**
-   * Handles actions related to application component such as starting and stopping activities and sending
-   * broadcasts etc.
+   * Forwards script actions related to application components to the ActivityManager model as if they were
+   * called from the system. These actions include starting and stopping activities and sending broadcasts
+   * etc. that are scripted in the application's *.es file.
    * 
    * @param env
    * @param action
@@ -83,17 +120,29 @@ public class JPF_android_app_ActivityManagerProxy {
 
     if (action.action.equals("startActivity")) {
       String intentName = (String) action.arguments[0];
-      int intentref = getJPFIntent(env, intentName);
+      int intentref = createJPFIntent(env, intentName);
       startActivityMethod(env, 0, intentref, -1);
-    } else if (action.action.equals("changeLayout")) {
-      String layout = (String) action.arguments[0];
 
+    } else if (action.action.equals("changeLayout")) {
+      String layout = (String) action.arguments[0]; // TODO layout is not used
       changeLayout(env, 0, 1);
 
     } else if (action.action.equals("backButton")) {
       backButton(env);
+
     } else if (action.action.equals("homeButton")) {
       homeButton(env);
+
+    } else if (action.action.equals("sendBroadcast")) {
+      // TODO
+    } else if (action.action.equals("lowBattery")) {
+      // TODO
+    } else if (action.action.equals("networkDown")) {
+      // TODO
+    } else if (action.action.equals("killActivity")) {
+      // TODO
+    } else if (action.action.equals("killService")) {
+      // TODO
     }
   }
 
@@ -108,29 +157,26 @@ public class JPF_android_app_ActivityManagerProxy {
     log.fine("changing layout to " + orientation);
 
     // schedule launch of activity
-    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performConfigurationChange()V";
     int[] args = {};
 
-    callMethod(env, appRef, methodName, args);
+    callMethod(env, activityManagerRef, methodName, args);
 
   }
 
   private static void backButton(MJIEnv env) {
     // schedule launch of activity
-    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performBackPressed()V";
     int[] args = {};
-    callMethod(env, appRef, methodName, args);
+    callMethod(env, activityManagerRef, methodName, args);
 
   }
 
   private static void homeButton(MJIEnv env) {
     // schedule launch of activity
-    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performHomePressed()V";
     int[] args = {};
-    callMethod(env, appRef, methodName, args);
+    callMethod(env, activityManagerRef, methodName, args);
 
   }
 
@@ -142,7 +188,7 @@ public class JPF_android_app_ActivityManagerProxy {
    * 
    * @return
    */
-  public static int getJPFIntent(MJIEnv env, String intentName) {
+  public static int createJPFIntent(MJIEnv env, String intentName) {
     IntentEntry intent = intentMap.get(intentName);
 
     int intentRef = env.newObject("android.content.Intent");
@@ -168,15 +214,14 @@ public class JPF_android_app_ActivityManagerProxy {
   public static void startActivity(MJIEnv env, int clsRef, int intentRef, int requestcode) {
     ThreadInfo ti = env.getThreadInfo();
 
-    // so that the method is not called twice on return from making direct
-    // call
+    // so that the method is not called twice on return from making direct call
     if (!ti.hasReturnedFromDirectCall(UIACTION)) {
       startActivityMethod(env, clsRef, intentRef, requestcode);
     }
   }
 
   /**
-   * Used by Activity to start an activity
+   * Used by Activity to finish an activity
    * 
    * @param env
    * @param clsRef
@@ -199,12 +244,10 @@ public class JPF_android_app_ActivityManagerProxy {
     log.fine("Finishing activity ");
 
     // schedule launch of activity
-    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
     String methodName = "performFinishActivity(ILandroid/content/Intent;)V";
     int[] args = { resultCode, resultDataRef };
 
-    callMethod(env, appRef, methodName, args);
-
+    callMethod(env, activityManagerRef, methodName, args);
   }
 
   /**
@@ -215,12 +258,9 @@ public class JPF_android_app_ActivityManagerProxy {
    *          the reference to the intent starting the activity
    */
   private static void startActivityMethod(MJIEnv env, int clsRef, int intentRef, int requestCode) {
-    // schedule launch of activity
-    int appRef = JPF_android_app_ActivityThread.getApplicationRef();
-    String methodName = "performLaunchActivity(Landroid/content/Intent;I)V";
+    String methodName = "startActivity(Landroid/content/Intent;I)V";
     int[] args = { intentRef, requestCode };
-
-    callMethod(env, appRef, methodName, args);
+    callMethod(env, activityManagerRef, methodName, args);
 
   }
 
@@ -230,9 +270,10 @@ public class JPF_android_app_ActivityManagerProxy {
     String methodName = "scheduleDestroyActivity(Ljava/lang/String;)V";
   }
 
+  
+  
   /**
-   * Link to thew Application. Uses a direct call to call a method on ApplicationThread scheduling certain
-   * events to be handled by the application's main thread.
+   * Uses a direct call to call a method on ActivityManagerProxy.
    * 
    * @param env
    * @param methodName
@@ -263,6 +304,11 @@ public class JPF_android_app_ActivityManagerProxy {
     }
     // frame is pushed to the execution thread
     ti.pushFrame(frame);
+  }
+
+  public static String getPackageName() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

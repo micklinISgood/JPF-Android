@@ -1,7 +1,7 @@
 package gov.nasa.jpf.test.android.os;
 
-import gov.nasa.jpf.android.ApplicationInfo;
-import gov.nasa.jpf.android.ApplicationInfo.ComponentEntry;
+import gov.nasa.jpf.android.PackageParser;
+import gov.nasa.jpf.android.PackageParser.ComponentEntry;
 import gov.nasa.jpf.util.test.TestJPF;
 
 import org.junit.Before;
@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class ApplicationInfoTest extends TestJPF {
 
-	static ApplicationInfo info = new ApplicationInfo();
+	static PackageParser info = new PackageParser();
 
 	public static void main(String[] args) {
 		runTestsOfThisClass(args);

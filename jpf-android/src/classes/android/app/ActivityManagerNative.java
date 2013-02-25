@@ -1,5 +1,7 @@
 package android.app;
 
+import  android.app.ActivityManager.ActivityManagerProxy;
+
 public class ActivityManagerNative {
 
   static ActivityManagerProxy proxy;

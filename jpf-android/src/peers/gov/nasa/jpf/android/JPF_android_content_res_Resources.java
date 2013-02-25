@@ -69,7 +69,7 @@ public class JPF_android_content_res_Resources {
       log.severe("path not set in jpf.properties");
       return;
     }
-    rPath = rPath + "/gen/" + JPF_android_app_ActivityThread.getPackageName().replace('.', '/') + "/R.java";
+    rPath = rPath + "/gen/" + JPF_android_app_ActivityManager.getPackageName().replace('.', '/') + "/R.java";
     try {
       parseRFile(new FileInputStream(rPath));
     } catch (FileNotFoundException e) {

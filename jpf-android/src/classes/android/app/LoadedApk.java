@@ -31,7 +31,7 @@ public class LoadedApk {
   public LoadedApk(ActivityThread activityThread, ApplicationInfo aInfo, CompatibilityInfo compatInfo,
       ActivityThread mainThread, ClassLoader baseLoader, boolean securityViolation, boolean includeCode) {
     mActivityThread = activityThread;
-    mApplicationInfo = aInfo;
+    mApplicationInfo = init();
     mPackageName = aInfo.packageName;
     // mAppDir = aInfo.sourceDir;
     // mResDir = aInfo.uid == Process.myUid() ? aInfo.sourceDir
@@ -61,6 +61,10 @@ public class LoadedApk {
     // mResources = ActivityThread.mSystemContext.getResources();
   }
 
+  private native ApplicationInfo init();
+  
+  
+
   public ClassLoader getClassLoader() {
     return ClassLoader.getSystemClassLoader();
   }
@@ -73,5 +77,7 @@ public class LoadedApk {
   public String getPackageName() {
     return mPackageName;
   }
+  
+  
 
 }

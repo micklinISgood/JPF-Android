@@ -1,6 +1,7 @@
 package android.app;
 
 import java.util.HashMap;
+import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,23 +22,11 @@ import android.util.Slog;
 import android.view.Window;
 import android.view.WindowManager;
 
-final class SuperNotCalledException extends android.util.AndroidRuntimeException {
-  public SuperNotCalledException(String msg) {
-    super(msg);
-  }
-}
-
-final class RemoteServiceException extends android.util.AndroidRuntimeException {
-  public RemoteServiceException(String msg) {
-    super(msg);
-  }
-}
-
 /**
  * This manages the execution of the main thread in an application process, scheduling and executing
  * activities, broadcasts, and other operations on it as the activity manager requests.
  * 
- * {@hide}
+ * 
  */
 public final class ActivityThread {
   public static final String TAG = "ActivityThread";
@@ -50,7 +39,7 @@ public final class ActivityThread {
   final HashMap<Integer, ActivityClientRecord> mActivities = new HashMap<Integer, ActivityClientRecord>();
 
   // stores the current running Activity
-  ActivityClientRecord currentActivity;
+  // ActivityClientRecord currentActivity;
 
   final HashMap<IBinder, Service> mServices = new HashMap<IBinder, Service>();
   final ApplicationThread mAppThread = new ApplicationThread();
@@ -58,7 +47,8 @@ public final class ActivityThread {
   static final ThreadLocal<ActivityThread> sThreadLocal = new ThreadLocal<ActivityThread>();
   Application mInitialApplication;
 
-  LoadedApk mPackage;
+  LoadedApk mPackage; // For testing we do not have to store multiple packages, only one as we are only
+                      // testing one application
 
   Instrumentation mInstrumentation;
 
@@ -71,12 +61,16 @@ public final class ActivityThread {
      *          the name of the Activity to start
      * @param intent
      */
-    public final void scheduleLaunchActivity(String activityName, Intent intent, int requestCode) {
+    public final void scheduleLaunchActivity(Intent intent, IBinder token, int ident, ActivityInfo info,
+                                             Bundle state, Activity parent, int requestCode) {
       ActivityClientRecord r = new ActivityClientRecord();
-      r.name = activityName;
+      r.name = intent.getComponent().flattenToShortString();
       r.intent = intent;
       r.requestCode = requestCode;
-      // r.state = state;
+      r.parent = parent; //used to restore activity stack
+      r.activityInfo = info;
+      r.state = state;
+      r.token = token;
       queueOrSendMessage(H.LAUNCH_ACTIVITY, r, 0, 0);
     }
 
@@ -103,7 +97,7 @@ public final class ActivityThread {
     }
 
     public final void scheduleSendResult(int ident, ResultInfo result) {
-      queueOrSendMessage(H.SEND_RESULT, result, 0, 0);
+      queueOrSendMessage(H.SEND_RESULT, result, ident, 0);
     }
 
     private void scheduleRelaunchActivity() {
@@ -152,82 +146,6 @@ public final class ActivityThread {
       queueOrSendMessage(H.STOP_SERVICE, token);
     }
 
-    // ///////////////////////////
-    // //// perform methods //////
-    // ///////////////////////////
-
-    private void performLaunchActivity(Intent startingIntent, int requestCode) {
-      System.out.println(startingIntent.getComponent().getPackageName() + "."
-          + startingIntent.getComponent().getClassName());
-      ActivityClientRecord current = currentActivity;
-      if (current != null)
-        schedulePauseActivity(current.ident, false);
-      scheduleLaunchActivity(startingIntent.getComponent().flattenToShortString(), startingIntent,
-          requestCode);
-      if (current != null) {
-        scheduleStopActivity(current.ident);
-      }
-    }
-
-    // stop
-    private void performSleep() {
-
-    }
-
-    // restart
-    private void performWake() {
-
-    }
-
-    // destory
-    private void killApp() {
-
-    }
-
-    /**
-     * 
-     */
-    private void performConfigurationChange() {
-      ActivityClientRecord current = currentActivity;
-      // mConfiguration.orientation = Configuration.ORIENTATION_LANDSCAPE;
-      if (current != null) {
-        scheduleRelaunchActivity();
-      }
-    }
-
-    private void performBackPressed() {
-      ActivityClientRecord current = currentActivity;
-      if (current != null) {
-        current.activity.onBackPressed();
-      }
-    }
-
-    private void performHomePressed() {
-      ActivityClientRecord current = currentActivity;
-      if (current != null) {
-        schedulePauseActivity(current.ident, false);
-        scheduleStopActivity(current.ident);
-      }
-    }
-
-    private void performFinishActivity(int resultCode, Intent resultData) {
-      ActivityClientRecord current = currentActivity;
-      schedulePauseActivity(current.ident, true);
-      System.out.println(currentActivity.parent.mStartedActivity);
-      if (currentActivity.parent.mStartedActivity) {
-        ResultInfo res = new ResultInfo(current.activity.getPackageName(), current.requestCode,
-            current.activity.mResultCode, current.activity.mResultData);
-        scheduleSendResult(current.parent.mIdent, res);
-      } else
-        scheduleResumeActivity(currentActivity.parent.mIdent);
-      if (current != null) {
-        scheduleDestroyActivity(current.ident, true);
-      }
-
-      // stop all binds to services
-
-    }
-
   }
 
   static final class CreateServiceData {
@@ -266,7 +184,7 @@ public final class ActivityThread {
 
   static final class ActivityClientRecord {
     public int requestCode;
-    // IBinder token;
+    IBinder token;
     int ident;
     Intent intent;
     Bundle state;
@@ -287,7 +205,7 @@ public final class ActivityThread {
     // ParcelFileDescriptor profileFd;
     // boolean autoStopProfiler;
 
-    // ActivityInfo activityInfo; //parsed infor from android manifest
+    ActivityInfo activityInfo; // parsed infor from android manifest
     // CompatibilityInfo compatInfo;
     LoadedApk packageInfo;
 
@@ -368,7 +286,7 @@ public final class ActivityThread {
       switch (msg.what) {
       case LAUNCH_ACTIVITY: {
         ActivityClientRecord r = (ActivityClientRecord) msg.obj;
-        r.packageInfo = getPackageInfoNoCheck(r.activityInfo.applicationInfo, r.compatInfo);
+        // TODO r.packageInfo = getPackageInfoNoCheck(r.activityInfo.applicationInfo, r.compatInfo);
         handleLaunchActivity(r, null);
       }
         break;
@@ -579,8 +497,8 @@ public final class ActivityThread {
     }
   }
 
-  private void handleSendResult(ResultInfo res) {
-    ActivityClientRecord r = mActivities.get(currentActivity.parent.mIdent);
+  private void handleSendResult(ResultInfo res, int ident) {
+    ActivityClientRecord r = mActivities.get(ident);
     System.out.println(r);
     if (r != null) {
       // final boolean resumed = !r.paused;
@@ -1154,8 +1072,7 @@ public final class ActivityThread {
         CharSequence title = activity.getClass().getName();
         r.ident = activity.mIdent;
         activity.attach((Context) appContext, this, getInstrumentation(), (IBinder) null, app, r.intent,
-            (ActivityInfo) null, title, ((currentActivity != null) ? currentActivity.activity : null), "0",
-            r.lastNonConfigurationInstances, new Configuration());
+            (ActivityInfo) null, title, r.parent, "0", r.lastNonConfigurationInstances, new Configuration());
         r.ident = activity.mIdent;
         if (customIntent != null) {
           activity.mIntent = customIntent;
@@ -1216,11 +1133,11 @@ public final class ActivityThread {
     if (a != null) {
       // r.createdConfig = new Configuration(mConfiguration);
       Bundle oldState = r.state;
-      if (currentActivity != null) {
-        a.mParent = currentActivity.activity;
-        r.parent = currentActivity.activity;
-
-      }
+      // if (currentActivity != null) {
+      // a.mParent = currentActivity.activity;
+      // r.parent = currentActivity.activity;
+      //
+      // }
 
       handleResumeActivity(r.ident);
 
@@ -1346,49 +1263,10 @@ public final class ActivityThread {
   public final LoadedApk getPackageInfoNoCheck(ApplicationInfo aInfo, CompatibilityInfo compatInfo) {
     // return getPackageInfo(ai, compatInfo, null, false, true);
     // TODO STUB
-
-    return new LoadedApk(this, aInfo, compatInfo, this, null, false, true);
-  }
-
-  private void attach() {
-    setApplicationRef(this.mAppThread);
-    init0();
-
-    sThreadLocal.set(this);
-    handleBindApplication();
-    WindowManager.init0();
-
-  }
-
-  private void handleBindApplication() {// AppBindData data) {
-    mInstrumentation = new Instrumentation();
-    mInitialApplication = new Application();
-    try {
-      mInstrumentation.callApplicationOnCreate(mInitialApplication);
-    } catch (Exception e) {
-      if (!mInstrumentation.onException(mInitialApplication, e)) {
-        throw new RuntimeException("Unable to create application " + mInitialApplication.getClass().getName()
-            + ": " + e.toString(), e);
-      }
-    }
-
-  }
-
-  native private void init0();
-
-  native void setApplicationRef(ApplicationThread mAppThread2);
-
-  public static void main(String[] args) {
-    Looper.prepareMainLooper();
-
-    ActivityThread thread = new ActivityThread();
-    thread.attach();
-
-    if (DEBUG) {
-      Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
-    }
-
-    Looper.loop();
+    // if(mPackage == null)
+    // mPackage = new LoadedApk(this, aInfo, compatInfo, mainThread, baseLoader, securityViolation,
+    // includeCode)
+    return mPackage;
   }
 
   public Instrumentation getInstrumentation() {
@@ -1405,6 +1283,45 @@ public final class ActivityThread {
 
   public Application getApplication() {
     return mInitialApplication;
+  }
+
+  private void handleBindApplication() {// AppBindData data) {
+    mInstrumentation = new Instrumentation();
+    mInitialApplication = new Application();
+    try {
+      mInstrumentation.callApplicationOnCreate(mInitialApplication);
+    } catch (Exception e) {
+      if (!mInstrumentation.onException(mInitialApplication, e)) {
+        throw new RuntimeException("Unable to create application " + mInitialApplication.getClass().getName()
+            + ": " + e.toString(), e);
+      }
+    }
+
+  }
+
+  private void attach() {
+    init0(); // startUp ActivityThread
+    sThreadLocal.set(this); // so that this class can be reached anywhere in this thread
+
+    handleBindApplication();
+
+    WindowManager.init0(); // startup WindowManager
+    ActivityManager.init(this.mAppThread); // startup ActvityManager
+  }
+
+  private native void init0();
+
+  public static void main(String[] args) {
+    Looper.prepareMainLooper();
+
+    ActivityThread thread = new ActivityThread();
+    thread.attach();
+
+    if (DEBUG) {
+      Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
+    }
+
+    Looper.loop();
   }
 
 }
