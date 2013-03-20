@@ -12,8 +12,10 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.SparseArray;
 import android.view.ContextThemeWrapper;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -21,7 +23,7 @@ import android.view.WindowManager;
 
 import com.android.internal.policy.PolicyManager;
 
-public class Activity extends ContextThemeWrapper {
+public class Activity extends ContextThemeWrapper implements Window.Callback {
   private static int uniqueID = 0;
   private static final String TAG = "Activity";
 
@@ -63,8 +65,8 @@ public class Activity extends ContextThemeWrapper {
   /* package */ActivityThread mMainThread; // The main thread of this application
   Activity mParent; // Used by ActivityGroups, stores this Activity's parent Activity
   boolean mCalled; // Used to make sure super lifecycle methods are called
-  boolean mCheckedForLoaderManager;
-  boolean mLoadersStarted;
+  boolean mCheckedForLoaderManager; //TODO not modelled
+  boolean mLoadersStarted;  //TODO not modelled
 
   // State of the Activity
   boolean mResumed; // true if this activity is in a resumed state
@@ -74,11 +76,11 @@ public class Activity extends ContextThemeWrapper {
   boolean mStartedActivity; // has this activity started another
 
   /** true if the activity is going through a transient pause */
-  /* package */boolean mTemporaryPause = false;
+  /* package */boolean mTemporaryPause = false; //used by deliver results and deliver intents in activitythread
 
   /** true if the activity is being destroyed in order to recreate it with a new configuration */
-  /* package */boolean mChangingConfigurations = false;
-  /* package */int mConfigChangeFlags;
+  /* package */boolean mChangingConfigurations = false; // used in activity to know when to stop loader manager, in case of relaunch, do no stop
+  /* package */int mConfigChangeFlags; 
   /* package */Configuration mCurrentConfig;
 
   // private SearchManager mSearchManager; //TODO
@@ -93,17 +95,17 @@ public class Activity extends ContextThemeWrapper {
 
   /* package */NonConfigurationInstances mLastNonConfigurationInstances;
 
-  private Window mWindow;
+  protected Window mWindow;
   private WindowManager mWindowManager;
-  /* package */View mDecor = null;
+  /* package */View mDecor = null; //TODO not used yet
   /* package */boolean mWindowAdded = false;
-  /* package */boolean mVisibleFromServer = false;
-  /* package */boolean mVisibleFromClient = true;
+  /* package */boolean mVisibleFromServer = false; //TODO not used yet
+  /* package */boolean mVisibleFromClient = true; //TODO not used yet
   // /* package */ActionBarImpl mActionBar = null; //TODO
 
-  private CharSequence mTitle;
-  private int mTitleColor = 0;
-
+  private CharSequence mTitle; //TODO not used yet
+  private int mTitleColor = 0; //TODO not used
+  
   // final FragmentManagerImpl mFragments = new FragmentManagerImpl(); TODO
   //
   // SparseArray<LoaderManagerImpl> mAllLoaderManagers; //TODO
@@ -300,6 +302,25 @@ public class Activity extends ContextThemeWrapper {
     getApplication().dispatchActivityDestroyed(this);
   }
 
+  /**
+   * Generate a new description for this activity. This method is called before pausing the activity and can,
+   * if desired, return some textual description of its current state to be displayed to the user.
+   * 
+   * <p>
+   * The default implementation returns null, which will cause you to inherit the description from the
+   * previous activity. If all activities return null, generally the label of the top activity will be used as
+   * the description.
+   * 
+   * @return A description of what the user is doing. It should be short and sweet (only a few words).
+   * 
+   * @see #onCreateThumbnail
+   * @see #onSaveInstanceState
+   * @see #onPause
+   */
+  public CharSequence onCreateDescription() {
+    return null;
+  }
+
   public Window getWindow() {
     return mWindow;
   }
@@ -328,7 +349,7 @@ public class Activity extends ContextThemeWrapper {
   }
 
   void makeVisible() {
-    // if (!mWindowAdded) {
+     //if (!mWindowAdded) {
     // ViewManager wm = getWindowManager();
     // wm.addView(mDecor, getWindow().getAttributes());
     // mWindowAdded = true;
@@ -350,8 +371,7 @@ public class Activity extends ContextThemeWrapper {
   public final void startActivityForResult(Intent intent, int requestCode) {
     // if (mParent == null) {
     // Instrumentation.ActivityResult ar =
-    intent.setParent(this);
-    // onPause();
+     onPause();
     // System.out.println("Activity for result");
     ActivityManagerNative.getDefault().startActivity(intent, requestCode);
     // if (ar != null) {
@@ -429,6 +449,8 @@ public class Activity extends ContextThemeWrapper {
     // mFragments.attachActivity(this);
 
     mWindow = PolicyManager.makeNewWindow(this);
+    mWindow.setCallback(this);
+
     // mWindow.getLayoutInflater().setPrivateFactory(this);
     // if (info.softInputMode !=
     // WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
@@ -452,7 +474,7 @@ public class Activity extends ContextThemeWrapper {
     mEmbeddedID = id;
     mLastNonConfigurationInstances = lastNonConfigurationInstances;
 
-    mWindow.setWindowManager(null, mToken, mComponent.flattenToString(), true);
+    mWindow.setWindowManager(null, mToken, mComponent.getClassName(), true);
     // (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
     // if (mParent != null) {
     // mWindow.setContainer(mParent.getWindow());
@@ -474,7 +496,8 @@ public class Activity extends ContextThemeWrapper {
     // mFragments.execPendingActions();
     onStart();
     if (!mCalled) {
-      throw new SuperNotCalledException("Activity " + mComponent + " did not call through to super.onStart()");
+      throw new SuperNotCalledException("Activity " + mComponent.getClassName()
+          + " did not call through to super.onStart()");
     }
     // mFragments.dispatchStart();
     // if (mAllLoaderManagers != null) {
@@ -526,7 +549,7 @@ public class Activity extends ContextThemeWrapper {
 
     // mFragments.execPendingActions();
 
-    // mLastNonConfigurationInstances = null;
+     mLastNonConfigurationInstances = null;
 
     mCalled = false;
     // mResumed is set by the instrumentation
@@ -608,7 +631,7 @@ public class Activity extends ContextThemeWrapper {
   }
 
   final void performDestroy() {
-    // mWindow.destroy();
+     mWindow.destroy();
     // mFragments.dispatchDestroy();
     onDestroy();
     // if (mLoaderManager != null) {
@@ -701,7 +724,7 @@ public class Activity extends ContextThemeWrapper {
       // resultData.setAllowFds(false);
     }
     mFinished = true;
-    ActivityManagerNative.getDefault().finishActivity(resultCode, resultData);
+      ActivityManagerNative.getDefault().finishActivity(mToken, resultCode, resultData);
   }
 
   /**
@@ -775,9 +798,46 @@ public class Activity extends ContextThemeWrapper {
   }
 
   final void performUserLeaving() {
-    // onUserInteraction();
-    // onUserLeaveHint();
-    // TODO
+    onUserInteraction();
+    onUserLeaveHint();
+  }
+
+  /**
+   * Called whenever a key, touch, or trackball event is dispatched to the activity. Implement this method if
+   * you wish to know that the user has interacted with the device in some way while your activity is running.
+   * This callback and {@link #onUserLeaveHint} are intended to help activities manage status bar
+   * notifications intelligently; specifically, for helping activities determine the proper time to cancel a
+   * notfication.
+   * 
+   * <p>
+   * All calls to your activity's {@link #onUserLeaveHint} callback will be accompanied by calls to
+   * {@link #onUserInteraction}. This ensures that your activity will be told of relevant user activity such
+   * as pulling down the notification pane and touching an item there.
+   * 
+   * <p>
+   * Note that this callback will be invoked for the touch down action that begins a touch gesture, but may
+   * not be invoked for the touch-moved and touch-up actions that follow.
+   * 
+   * @see #onUserLeaveHint()
+   */
+  public void onUserInteraction() {
+  }
+
+  /**
+   * Called as part of the activity lifecycle when an activity is about to go into the background as the
+   * result of user choice. For example, when the user presses the Home key, {@link #onUserLeaveHint} will be
+   * called, but when an incoming phone call causes the in-call Activity to be automatically brought to the
+   * foreground, {@link #onUserLeaveHint} will not be called on the activity being interrupted. In cases when
+   * it is invoked, this method is called right before the activity's {@link #onPause} callback.
+   * 
+   * <p>
+   * This callback and {@link #onUserInteraction} are intended to help activities manage status bar
+   * notifications intelligently; specifically, for helping activities determine the proper time to cancel a
+   * notfication.
+   * 
+   * @see #onUserInteraction()
+   */
+  protected void onUserLeaveHint() {
   }
 
   private void saveManagedDialogs(Bundle outState) {
@@ -891,6 +951,12 @@ public class Activity extends ContextThemeWrapper {
         mManagedDialogs.remove(id);
       }
     }
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    onBackPressed();
+    return true;
   }
 
 }
