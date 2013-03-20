@@ -19,7 +19,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import android.view.LayoutInflater;
 import android.view.Window;
 
 public class JPF_android_content_res_Resources {
@@ -44,7 +43,7 @@ public class JPF_android_content_res_Resources {
 
   /**
    * Maps the resource ID of a layout to the name of the layout file. This information is read from the R.java
-   * class and stored as a map fir quick lookup by the {@link LayoutInflater}.
+   * class and stored as a map for quick lookup by the LayoutInflater.
    */
   private HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
 
@@ -69,7 +68,7 @@ public class JPF_android_content_res_Resources {
       log.severe("path not set in jpf.properties");
       return;
     }
-    rPath = rPath + "/gen/" + JPF_android_app_ActivityManager.getPackageName().replace('.', '/') + "/R.java";
+    rPath = rPath + "/gen/" +  JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/') + "/R.java";
     try {
       parseRFile(new FileInputStream(rPath));
     } catch (FileNotFoundException e) {
