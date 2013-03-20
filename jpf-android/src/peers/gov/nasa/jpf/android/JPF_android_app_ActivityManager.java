@@ -53,8 +53,6 @@ public class JPF_android_app_ActivityManager {
    */
   private static int activityManagerRef;
 
-  private static ApplicationInfo appInfo;
-
   /** ID for stack frames pushed by direct calls from the native code */
   private static final String UIACTION = "[UIAction]";
 
@@ -67,13 +65,97 @@ public class JPF_android_app_ActivityManager {
    * @param env
    * @param objectRef
    */
-  private static void init0(MJIEnv env, int objectRef) {
+  public static void init0(MJIEnv env, int objectRef) {
     activityManagerRef = objectRef;
-
-    // parse AndroidManifest.xml
-    appInfo = new ApplicationInfo();
-    appInfo.init(env);
   }
+
+  /**
+   * Forwards script actions related to application components to the ActivityManager model as if they were
+   * called from the system. These actions include starting and stopping activities and sending broadcasts
+   * etc. that are scripted in the application's *.es file.
+   * 
+   * @param env
+   * @param action
+   *          - the component action to handle
+   */
+  static void handleComponentAction(MJIEnv env, UIAction action) {
+    log.fine("Handling component action: " + action.toString());
+
+    if (action.action.equals("startActivity")) {
+      String intentName = (String) action.arguments[0];
+      int intentref = createJPFIntent(env, intentName);
+      startActivityNative(env, 0, intentref, -1);
+    } else if (action.action.equals("changeLayout")) {
+      String layout = (String) action.arguments[0]; // TODO layout is not used
+      changeLayout(env, 0, 1);
+    } else if (action.action.equals("homeButton")) {
+      homeButton(env);
+    } else if (action.action.equals("sendBroadcast")) {
+      // TODO
+    } else if (action.action.equals("lowBattery")) {
+      // TODO
+    } else if (action.action.equals("networkDown")) {
+      // TODO
+    } else if (action.action.equals("killActivity")) {
+      // TODO
+    } else if (action.action.equals("killService")) {
+      // TODO
+    }
+  }
+
+  /**
+   * Used to start an Activity from the MessageQueue class.
+   * 
+   * @param env
+   * @param intentRef
+   *          the reference to the intent starting the activity
+   */
+  private static void startActivityNative(MJIEnv env, int clsRef, int intentRef, int requestCode) {
+    String methodName = "performLaunchActivity(Landroid/content/Intent;I)V";
+    int[] args = { intentRef, requestCode };
+    callMethod(env, activityManagerRef, methodName, args);
+
+  }
+
+  private static void finishActivityNative(MJIEnv env, int clsRef, int resultCode, int resultDataRef) {
+    // Lookup the name of the activity to launch
+    // int activityNameRef = getActivity(env, intentRef);
+    // String activityName = env.getStringObject(activityNameRef);
+    log.fine("Finishing activity ");
+
+    // schedule launch of activity
+    String methodName = "performFinishActivity(ILandroid/content/Intent;)V";
+    int[] args = { resultCode, resultDataRef };
+
+    callMethod(env, activityManagerRef, methodName, args);
+  }
+
+  /**
+   * 
+   * @param env
+   * @param orientation
+   *          the new orientation
+   */
+  private static void changeLayout(MJIEnv env, int clsRef, int orientation) {
+    log.fine("changing layout to " + orientation);
+
+    // schedule launch of activity
+    String methodName = "performConfigurationChange()V";
+    int[] args = {};
+
+    callMethod(env, activityManagerRef, methodName, args);
+
+  }
+
+  private static void homeButton(MJIEnv env) {
+    // schedule launch of activity
+    String methodName = "performHomePressed()V";
+    int[] args = {};
+    callMethod(env, activityManagerRef, methodName, args);
+
+  }
+
+  /* ***************************** System Methods ******************************* */
 
   /**
    * Retrieves the reference to an intent in the intentMap using its name specified by action.target. If no
@@ -107,93 +189,21 @@ public class JPF_android_app_ActivityManager {
   }
 
   /**
-   * Forwards script actions related to application components to the ActivityManager model as if they were
-   * called from the system. These actions include starting and stopping activities and sending broadcasts
-   * etc. that are scripted in the application's *.es file.
-   * 
-   * @param env
-   * @param action
-   *          - the component action to handle
-   */
-  static void handleComponentAction(MJIEnv env, UIAction action) {
-    log.fine("Handling component action: " + action.toString());
-
-    if (action.action.equals("startActivity")) {
-      String intentName = (String) action.arguments[0];
-      int intentref = createJPFIntent(env, intentName);
-      startActivityMethod(env, 0, intentref, -1);
-
-    } else if (action.action.equals("changeLayout")) {
-      String layout = (String) action.arguments[0]; // TODO layout is not used
-      changeLayout(env, 0, 1);
-
-    } else if (action.action.equals("backButton")) {
-      backButton(env);
-
-    } else if (action.action.equals("homeButton")) {
-      homeButton(env);
-
-    } else if (action.action.equals("sendBroadcast")) {
-      // TODO
-    } else if (action.action.equals("lowBattery")) {
-      // TODO
-    } else if (action.action.equals("networkDown")) {
-      // TODO
-    } else if (action.action.equals("killActivity")) {
-      // TODO
-    } else if (action.action.equals("killService")) {
-      // TODO
-    }
-  }
-
-  /**
-   * This is always called to start an Activity
-   * 
-   * @param env
-   * @param orientation
-   *          the new orientation
-   */
-  private static void changeLayout(MJIEnv env, int clsRef, int orientation) {
-    log.fine("changing layout to " + orientation);
-
-    // schedule launch of activity
-    String methodName = "performConfigurationChange()V";
-    int[] args = {};
-
-    callMethod(env, activityManagerRef, methodName, args);
-
-  }
-
-  private static void backButton(MJIEnv env) {
-    // schedule launch of activity
-    String methodName = "performBackPressed()V";
-    int[] args = {};
-    callMethod(env, activityManagerRef, methodName, args);
-
-  }
-
-  private static void homeButton(MJIEnv env) {
-    // schedule launch of activity
-    String methodName = "performHomePressed()V";
-    int[] args = {};
-    callMethod(env, activityManagerRef, methodName, args);
-
-  }
-
-  /**
-   * Returns the reference to an the Intent object
+   * Returns the reference to an the Intent object. This has to be extended to allow not only explicit intents
+   * but also implicit intents.
    * 
    * @param env
    * @param intent
    * 
    * @return
    */
-  public static int createJPFIntent(MJIEnv env, String intentName) {
+  private static int createJPFIntent(MJIEnv env, String intentName) {
     IntentEntry intent = intentMap.get(intentName);
-
     int intentRef = env.newObject("android.content.Intent");
     int componentRef = env.newObject("android.content.ComponentName");
     ElementInfo eiComp = env.getElementInfo(componentRef);
+    intent.setClassName(intent.getClassName());
+    intent.setPackage(intent.getPackage());
     int packageRef = env.newString(intent.getPackage());
     int classRef = env.newString(intent.getClassName());
     eiComp.setReferenceField("mPackage", packageRef);
@@ -204,74 +214,6 @@ public class JPF_android_app_ActivityManager {
 
   }
 
-  /**
-   * Used by Activity to start an activity
-   * 
-   * @param env
-   * @param clsRef
-   * @param intentRef
-   */
-  public static void startActivity(MJIEnv env, int clsRef, int intentRef, int requestcode) {
-    ThreadInfo ti = env.getThreadInfo();
-
-    // so that the method is not called twice on return from making direct call
-    if (!ti.hasReturnedFromDirectCall(UIACTION)) {
-      startActivityMethod(env, clsRef, intentRef, requestcode);
-    }
-  }
-
-  /**
-   * Used by Activity to finish an activity
-   * 
-   * @param env
-   * @param clsRef
-   * @param intentRef
-   */
-  public static void finishActivity(MJIEnv env, int clsRef, int resultCode, int resultDataRef) {
-    ThreadInfo ti = env.getThreadInfo();
-
-    // so that the method is not called twice on return from making direct
-    // call
-    if (!ti.hasReturnedFromDirectCall(UIACTION)) {
-      finishMethod(env, clsRef, resultCode, resultDataRef);
-    }
-  }
-
-  private static void finishMethod(MJIEnv env, int clsRef, int resultCode, int resultDataRef) {
-    // Lookup the name of the activity to launch
-    // int activityNameRef = getActivity(env, intentRef);
-    // String activityName = env.getStringObject(activityNameRef);
-    log.fine("Finishing activity ");
-
-    // schedule launch of activity
-    String methodName = "performFinishActivity(ILandroid/content/Intent;)V";
-    int[] args = { resultCode, resultDataRef };
-
-    callMethod(env, activityManagerRef, methodName, args);
-  }
-
-  /**
-   * This is always called to start an Activity
-   * 
-   * @param env
-   * @param intentRef
-   *          the reference to the intent starting the activity
-   */
-  private static void startActivityMethod(MJIEnv env, int clsRef, int intentRef, int requestCode) {
-    String methodName = "startActivity(Landroid/content/Intent;I)V";
-    int[] args = { intentRef, requestCode };
-    callMethod(env, activityManagerRef, methodName, args);
-
-  }
-
-  private static void stopActivity(MJIEnv env, int clsRef, int intentRef) {
-    // TODO
-    @SuppressWarnings("unused")
-    String methodName = "scheduleDestroyActivity(Ljava/lang/String;)V";
-  }
-
-  
-  
   /**
    * Uses a direct call to call a method on ActivityManagerProxy.
    * 
@@ -304,11 +246,6 @@ public class JPF_android_app_ActivityManager {
     }
     // frame is pushed to the execution thread
     ti.pushFrame(frame);
-  }
-
-  public static String getPackageName() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
 }
