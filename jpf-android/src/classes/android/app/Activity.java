@@ -12,7 +12,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.util.SparseArray;
 import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
