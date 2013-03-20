@@ -1,9 +1,0 @@
-target = gov.nasa.jpf.android.TestLooper
-
-classpath=${jpf-android}/build/examples;${classpath}
-sourcepath=${jpf-android}/src/examples;${sourcepath}
-
-# turn off instruction trace
-report.console.property_violation=error,snapshot
-
-

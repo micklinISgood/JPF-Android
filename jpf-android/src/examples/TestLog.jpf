@@ -1,9 +1,0 @@
-target = gov.nasa.jpf.android.TestLog
-
-classpath=${jpf-android}/build/examples;${classpath};${jpf-android}/lib/android/android
-sourcepath=${jpf-android}/src/examples;${sourcepath}
-
-# turn off instruction trace
-report.console.property_violation=error,snapshot
-
-
