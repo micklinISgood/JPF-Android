@@ -20,9 +20,7 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.SystemState;
 
 import java.util.logging.Logger;
 
@@ -32,8 +30,8 @@ import java.util.logging.Logger;
  * the correct state during backtracking, we stored it in the ActivityThread class and then we lookup this
  * value when necessary.
  * 
- * As we can lookup the currentActivity from any native class, we need to store a reference to the model to get
- * a reference on its "currentActivity" field.
+ * As we can lookup the currentActivity from any native class, we need to store a reference to the model to
+ * get a reference on its "currentActivity" field.
  * 
  * @author "Heila van der Merwe"
  * 
@@ -46,20 +44,4 @@ public class JPF_android_app_ActivityThread {
   public static void init0(MJIEnv env, int objectRef) {
     activityThreadRef = objectRef;
   }
-
-  public static String getCurrentActivity(MJIEnv env) {
-    SystemState ss = env.getSystemState();
-    ElementInfo info = env.getElementInfo(activityThreadRef);
-    int ref = -1;
-    if (info != null) {
-      ref = info.getReferenceField("currentActivity");
-    }
-    if (ref == -1) {
-      return "default";
-    } else {
-      ElementInfo info2 = env.getElementInfo(ref);
-      return info2.getStringField("name");
-    }
-  }
-
 }
