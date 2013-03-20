@@ -18,10 +18,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import android.view.LayoutInflater;
-
 /**
- * Native peer of the {@link LayoutInflater}. Makes use of {@link DocumentBuilder} to parse the layout files.
+ * Native peer of the LayoutInflater. Makes use of {@link DocumentBuilder} to parse the layout files.
  * 
  * @author "Heila van der Merwe"
  * 

@@ -71,8 +71,9 @@ public class JPF_android_os_MessageQueue {
       return false;
     }
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
-      String currentActivity = JPF_android_app_ActivityThread.getCurrentActivity(env);
-      UIAction action = scriptEnv.getNext("processScriptAction", currentActivity, env);
+      String currentWindow = JPF_android_view_WindowManager.getCurrentWindow(env);
+      System.out.println("Current Window: " + currentWindow);
+      UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
       if (action != null) {
         System.out.println("[ACTION] " + action.action + " " + action.target);
         runAction(env, action);
@@ -91,7 +92,7 @@ public class JPF_android_os_MessageQueue {
    * @param action
    */
   private static void runAction(MJIEnv env, UIAction action) {
-    log.info("*******************************");
+    System.out.println("*******************************");
     log.info("ProcessAction: " + action.action + " on " + action.target);
 
     if (!action.isNone()) {
