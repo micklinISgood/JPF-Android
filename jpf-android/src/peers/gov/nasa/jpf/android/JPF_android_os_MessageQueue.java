@@ -97,11 +97,11 @@ public class JPF_android_os_MessageQueue {
 
     if (!action.isNone()) {
       if (action.target == null) { // componentAction
-        JPF_android_app_ActivityManager.handleComponentAction(env, action);
+        JPF_com_android_server_am_ActivityManager.handleComponentAction(env, action);
       } else if (action.target.startsWith("$")) { // viewAction
         JPF_android_view_WindowManager.handleViewAction(env, action);
       } else if (action.target.startsWith("@")) { // intentAction
-        JPF_android_app_ActivityManager.setIntent(env, action);
+        JPF_com_android_server_am_ActivityManager.setIntent(env, action);
       }
     }
   }

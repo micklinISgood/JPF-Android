@@ -38,13 +38,12 @@ import java.util.logging.Logger;
  * applications are install
  * 
  * @see com.android.server.am.ActivityManagerService
- * @see android.app.ActivityManagerProxy
  * @see android.app.ActivityManagerNative
  * 
  * @author Heila van der Merwe
  * 
  */
-public class JPF_android_app_ActivityManager {
+public class JPF_com_android_server_am_ActivityManager {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
   /**
@@ -60,7 +59,7 @@ public class JPF_android_app_ActivityManager {
   private static HashMap<String, IntentEntry> intentMap = new HashMap<String, IntentEntry>();
 
   /**
-   * Setup method that parses the Application's packageInfo.
+   * Stores reference this class so that we can call methods on the ActivityManager from the native peer.
    * 
    * @param env
    * @param objectRef
@@ -246,6 +245,49 @@ public class JPF_android_app_ActivityManager {
     }
     // frame is pushed to the execution thread
     ti.pushFrame(frame);
+  }
+
+  protected static class IntentEntry {
+
+    private String mPackage;
+    private String mClass;
+
+    public IntentEntry() {
+
+    }
+
+    public void setComponent(String componentName) {
+      String[] name = componentName.split("\\.");
+      if (name.length > 1) {
+        mPackage = componentName.substring(0, componentName.lastIndexOf("."));
+        if (mPackage.length() == 0) {
+          mPackage = getPackageName();
+        }
+      }
+      mClass = name[name.length - 1]; // get the string after the last ".", this will be the name
+    }
+
+    private String getPackageName() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    public String getPackage() {
+      return mPackage;
+    }
+
+    public void setPackage(String mPackage) {
+      this.mPackage = mPackage;
+    }
+
+    public String getClassName() {
+      return mClass;
+    }
+
+    public void setClassName(String mClass) {
+      this.mClass = mClass;
+    }
+
   }
 
 }
