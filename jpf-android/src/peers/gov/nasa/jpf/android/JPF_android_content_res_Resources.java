@@ -1,7 +1,26 @@
+//
+// Copyright (C) 2006 United States Government as represented by the
+// Administrator of the National Aeronautics and Space Administration
+// (NASA).  All Rights Reserved.
+//
+// This software is distributed under the NASA Open Source Agreement
+// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
+// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// directory tree for the complete NOSA document.
+//
+// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
+// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
+// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
+// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
+// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
+// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
+//
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.android.JPF_android_view_WindowManager.ViewEntry;
 import gov.nasa.jpf.jvm.MJIEnv;
 
 import java.io.FileInputStream;
@@ -39,7 +58,7 @@ public class JPF_android_content_res_Resources {
 
   DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-  private HashMap<String, ViewEntry> componentMap = new HashMap<String, ViewEntry>();
+//  private HashMap<String, ViewEntry> componentMap = new HashMap<String, ViewEntry>();
 
   /**
    * Maps the resource ID of a layout to the name of the layout file. This information is read from the R.java
@@ -88,12 +107,12 @@ public class JPF_android_content_res_Resources {
     Scanner scanner = new Scanner(is);
     while (scanner != null && scanner.hasNextLine()) {
       nextLine = scanner.nextLine().trim();
-      if (nextLine.equals(ID_HEADER)) {
-        parseViews(scanner);
-      }
-      if (nextLine.equals(LAYOUT_HEADER)) {
-        parseLayouts(scanner);
-      }
+//      if (nextLine.equals(ID_HEADER)) {
+//        parseViews(scanner);
+//      }
+//      if (nextLine.equals(LAYOUT_HEADER)) {
+//        parseLayouts(scanner);
+//      }
       if (nextLine.equals(STRING_HEADER)) {
         parseStrings(scanner);
       }
@@ -119,48 +138,48 @@ public class JPF_android_content_res_Resources {
 
   }
 
-  private void parseLayouts(Scanner scanner) {
-    String next = "";
-    String[] list;
-    ViewEntry c;
-    while (scanner.hasNextLine()) {
-      next = scanner.nextLine().trim();
-      if (next.equals(FOOTER))
-        break;
-      list = getFields(next);
-      c = new ViewEntry();
-      c.setId(Integer.parseInt(list[1].substring(2), 16));
-      c.setName(list[0]);
-      layoutMap.put(c.getId(), c.getName());
-    }
-
-  }
-
-  private void parseViews(Scanner scanner) {
-    String next = "";
-    String[] list;
-    ViewEntry c;
-    while (scanner.hasNextLine()) {
-      next = scanner.nextLine().trim();
-      if (next.equals(FOOTER))
-        break;
-      list = getFields(next);
-      c = new ViewEntry();
-
-      c.setId(Integer.parseInt(list[1].substring(2), 16));
-      c.setName(list[0]);
-      componentMap.put("$" + list[0], c);
-      // System.out.println("insertign in map " + c.getId() + " "
-      // + c.getName());
-
-    }
-    // TODO Add window to the componentMap to catch window events
-    c = new ViewEntry();
-    c.setId(0);
-    c.setName("window");
-    componentMap.put("$" + c.getName(), c);
-
-  }
+//  private void parseLayouts(Scanner scanner) {
+//    String next = "";
+//    String[] list;
+//    ViewEntry c;
+//    while (scanner.hasNextLine()) {
+//      next = scanner.nextLine().trim();
+//      if (next.equals(FOOTER))
+//        break;
+//      list = getFields(next);
+//      c = new ViewEntry();
+//      c.setId(Integer.parseInt(list[1].substring(2), 16));
+//      c.setName(list[0]);
+//      layoutMap.put(c.getId(), c.getName());
+//    }
+//
+//  }
+//
+//  private void parseViews(Scanner scanner) {
+//    String next = "";
+//    String[] list;
+//    ViewEntry c;
+//    while (scanner.hasNextLine()) {
+//      next = scanner.nextLine().trim();
+//      if (next.equals(FOOTER))
+//        break;
+//      list = getFields(next);
+//      c = new ViewEntry();
+//
+//      c.setId(Integer.parseInt(list[1].substring(2), 16));
+//      c.setName(list[0]);
+//      componentMap.put("$" + list[0], c);
+//      // System.out.println("insertign in map " + c.getId() + " "
+//      // + c.getName());
+//
+//    }
+//    // TODO Add window to the componentMap to catch window events
+//    c = new ViewEntry();
+//    c.setId(0);
+//    c.setName("window");
+//    componentMap.put("$" + c.getName(), c);
+//
+//  }
 
   /**
    * Returns the NAME and ID of an object given its declaration.
