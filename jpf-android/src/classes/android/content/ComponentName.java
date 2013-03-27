@@ -16,7 +16,6 @@
 
 package android.content;
 
-import android.os.Parcel;
 
 /**
  * Identifier for a specific application component ({@link android.app.Activity}, {@link android.app.Service},
@@ -99,6 +98,20 @@ public class ComponentName {
   }
 
   /**
+   * Set the package name of this component.
+   */
+  public void setPackageName(String name) {
+    mPackage = name;
+  }
+
+  /**
+   * Set the class name of this component.
+   */
+  public void setClassName(String name) {
+    mClass = name;
+  }
+
+  /**
    * Return the class name, either fully qualified or in a shortened form (with a leading '.') if it is a
    * suffix of the package.
    */
@@ -137,7 +150,7 @@ public class ComponentName {
    * @see #unflattenFromString(String)
    */
   public String flattenToShortString() {
-    return mPackage + "." + getShortClassName();
+    return mPackage + "/" + getShortClassName();
   }
 
   /**
@@ -281,8 +294,8 @@ public class ComponentName {
   // throw new NullPointerException("class name is null");
   // }
 
-  private ComponentName(String pkg, Parcel in) {
-    mPackage = pkg;
-    mClass = in.readString();
-  }
+//  private ComponentName(String pkg, Parcel in) {
+//    mPackage = pkg;
+//    mClass = in.readString();
+//  }
 }
