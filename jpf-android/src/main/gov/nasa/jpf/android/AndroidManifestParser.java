@@ -1,3 +1,22 @@
+//
+// Copyright (C) 2006 United States Government as represented by the
+// Administrator of the National Aeronautics and Space Administration
+// (NASA).  All Rights Reserved.
+//
+// This software is distributed under the NASA Open Source Agreement
+// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
+// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// directory tree for the complete NOSA document.
+//
+// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
+// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
+// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
+// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
+// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
+// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
+//
+
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
@@ -25,6 +44,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageItemInfo;
+import android.content.pm.PermissionInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 
@@ -35,6 +55,11 @@ import android.content.pm.ServiceInfo;
  * 
  * @author Heila van der Merwe
  * 
+ * 
+ *         TODO:
+ * 
+ *         - parse permissions - check filters - add further properties as needed for Activity, Service and
+ *         Content Provider
  */
 public class AndroidManifestParser extends DefaultHandler {
   private static final JPFLogger logger = JPF.getLogger("gov.nasa.jpf.android.AndroidManifestParser");
@@ -42,24 +67,26 @@ public class AndroidManifestParser extends DefaultHandler {
   private static AndroidManifestParser parser = null;
 
   /** Contains the base packageInfo of the application */
-  private PackageInfo packageInfo = new PackageInfo();
+  private PackageInfo packageInfo;
   /** Temporary stores the current component to populate */
-  private PackageItemInfo componentTemp = new PackageItemInfo();
+  private PackageItemInfo componentTemp;
   /** Temporary stores the current IntentFilter to populate */
-  private IntentFilter filterTemp = new IntentFilter();
+  private IntentFilter filterTemp;
 
   /**
    * Temporary stores the list of Activities. As we do not know how many Activities are defined in the
    * Manifest we store them in an expandable ArrayList and afterwards copy them into PackageInfo's activities
    * field.
    */
-  private ArrayList<ActivityInfo> activities = new ArrayList<ActivityInfo>();
-  private ArrayList<ServiceInfo> services = new ArrayList<ServiceInfo>();
-  private ArrayList<ProviderInfo> providers = new ArrayList<ProviderInfo>();
-  private ArrayList<ActivityInfo> receivers = new ArrayList<ActivityInfo>();
+  private ArrayList<ActivityInfo> activities;
+  private ArrayList<ServiceInfo> services;
+  private ArrayList<ProviderInfo> providers;
+  private ArrayList<ActivityInfo> receivers;
+
+  private ArrayList<PermissionInfo> permissions;
 
   /** List of Filters by component */
-  private Map<PackageItemInfo, List<IntentFilter>> filterMap = new HashMap<PackageItemInfo, List<IntentFilter>>();
+  private Map<PackageItemInfo, List<IntentFilter>> filterMap;
 
   private AndroidManifestParser() {
     // this is a singleton class
@@ -71,40 +98,38 @@ public class AndroidManifestParser extends DefaultHandler {
     return parser;
   }
 
-  protected void parseFile(String filename) {
+  protected void parseFile(String filename) throws SAXException, ParserConfigurationException, IOException {
+    packageInfo = new PackageInfo();
+    componentTemp = new PackageItemInfo();
+    filterTemp = new IntentFilter();
+
+    activities = new ArrayList<ActivityInfo>();
+    services = new ArrayList<ServiceInfo>();
+    providers = new ArrayList<ProviderInfo>();
+    receivers = new ArrayList<ActivityInfo>();
+    filterMap = new HashMap<PackageItemInfo, List<IntentFilter>>();
     SAXParserFactory factory = SAXParserFactory.newInstance();
-    try {
-      SAXParser parser = factory.newSAXParser();
-      parser.parse(filename, this);
-      parseSuccessful();
-    } catch (ParserConfigurationException e) {
-      logger.severe("ParserConfig error");
-    } catch (SAXException e) {
-      logger.severe("SAXException : xml not well formed");
-    } catch (IOException e) {
-      logger.severe("IO error");
-    } catch (Exception e) {
-      logger.severe("Error parsing manifest:" + e);
-    }
+    SAXParser parser = factory.newSAXParser();
+    parser.parse(filename, this);
+    parseSuccessful();
 
   }
 
-  protected void parseStream(InputStream is) {
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    try {
-      SAXParser parser = factory.newSAXParser();
-      parser.parse(is, this);
-      parseSuccessful();
-    } catch (ParserConfigurationException e) {
-      logger.severe("ParserConfig error");
-    } catch (SAXException e) {
-      logger.severe("SAXException : xml not well formed");
-    } catch (IOException e) {
-      logger.severe("IO error");
-    } catch (Exception e) {
-      logger.severe("Error parsing manifest:" + e);
-    }
+  protected void parseStream(InputStream is) throws SAXException, ParserConfigurationException, IOException {
+    packageInfo = new PackageInfo();
+    componentTemp = new PackageItemInfo();
+    filterTemp = new IntentFilter();
 
+    activities = new ArrayList<ActivityInfo>();
+    services = new ArrayList<ServiceInfo>();
+    providers = new ArrayList<ProviderInfo>();
+    receivers = new ArrayList<ActivityInfo>();
+    filterMap = new HashMap<PackageItemInfo, List<IntentFilter>>();
+
+    SAXParserFactory factory = SAXParserFactory.newInstance();
+    SAXParser parser = factory.newSAXParser();
+    parser.parse(is, this);
+    parseSuccessful();
   }
 
   /**
@@ -125,6 +150,9 @@ public class AndroidManifestParser extends DefaultHandler {
     packageInfo.receivers = new ActivityInfo[receivers.size()];
     receivers.toArray(packageInfo.receivers);
 
+    for (ActivityInfo a : packageInfo.activities) {
+      logger.info(a.name + a.packageName + a.processName);
+    }
   }
 
   @Override
@@ -132,25 +160,22 @@ public class AndroidManifestParser extends DefaultHandler {
       throws SAXException {
 
     if (elementName.equalsIgnoreCase("manifest")) {
-      packageInfo.packageName = attributes.getValue("package");
+      packageInfo.packageName = parseString(attributes.getValue("package"), "", true);
     }
     if (elementName.equalsIgnoreCase("application")) {
       parseApplication(attributes);
     }
     if (elementName.equalsIgnoreCase("activity")) {
-      componentTemp = new ActivityInfo();
-      parseName(attributes);
+      parseActivity(attributes);
     }
     if (elementName.equalsIgnoreCase("service")) {
-      componentTemp = new ServiceInfo();
-      parseName(attributes);
+      parseService(attributes);
     }
     if (elementName.equalsIgnoreCase("receiver")) {
       parseReceiver(attributes);
     }
     if (elementName.equalsIgnoreCase("provider")) {
-      componentTemp = new ProviderInfo();
-      parseName(attributes);
+      parseProvider(attributes);
     }
     if (elementName.equalsIgnoreCase("intent-filter")) {
       parseIntentFilter(attributes);
@@ -185,6 +210,7 @@ public class AndroidManifestParser extends DefaultHandler {
       receivers.add((ActivityInfo) componentTemp);
     }
     if (element.equalsIgnoreCase("application")) {
+      packageInfo.applicationInfo.packageName = packageInfo.packageName;
     }
     if (element.equalsIgnoreCase("intent-filter")) {
       List<IntentFilter> filters = filterMap.get(componentTemp);
@@ -199,21 +225,125 @@ public class AndroidManifestParser extends DefaultHandler {
   protected void parseApplication(Attributes attributes) throws InvalidManifestException {
     packageInfo.applicationInfo = new ApplicationInfo();
     String name = parseString(attributes.getValue("android:name"), "", false);
-    String packageName = "";
-    if (name != null && name.length() > 0) {
-      if (name.startsWith(".")) {
-        name = name.substring(1);
-      }
-      String[] nameArr = name.split("\\.");
-      if (nameArr.length > 1) { // packageName included in name
-        packageName = name.substring(0, name.lastIndexOf("."));
-      } else {
-        packageName = packageInfo.packageName;
-      }
-      packageInfo.applicationInfo.name = packageName + nameArr[nameArr.length - 1]; // get the string after
-                                                                                    // the last "."
-    } else
-      packageInfo.applicationInfo.name = null;
+    // String packageName = "";
+    // if (name != null && name.length() > 0) {
+    // if (name.startsWith(".")) {
+    // name = name.substring(1);
+    // }
+    // String[] nameArr = name.split("\\.");
+    // if (nameArr.length > 1) { // packageName included in name
+    // packageName = name.substring(0, name.lastIndexOf("."));
+    // } else {
+    // packageName = packageInfo.packageName;
+    // }
+    // packageInfo.applicationInfo.name = packageName + nameArr[nameArr.length - 1]; // get the string after
+    // // the last "."
+    // } else
+    packageInfo.applicationInfo.name = name;
+    packageInfo.applicationInfo.packageName = packageInfo.packageName;
+  }
+
+  /**
+   * Parses an Activity Tag:
+   * 
+   * <pre class="prettyprint">
+   * &ltactivity android:allowTaskReparenting=["true" | "false"]
+   *           android:alwaysRetainTaskState=["true" | "false"]
+   *           android:clearTaskOnLaunch=["true" | "false"]
+   *           android:configChanges=["mcc", "mnc", "locale",
+   *                                  "touchscreen", "keyboard", "keyboardHidden",
+   *                                  "navigation", "screenLayout", "fontScale", "uiMode",
+   *                                  "orientation", "screenSize", "smallestScreenSize"]
+   *           android:enabled=["true" | "false"]
+   *           android:excludeFromRecents=["true" | "false"]
+   *           android:exported=["true" | "false"]
+   *           android:finishOnTaskLaunch=["true" | "false"]
+   *           android:hardwareAccelerated=["true" | "false"]
+   *           android:icon="drawable resource"
+   *           android:label="string resource"
+   *           android:launchMode=["multiple" | "singleTop" |
+   *                               "singleTask" | "singleInstance"]
+   *           android:multiprocess=["true" | "false"]
+   *           android:name="string"
+   *           android:noHistory=["true" | "false"]  
+   *           android:parentActivityName="string" 
+   *           android:permission="string"
+   *           android:process="string"
+   *           android:screenOrientation=["unspecified" | "user" | "behind" |
+   *                                      "landscape" | "portrait" |
+   *                                      "reverseLandscape" | "reversePortrait" |
+   *                                      "sensorLandscape" | "sensorPortrait" |
+   *                                      "sensor" | "fullSensor" | "nosensor"]
+   *           android:stateNotNeeded=["true" | "false"]
+   *           android:taskAffinity="string"
+   *           android:theme="resource or theme"
+   *           android:uiOptions=["none" | "splitActionBarWhenNarrow"]
+   *           android:windowSoftInputMode=["stateUnspecified",
+   *                                        "stateUnchanged", "stateHidden",
+   *                                        "stateAlwaysHidden", "stateVisible",
+   *                                        "stateAlwaysVisible", "adjustUnspecified",
+   *                                        "adjustResize", "adjustPan"] &gt
+   * </pre>
+   * 
+   * contained in:
+   * 
+   * <pre class="prettyprint">
+   * &ltapplication&gt
+   * </pre>
+   * 
+   * can contain:
+   * 
+   * <pre class="prettyprint">
+   * &ltintent-filter&gt
+   * &ltmeta-data&gt
+   * </pre>
+   * 
+   * @param attributes
+   * @throws InvalidManifestException
+   */
+  protected void parseActivity(Attributes attributes) throws InvalidManifestException {
+    componentTemp = new ActivityInfo();
+    parseName(attributes);
+  }
+
+  /**
+   * Parses an Service Tag:
+   * 
+   * <pre class="prettyprint">
+   * &lt;service android:enabled=["true" | "false"] 
+   *          android:exported=["true" | "false"]
+   *          android:icon="drawable resource"
+   *          android:isolatedProcess=["true" | "false"]
+   *          android:label="string resource"
+   *          android:name="string"
+   *          android:permission="string"
+   *          android:process="string" &gt
+   * </pre>
+   * 
+   * contained in:
+   * 
+   * <pre class="prettyprint">
+   * &ltapplication&gt
+   * </pre>
+   * 
+   * can contain:
+   * 
+   * <pre class="prettyprint">
+   * &ltintent-filter&gt
+   * &ltmeta-data&gt
+   * </pre>
+   * 
+   * @param attributes
+   * @throws InvalidManifestException
+   */
+  protected void parseService(Attributes attributes) throws InvalidManifestException {
+    componentTemp = new ServiceInfo();
+    parseName(attributes);
+  }
+
+  protected void parseProvider(Attributes attributes) throws InvalidManifestException {
+    componentTemp = new ProviderInfo();
+    parseName(attributes);
   }
 
   /**
@@ -336,18 +466,20 @@ public class AndroidManifestParser extends DefaultHandler {
    * @throws InvalidManifestException
    */
   protected void parseName(Attributes attributes) throws InvalidManifestException {
-    componentTemp.name = parseString(attributes.getValue("android:name"), "", true);
+    String tempName = parseString(attributes.getValue("android:name"), "", true);
 
-    if (componentTemp.name.startsWith(".")) {
-      componentTemp.name = componentTemp.name.substring(1);
-    }
-    String[] name = componentTemp.name.split("\\.");
-    if (name.length > 1) { // packageName included in name
-      componentTemp.packageName = componentTemp.name.substring(0, componentTemp.name.lastIndexOf("."));
-    } else {
-      componentTemp.packageName = packageInfo.packageName;
-    }
-    componentTemp.name = name[name.length - 1]; // get the string after the last "."
+    // if (tempName.startsWith(".")) {
+    // tempName = tempName.substring(1);
+    // }
+    // String[] name = tempName.split("\\.");
+    // if (name.length > 1) { // packageName included in name
+    // componentTemp.packageName = tempName.substring(0, tempName.lastIndexOf("."));
+    // } else {
+    // componentTemp.packageName = packageInfo.packageName;
+    // }
+    // componentTemp.name = name[name.length - 1]; // get the string after the last "."
+    componentTemp.name = tempName;
+    componentTemp.packageName = packageInfo.packageName;
   }
 
   /**
@@ -470,15 +602,17 @@ public class AndroidManifestParser extends DefaultHandler {
   }
 
   /**
+   * Returns the PackageInfo object containing the information in the AndroidManifest.xml file
    * 
-   * @return
+   * @return a PackageInfo object
    */
   public PackageInfo getPackageInfo() {
     return packageInfo;
   }
 
   /**
-   * Returns the list of filters as 
+   * Returns a map of filters as defined in the Android ManifestFile.
+   * 
    * @return
    */
   protected Map<PackageItemInfo, List<IntentFilter>> getFilters() {
@@ -492,6 +626,7 @@ public class AndroidManifestParser extends DefaultHandler {
    * 
    */
   public class InvalidManifestException extends SAXException {
+    private static final long serialVersionUID = 7988578359042835572L;
 
     public InvalidManifestException(String message) {
       super(message);

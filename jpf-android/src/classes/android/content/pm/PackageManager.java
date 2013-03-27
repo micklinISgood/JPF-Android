@@ -35,9 +35,21 @@ import android.util.AndroidException;
  * Class for retrieving various kinds of information related to the application packages that are currently
  * installed on the device.
  * 
- * You can find this class through {@link Context#getPackageManager}.
+ * You can find this class through Context.getPackageManager()
  */
 public class PackageManager {
+
+  /**
+   * This exception is thrown when a given package, application, or component name can not be found.
+   */
+  public static class NameNotFoundException extends AndroidException {
+    public NameNotFoundException() {
+    }
+
+    public NameNotFoundException(String name) {
+      super(name);
+    }
+  }
 
   public PackageInfo packageInfo;
 
@@ -51,18 +63,6 @@ public class PackageManager {
    * @param manifestxml
    */
   public PackageManager(String manifestxml) {
-  }
-
-  /**
-   * This exception is thrown when a given package, application, or component name can not be found.
-   */
-  public static class NameNotFoundException extends AndroidException {
-    public NameNotFoundException() {
-    }
-
-    public NameNotFoundException(String name) {
-      super(name);
-    }
   }
 
   /**
@@ -1102,6 +1102,10 @@ public class PackageManager {
     return packageInfo;
   }
 
+  public PackageInfo getPackageInfo() {
+    return packageInfo;
+  }
+
   /**
    * Map from the current package names in use on the device to whatever the current canonical name of that
    * package is.
@@ -1258,6 +1262,10 @@ public class PackageManager {
    * @see #GET_UNINSTALLED_PACKAGES
    */
   public ApplicationInfo getApplicationInfo(String packageName, int flags) throws NameNotFoundException {
+    return packageInfo.applicationInfo;
+  }
+
+  public ApplicationInfo getApplicationInfo(String packageName) {
     return packageInfo.applicationInfo;
   }
 
@@ -2724,4 +2732,5 @@ public class PackageManager {
   public VerifierDeviceIdentity getVerifierDeviceIdentity() {
     throw new UnsupportedOperationException();
   }
+
 }

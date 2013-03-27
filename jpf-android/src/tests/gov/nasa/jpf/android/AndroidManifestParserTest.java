@@ -4,12 +4,12 @@ import gov.nasa.jpf.android.AndroidManifestParser.InvalidManifestException;
 import gov.nasa.jpf.util.test.TestJPF;
 
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 
 import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 public class AndroidManifestParserTest extends TestJPF {
@@ -20,26 +20,104 @@ public class AndroidManifestParserTest extends TestJPF {
   public void setUp() {
     parser = AndroidManifestParser.getInstance();
   }
-  
-  
-  
-  
-  
+
+  /* *********************** Component tests ******************************* */
 
   @Test
-  public void testParsePackageInfo() {
+  public void testParseActivity() {
+    String pPackageName = "za.vdm.android.testapp";
+    String s = "<manifest package=\"" + pPackageName + "\" >" + "<application>"
+        + "<activity android:name=\"Activity1\"></activity>"
+        + "<activity android:name=\"com.vdm.Activity2\"></activity>" + "</application>" + "</manifest>";
+
+    try {
+      parser.parseStream(new ByteArrayInputStream(s.getBytes("UTF-8")));
+    } catch (Exception e) {
+    }
+
+    Assert.assertEquals(2, parser.getPackageInfo().activities.length);
+    Assert.assertEquals("Activity1", parser.getPackageInfo().activities[0].name);
+    Assert.assertEquals("Activity2", parser.getPackageInfo().activities[1].name);
+  }
+
+  @Test
+  public void testParseActivityWithoutName() {
+    String pPackageName = "za.vdm.android.testapp";
+    String s = "<manifest package=\"" + pPackageName + "\" >" + "<application>"
+        + "<activity android:name=\"Activity1\"></activity>" + "<activity></activity>" + "</application>"
+        + "</manifest>";
+
+    try {
+      parser.parseStream(new ByteArrayInputStream(s.getBytes("UTF-8")));
+    } catch (SAXException e) {
+      Assert.assertTrue(true);
+      return;
+    } catch (Exception e) {
+    }
+
+    Assert.fail("Required Activity Name atrtibute not specified.");
+
+  }
+
+  @Test
+  public void testParseService() {
+    // TODO
+  }
+
+  @Test
+  public void testParseProvider() {
+    // TODO
+  }
+
+  @Test
+  public void testParseReceiver() {
+    // TODO
+  }
+
+  @Test
+  public void testParseApplication() {
+    // TODO
+  }
+
+  @Test
+  public void testParseIntentFilter() {
+    // TODO
+  }
+
+  @Test
+  public void testParseData() {
+    // TODO
+  }
+
+  @Test
+  public void testParseAction() {
+    // TODO
+  }
+
+  @Test
+  public void testParseCategory() {
+    // TODO
+  }
+
+  /**
+   * Tests that the name of the package of the application is polulated correctly into the packageinfo.
+   */
+  @Test
+  public void testParseManifest() {
     String pPackageName = "za.vdm.android.testapp";
     String s = "<manifest package=\"" + pPackageName + "\" >" + "<application></application></manifest>";
 
     try {
       parser.parseStream(new ByteArrayInputStream(s.getBytes("UTF-8")));
-    } catch (UnsupportedEncodingException e) {
+    } catch (Exception e) {
+      Assert.fail();
     }
 
     Assert.assertEquals(pPackageName, parser.getPackageInfo().packageName);
   }
 
-  
+  /* *********************** Other tests ******************************* */
+
   /**
    * Tests that a name without a package prefix is parsed correctly for example "Activity1"
    */

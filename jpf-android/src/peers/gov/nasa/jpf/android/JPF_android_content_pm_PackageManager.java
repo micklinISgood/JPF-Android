@@ -23,10 +23,8 @@ import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.util.JPFLogger;
-import gov.nasa.jpf.util.ObjectConverter;
 
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -37,8 +35,9 @@ import android.content.pm.PackageItemInfo;
 /**
  * Responsible for parsing and setting up Package information that is used by PackageManager.
  * 
- * @author Heila van der Merwe
+ * TODO: - Bring Filters over as well or provide call back for resolving components natively.
  * 
+ * @author Heila van der Merwe
  */
 public class JPF_android_content_pm_PackageManager {
   private static final JPFLogger logger = JPF.getLogger("JPF_android_content_pm_PackageManager");
@@ -66,45 +65,61 @@ public class JPF_android_content_pm_PackageManager {
       String path = conf.getString("path");
       if (path == null || path.length() == 0) {
         logger
-            .severe("Path configuation variable was empty. Please add the project location in the config.jpf file. For example: \"path=path/to/project/ExampleProject/\" ");
+            .severe("Path configuation variable was empty. Please add the project location in the config.jpf file. For example: \"path=path/to/sut/ExampleProject/\" ");
         return;
       } else if (path.endsWith("/")) {
         path += "AndroidManifest.xml";
       } else {
         path += "/AndroidManifest.xml";
       }
-      parser.parseFile(path);
-      packageInfo = parser.getPackageInfo();
-      filterMap = parser.getFilters();
+      try {
+        parser.parseFile(path);
+        packageInfo = parser.getPackageInfo();
+      } catch (Exception e) {
+        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
+        packageInfo = null;
+      }
     }
     // If we have reached this point the package has been parsed and we need to populate the PackagManager on
     // the JPF side
-    int packageRef = ObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
-    env.setReferenceField(robj, "packageInfo", packageRef);
+    if (packageInfo != null) {
+      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
+      if (packageInfo != null && AndroidObjectConverter.finished) {
+        env.setReferenceField(robj, "packageInfo", packageRef);
+      }
+    }
   }
 
   /**
-   * Intercept Constructore used during testing. The constructor is proided with an XML string that contains
+   * Intercept constructor used during testing. The constructor is provided with an XML string that contains
    * the contents of the AndroidManifestFile.
    * 
    * @param env
    * @param robj
    * @param ref
    *          a String containing the AndroidManifest contents as a XML string.
+   * @throws Exception
    */
   public static void $init__Ljava_lang_String_2__V(MJIEnv env, int robj, int ref) {
     ThreadInfo ti = env.getThreadInfo();
     if (!ti.hasReturnedFromDirectCall("[clinit]")) {
+      parser = AndroidManifestParser.getInstance();
       try {
         parser.parseStream(new ByteArrayInputStream(env.getStringObject(ref).getBytes("UTF-8")));
-      } catch (UnsupportedEncodingException e) {
+        packageInfo = parser.getPackageInfo();
+      } catch (Exception e) {
+        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
+        packageInfo = null;
       }
-
-      packageInfo = parser.getPackageInfo();
-      // if we have reached this point the package has been parsed and we need to populate the packageInfo
     }
-    int packageRef = ObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
-    env.setReferenceField(robj, "packageInfo", packageRef);
+    // If we have reached this point the package has been parsed and we need to populate the PackagManager on
+    // the JPF side
+    if (packageInfo != null) {
+      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
+      if (packageInfo != null && AndroidObjectConverter.finished) {
+        env.setReferenceField(robj, "packageInfo", packageRef);
+      }
+    }
   }
 
   public static String getPackageName() {
