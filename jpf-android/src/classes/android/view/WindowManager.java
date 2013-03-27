@@ -5,7 +5,11 @@ public class WindowManager {
 
   public static Window currentWindow = null;
 
-  public native static void init0();
+  public WindowManager() {
+    init0();
+  }
+
+  public static native void init0();
 
   public static void setWindow(Window window) {
     System.out.println("Changing from Window " + currentWindow + " to  " + window);
