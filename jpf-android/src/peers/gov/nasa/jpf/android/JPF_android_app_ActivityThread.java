@@ -19,10 +19,7 @@
 
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
-
-import java.util.logging.Logger;
 
 /**
  * Native counterpart of the ActivityThread model. This is only used to lookup the current Activity from the
@@ -37,10 +34,15 @@ import java.util.logging.Logger;
  * 
  */
 public class JPF_android_app_ActivityThread {
-  static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
   static int activityThreadRef = -1;
 
+  /**
+   * Intercept default constructor and initialize package information.
+   * 
+   * @param env
+   * @param robj
+   */
   public static void init0(MJIEnv env, int objectRef) {
     activityThreadRef = objectRef;
   }
