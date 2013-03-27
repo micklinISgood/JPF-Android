@@ -580,29 +580,29 @@ public class Instrumentation {
     return null;
   }
 
-  /* package */static void checkStartActivityResult(int res, Object intent) {
-    if (res >= IActivityManager.START_SUCCESS) {
-      return;
-    }
-
-    switch (res) {
-    case IActivityManager.START_INTENT_NOT_RESOLVED:
-    case IActivityManager.START_CLASS_NOT_FOUND:
-      if (intent instanceof Intent && ((Intent) intent).getComponent() != null)
-        throw new ActivityNotFoundException("Unable to find explicit activity class "
-            + ((Intent) intent).getComponent()
-            + "; have you declared this activity in your AndroidManifest.xml?");
-      throw new ActivityNotFoundException("No Activity found to handle " + intent);
-    case IActivityManager.START_PERMISSION_DENIED:
-      throw new SecurityException("Not allowed to start activity " + intent);
-    case IActivityManager.START_FORWARD_AND_REQUEST_CONFLICT:
-      throw new AndroidRuntimeException("FORWARD_RESULT_FLAG used while also requesting a result");
-    case IActivityManager.START_NOT_ACTIVITY:
-      throw new IllegalArgumentException("PendingIntent is not an activity");
-    default:
-      throw new AndroidRuntimeException("Unknown error code " + res + " when starting " + intent);
-    }
-  }
+  // /* package */static void checkStartActivityResult(int res, Object intent) {
+  // if (res >= IActivityManager.START_SUCCESS) {
+  // return;
+  // }
+  //
+  // switch (res) {
+  // case IActivityManager.START_INTENT_NOT_RESOLVED:
+  // case IActivityManager.START_CLASS_NOT_FOUND:
+  // if (intent instanceof Intent && ((Intent) intent).getComponent() != null)
+  // throw new ActivityNotFoundException("Unable to find explicit activity class "
+  // + ((Intent) intent).getComponent()
+  // + "; have you declared this activity in your AndroidManifest.xml?");
+  // throw new ActivityNotFoundException("No Activity found to handle " + intent);
+  // case IActivityManager.START_PERMISSION_DENIED:
+  // throw new SecurityException("Not allowed to start activity " + intent);
+  // case IActivityManager.START_FORWARD_AND_REQUEST_CONFLICT:
+  // throw new AndroidRuntimeException("FORWARD_RESULT_FLAG used while also requesting a result");
+  // case IActivityManager.START_NOT_ACTIVITY:
+  // throw new IllegalArgumentException("PendingIntent is not an activity");
+  // default:
+  // throw new AndroidRuntimeException("Unknown error code " + res + " when starting " + intent);
+  // }
+  // }
 
   private final void validateNotAppThread() {
     if (ActivityThread.currentActivityThread() != null) {

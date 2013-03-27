@@ -279,7 +279,8 @@ public final class Configuration {// implements Parcelable, Comparable<Configura
    * Makes a deep copy suitable for modification.
    */
   public Configuration(Configuration o) {
-    setTo(o);
+    if (o != null)
+      setTo(o);
   }
 
   public void setTo(Configuration o) {
