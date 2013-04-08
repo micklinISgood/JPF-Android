@@ -1,11 +1,9 @@
 build.properties
 nbproject/private/*
 build/*
-lib/*
 dist/*
 *.class
 .version
 activity*.png
 *~
 *.DS_Store
-/lib

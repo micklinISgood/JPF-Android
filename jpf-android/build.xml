@@ -36,7 +36,7 @@
 		<pathelement location="build/main" />
 		<pathelement location="build/peers" />
 		<!-- add in what we need from the core -->
-		<pathelement location="lib/android/" />
+		<pathelement location="lib/android.jar" />
 		<pathelement path="${jpf-core.native_classpath}" />
 
 	</path>
@@ -135,9 +135,9 @@
 			includeantruntime="false" debug="${debug}" source="${src_level}"
 			deprecation="${deprecation}" includes="*,gov/nasa/jpf/**">
 			<classpath>
-				<path refid="lib.path" />
 				<pathelement location="build/annotations" />
 				<pathelement location="build/classes" />
+				<path refid="lib.path" />
 			</classpath>
 		</javac>
 	</target>
