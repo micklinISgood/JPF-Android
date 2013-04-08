@@ -11,8 +11,6 @@ import android.widget.Button;
 
 public class SampleProjectActivity extends Activity {
 
-  int i = 0;
-
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -23,61 +21,44 @@ public class SampleProjectActivity extends Activity {
     // System.out.println("Retained resource");
     // }
 
-    System.out.println("1 onCreate");
+    System.out.println("1 onCreate() " + toString());
 
-    Button b1 = (Button) findViewById(R.id.buttonText1);
-
+    Button b1 = (Button) findViewById(R.id.buttonPrintHallo);
     b1.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Printing text 1 :" + i);
+        System.out.println("1 Printing Hallo");
       }
     });
 
-    Button b11 = (Button) findViewById(R.id.buttonText2);
-
-    b11.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        i++;
-        System.out.println("Printing text 2: " + i);
-      }
-    });
-
-    Button b111 = (Button) findViewById(R.id.buttonText3);
-
+    // start Actvitiy for result
+    Button b111 = (Button) findViewById(R.id.buttonResult);
     b111.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Printing text 3: " + i);
-        startActivityForResult(new Intent(SampleProjectActivity.this, com.example.com.ResultActivity.class),
-            1);
+        System.out.println("1 Start for result");
+        startActivityForResult(new Intent(SampleProjectActivity.this,
+            com.example.vdm.SampleProjectActivity.class), 1);
       }
     });
 
-    final Button b3 = (Button) findViewById(R.id.buttonPrint3);
-    final Button b4 = (Button) findViewById(R.id.buttonPrint4);
-
-    Button b2 = (Button) findViewById(R.id.buttonPrint2);
+    Button b2 = (Button) findViewById(R.id.buttonStart);
     b2.setOnClickListener(new OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Button 2 Clicked!!! " + i);
+        System.out.println("1 Starting");
         Intent i = new Intent(SampleProjectActivity.this, com.example.vdm.SampleProjectActivity.class);
         startActivity(i);
       }
     });
 
+    final Button b3 = (Button) findViewById(R.id.buttonStartBundle);
     b3.setOnClickListener(new OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Button 3 Clicked!!! " + i);
+        System.out.println("1 Start with bundle");
         Intent i = new Intent(SampleProjectActivity.this, com.example.vdm.SampleProjectActivity.class);
 
         // Create the bundle
@@ -95,14 +76,13 @@ public class SampleProjectActivity extends Activity {
       }
     });
 
+    final Button b4 = (Button) findViewById(R.id.buttonStartList);
     b4.setOnClickListener(new OnClickListener() {
 
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Button 4 Clicked!!! " + i);
+        System.out.println("1 Start List");
         Intent i = new Intent(SampleProjectActivity.this, com.example.com.MylistView.class);
-
         startActivity(i);
       }
     });
@@ -128,7 +108,7 @@ public class SampleProjectActivity extends Activity {
   @Override
   protected void onStart() {
     super.onStart();
-    System.out.println("1 onStart()");
+    System.out.println("1 onStart()" + toString());
 
   }
 
@@ -198,8 +178,7 @@ public class SampleProjectActivity extends Activity {
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    System.out.println("1  onActivityResult() = " + requestCode + " " + resultCode + " "
-        + data.getExtras().getBoolean("hallo"));
+    System.out.println("1  onActivityResult() = " + requestCode + " " + resultCode);
     super.onActivityResult(requestCode, resultCode, data);
   }
 
@@ -219,8 +198,9 @@ public class SampleProjectActivity extends Activity {
    * The main entry point to the application
    * 
    * @param args
+   * @throws Exception 
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     ActivityThread.main(null);
   }
 

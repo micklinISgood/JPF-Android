@@ -5,37 +5,32 @@
     android:orientation="vertical" >
 
     <Button
-        android:id="@+id/buttonText1"
+        android:id="@+id/buttonPrintHallo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Print &apos;Hallo&apos;" />
 
     <Button
-        android:id="@+id/buttonText2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Print text2" />
-
-    <Button
-        android:id="@+id/buttonText3"
+        android:id="@+id/buttonResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="StartForResult" />
 
     <Button
-        android:id="@+id/buttonPrint2"
+        android:id="@+id/buttonStart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Activity2 without Bundle" />
 
     <Button
-        android:id="@+id/buttonPrint3"
+        android:id="@+id/buttonStartBundle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Activity2 with Bundle" />
 
+
     <Button
-        android:id="@+id/buttonPrint4"
+        android:id="@+id/buttonStartList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start ListActivity" />

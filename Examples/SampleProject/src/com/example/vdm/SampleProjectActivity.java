@@ -12,7 +12,6 @@ import android.widget.TextView;
 import com.example.com.R;
 
 public class SampleProjectActivity extends Activity {
-  int i = 0;
 
   /** Called when the activity is first created. */
   @Override
@@ -40,11 +39,7 @@ public class SampleProjectActivity extends Activity {
 
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Button 1 Clicked!!!" + i);
-        // Intent i = new Intent(SampleProjectActivity.this,
-        // com.example.vdm.SampleProjectActivity.class);
-        // startActivity(i);
+        System.out.println("Button Enabled Clicked!!!");
         b2.setEnabled(true);
       }
     });
@@ -54,18 +49,21 @@ public class SampleProjectActivity extends Activity {
 
       @Override
       public void onClick(View v) {
-        i++;
-        System.out.println("Button 2 Clicked!!!" + i);
+        System.out.println("Button start Clicked!!!");
         Intent i = new Intent(SampleProjectActivity.this, com.example.com.SampleProjectActivity.class);
         startActivity(i);
       }
     });
+
+    Intent t = new Intent();
+    t.putExtra("hallo", true);
+    setResult(RESULT_OK, t);
   }
 
   @Override
   protected void onStart() {
     super.onStart();
-    System.out.println("2 onStart()");
+    System.out.println("2 onStart()" + toString());
 
   }
 
@@ -151,12 +149,4 @@ public class SampleProjectActivity extends Activity {
     super.finish();
   }
 
-  /**
-   * The main entry point to the application
-   * 
-   * @param args
-   */
-  public static void main(String[] args) {
-    // ActivityThread.main(null);
-  }
 }

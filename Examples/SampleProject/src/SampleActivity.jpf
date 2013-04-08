@@ -17,3 +17,5 @@ vm.halt_on_throw=java.lang.NullPointerException
 report.console.property_violation=error,snapshot
 
 
+# Windows seem to have a different default
+log.level=info

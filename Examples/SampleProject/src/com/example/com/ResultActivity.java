@@ -14,7 +14,8 @@ public class ResultActivity extends Activity {
     setContentView(R.layout.main);
     System.out.println("Result Activity: onCreate");
 
-    Button b1 = (Button) findViewById(R.id.buttonText1);
+    Button b1 = (Button) findViewById(R.id.buttonPrintHallo);
+    Button b2 = (Button) findViewById(R.id.buttonStart);
 
     b1.setOnClickListener(new OnClickListener() {
       @Override
@@ -25,6 +26,16 @@ public class ResultActivity extends Activity {
         finish();
       }
     });
+    b2.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent t = new Intent();
+        t.putExtra("hallo", true);
+        setResult(RESULT_OK, t);
+        finish();
+      }
+    });
+    
   }
 
   @Override
