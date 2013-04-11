@@ -31,6 +31,7 @@ import android.app.ActivityThread.ApplicationThread;
 import android.app.IActivityManager;
 import android.app.IIntentReceiver;
 import android.app.ResultInfo;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -39,9 +40,13 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
+import android.util.EventLog;
+import android.util.Slog;
 
 /**
  * Models the ActivitManagerService. This service in the Android OS is responsible for managing the lifecycle
@@ -64,13 +69,10 @@ public class ActivityManager {
    */
   public static PackageInfo packageInfo;
 
-  /** Stores info on the running services */
-  Map<ComponentName, ServiceRecord> services = new HashMap<ComponentName, ServiceRecord>();
-
   /**
    * All currently running services.
    */
-  final HashMap<ComponentName, ServiceRecord> mServices = new HashMap<ComponentName, ServiceRecord>();
+  final Map<ComponentName, ServiceRecord> services = new HashMap<ComponentName, ServiceRecord>();
 
   /**
    * All currently bound service connections. Keys are the IBinder of the client's IServiceConnection.
@@ -156,10 +158,6 @@ public class ActivityManager {
     // create Activity record for this activity (When launching new activity we ALWAYS create new instance)
     ActivityRecord newActivity = new ActivityRecord(startingIntent, startingIntent.getComponent(), current,
         "", requestCode, info, startingIntent.getComponent().getClassName());
-
-    // if (current != null) { // there are no active activities
-    // thread.schedulePauseActivity(current, false, true, 0);
-    // }
 
     List<ResultInfo> result = new ArrayList<ResultInfo>();
     if (current != null) {
@@ -268,93 +266,21 @@ public class ActivityManager {
   /* ********************************* Service methods ******************************** */
 
   private ComponentName getServiceComponent(Intent service, String resolvedType) {
-    // TODO Auto-generated method stub
     return service.getComponent();
   }
 
-  public ComponentName performStartService(Intent serviceIntent, String resolvedType) {
-    // resolve componentName from intent
-    ComponentName cn = getServiceComponent(serviceIntent, resolvedType);
-
-    ServiceRecord record = createService(cn, serviceIntent);
-    record.started = true;
-    sendServiceArgsLocked(record); // this means that service was alreay created so just send args
-    return cn;
-  }
-
-  private void sendServiceArgsLocked(ServiceRecord r) {
-    thread.scheduleServiceArgs(r, false, r.makeNextStartId(), r.intent.getFlags(), r.intent);
-  }
-
-  public int performStopService(Intent serviceIntent, String resolvedType) {
+  private ServiceRecord retrieveService(Intent serviceIntent, String resolvedType) {
     // resolve componentName from intent
     ComponentName cn = getServiceComponent(serviceIntent, resolvedType);
 
     // lookup service in service map
     ServiceRecord record = services.get(cn); // make sure hashcode is correct
-    // if found
-    if (record != null && record.conns.size() < 1) {
-      record.started = false;
-      services.remove(record.name);
-      thread.scheduleStopService(record);
-    }
-    return -1;
-
-  }
-
-  public int performBindService(IBinder token, Intent serviceIntent, String resolvedType,
-                                ServiceConnection connection, int flags) {
-
-    // resolve componentName from intent
-    ComponentName cn = getServiceComponent(serviceIntent, resolvedType);
-
-    ServiceRecord record = createService(cn, serviceIntent);
-    ConnectionRecord connRecord = new ConnectionRecord((ActivityRecord) token, connection, flags, 0,
-        serviceIntent, "", false, record);
-
-    ArrayList<ConnectionRecord> conns = mServiceConnections.get(connection);
-    if (conns == null) {
-      conns = new ArrayList<ConnectionRecord>();
-      mServiceConnections.put(connection, conns);
-    }
-    conns.add(connRecord);
-
-    if (record.conns == null) {
-      record.conns = new HashSet<ConnectionRecord>();
-    }
-    record.conns.add(connRecord);
-
-    thread.scheduleBindService(record, serviceIntent, true);
-    return -1;
-
-  }
-
-  public void performUnbindService(ServiceConnection conn) {
-    ArrayList<ConnectionRecord> conns = mServiceConnections.get(conn);
-    if (conns != null) {
-      for (ConnectionRecord cr : conns) {
-        thread.scheduleUnbindService(cr.service, cr.clientIntent);
-        // if no more bounds to this service and it is not started, we destroy it
-        cr.service.conns.remove(cr);
-        if (cr.service.conns.size() <= 0 && cr.service.started == false) {
-          thread.scheduleStopService(cr.service);
-          services.remove(cr.service);
-        }
-      }
-    }
-    mServiceConnections.remove(conn);
-  }
-
-  private ServiceRecord createService(ComponentName cn, Intent serviceIntent) {
-
-    // lookup service in service map
-    ServiceRecord record = services.get(cn); // make sure hashcode is correct
-    // if found
+    // if not found
     if (record == null) {
       ServiceInfo info = null;
       for (ServiceInfo p : packageInfo.services) {
-
-        if ((p.packageName + "." + p.name).contains(cn.getClassName())) {
+        System.out.println("#####################" + p.packageName + p.name + " " + cn.getClassName());
+        if ((p.packageName + p.name).contains(cn.getClassName())) {
           info = p;
           break;
         }
@@ -368,32 +294,347 @@ public class ActivityManager {
       // create Activity record for this activity (When launching new activity we ALWAYS create new instance)
       record = new ServiceRecord(cn, serviceIntent, info);
       services.put(cn, record); // this is a new service and its record has
-      thread.scheduleCreateService(record, info, null);
     }
     return record;
   }
 
+  /**
+   * Retrieves the ServiceRecord of the service. otherwise just send ServiceArgs (calls onStartCommand()).
+   * This method is called from ContextImpl.
+   * 
+   * @param serviceIntent
+   * @param resolvedType
+   * @return
+   */
+  public ComponentName performStartService(Intent serviceIntent, String resolvedType) {
+
+    ServiceRecord record = retrieveService(serviceIntent, resolvedType);
+
+    record.startRequested = true; // Explicit start
+    record.callStart = false; // last onstart has not asked to be called on restart
+    record.pendingStarts.add(new ServiceRecord.StartItem(record, false, record.makeNextStartId(),
+        serviceIntent, 0));
+    if (record.thread != null) { // this service has been started before
+      sendServiceArgsLocked(record);
+      return record.name;
+    }
+
+    record.thread = thread; // this service is started for the first time
+    boolean created = false;
+    try {
+      thread.scheduleCreateService(record, record.serviceInfo, null);
+      created = true;
+    } finally {
+      if (!created) {
+        services.remove(record);
+        scheduleServiceRestartLocked(record, false);
+      }
+    }
+    sendServiceArgsLocked(record); // this means that service was already created so just send args
+    return record.name;
+  }
+
+  private void scheduleServiceRestartLocked(ServiceRecord record, boolean b) {
+
+  }
+
+  /**
+   * Delivers the Service arguments (stored in starting intent in ServiceRecord r).
+   * 
+   * @param r
+   */
+  private void sendServiceArgsLocked(ServiceRecord r) {
+    final int N = r.pendingStarts.size();
+    if (N == 0) {
+      return;
+    }
+
+    while (r.pendingStarts.size() > 0) {
+      ServiceRecord.StartItem si = r.pendingStarts.remove(0);
+      r.deliveredStarts.add(si);
+      si.deliveryCount++;
+      int flags = 0;
+      if (si.deliveryCount > 0) {
+        flags |= Service.START_FLAG_RETRY;
+      }
+      if (si.doneExecutingCount > 0) {
+        flags |= Service.START_FLAG_REDELIVERY;
+      }
+      thread.scheduleServiceArgs(r, false, si.id, flags, r.intent);
+    }
+  }
+
+  /**
+   * Called from stopService() in contextImpl to stop a service.
+   * 
+   * First we lookup the service's ServiceRecord. We then check to see if the service is bound. If not we stop
+   * the service, else we notify the user that the service could not be destroyed as it is currently bound.
+   * 
+   * @param serviceIntent
+   * @param resolvedType
+   * @return 0 if the service could be stopped.
+   */
+  public int performStopService(Intent serviceIntent, String resolvedType) {
+    // lookup service in service map
+    ServiceRecord record = retrieveService(serviceIntent, resolvedType);
+    if (record != null) {
+      record.startRequested = false;
+      record.callStart = false;
+      if (record.connections == null || record.connections.size() == 0) {
+        services.remove(record.name);
+        record.totalRestartCount = 0;
+        record.isForeground = false;
+        record.foregroundId = 0;
+
+        // Clear start entries.
+        record.clearDeliveredStartsLocked();
+        record.pendingStarts.clear();
+
+        if (record.thread != null) {
+          if (record.thread != null) {
+            record.thread.scheduleStopService(record);
+            return 1;
+          }
+        }
+      }
+    } else
+      return -1;
+    return 0;
+  }
+
+  private final ServiceRecord findServiceLocked(ComponentName name, IBinder token) {
+    System.out.println("@@@@@@@@@@@@@@@@@" + name);
+    for (ComponentName cn : services.keySet()) {
+      System.out.println(cn);
+
+    }
+    ServiceRecord r = services.get(name);
+    return r == token ? r : null;
+  }
+
+  public boolean performStopServiceToken(ComponentName componentName, IBinder mToken, int startId) {
+    ServiceRecord r = findServiceLocked(componentName, mToken);
+    if (r != null) {
+      if (startId >= 0) {
+        // Asked to only stop if done with all work. Note that
+        // to avoid leaks, we will take this as dropping all
+        // start items up to and including this one.
+        ServiceRecord.StartItem si = r.findDeliveredStart(startId, false);
+        if (si != null) {
+          while (r.deliveredStarts.size() > 0) {
+            ServiceRecord.StartItem cur = r.deliveredStarts.remove(0);
+            if (cur == si) {
+              break;
+            }
+          }
+        }
+
+        if (r.getLastStartId() != startId) {
+          return false;
+        }
+
+        if (r.deliveredStarts.size() > 0) {
+          Slog.w(TAG,
+              "stopServiceToken startId " + startId + " is last, but have " + r.deliveredStarts.size()
+                  + " remaining args");
+        }
+      }
+
+      r.startRequested = false;
+      r.callStart = false;
+
+      if (r.connections == null || r.connections.size() == 0) {
+        services.remove(r.name);
+        r.totalRestartCount = 0;
+        r.isForeground = false;
+        r.foregroundId = 0;
+
+        // Clear start entries.
+        r.clearDeliveredStartsLocked();
+        r.pendingStarts.clear();
+
+        if (r.thread != null) {
+          if (r.thread != null) {
+            r.thread.scheduleStopService(r);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private void bringDownServiceLocked(ServiceRecord r, boolean b) {
+    // TODO Auto-generated method stub
+
+  }
+
+  /**
+   * 
+   * @param token
+   * @param serviceIntent
+   * @param resolvedType
+   * @param connection
+   * @param flags
+   * @return
+   */
+  public int performBindService(IBinder token, Intent serviceIntent, String resolvedType,
+                                ServiceConnection connection, int flags) {
+
+    ServiceRecord record = retrieveService(serviceIntent, resolvedType);
+    ConnectionRecord connRecord = new ConnectionRecord((ActivityRecord) token, connection, flags, 0,
+        serviceIntent, "", false, record);
+
+    ArrayList<ConnectionRecord> conns = mServiceConnections.get(connection);
+    if (conns == null) {
+      conns = new ArrayList<ConnectionRecord>();
+      mServiceConnections.put(connection, conns);
+    }
+    conns.add(connRecord);
+
+    if (record.connections == null) {
+      record.connections = new HashSet<ConnectionRecord>();
+    }
+    record.connections.add(connRecord);
+
+    thread.scheduleBindService(record, serviceIntent, true);
+    return -1;
+
+  }
+
+  /**
+   * 
+   * @param conn
+   */
+  public void performUnbindService(ServiceConnection conn) {
+    ArrayList<ConnectionRecord> conns = mServiceConnections.get(conn);
+    if (conns != null) {
+      for (ConnectionRecord cr : conns) {
+        thread.scheduleUnbindService(cr.service, cr.clientIntent);
+        // if no more bounds to this service and it is not started, we destroy it
+        cr.service.connections.remove(cr);
+        // if (cr.service.connections.size() <= 0 && cr.service.started == false) {
+        // thread.scheduleStopService(cr.service);
+        // services.remove(cr.service);
+        // }TODO
+      }
+    }
+    mServiceConnections.remove(conn);
+  }
+
+  /**
+   * Called on handleBind service when a service is not rebindable
+   * 
+   * @param token
+   * @param intent
+   * @param binder
+   */
   public void performPublishService(Object token, Intent intent, IBinder binder) {
     // TODO Auto-generated method stub
 
   }
 
+  /**
+   * Called from handleUnbindService:
+   * 
+   * <pre>
+   * if (doRebind) {
+   *   ActivityManagerNative.getDefault().unbindFinished(data.token, data.intent, doRebind);
+   * } else {
+   *   ActivityManagerNative.getDefault().serviceDoneExecuting(data.token, 0, 0, 0);
+   * }
+   * </pre>
+   * 
+   * @param token
+   * @param intent
+   * @param doRebind
+   */
   public void performUnbindFinished(Object token, Intent intent, boolean doRebind) {
     // TODO Auto-generated method stub
 
   }
 
-  public void performServiceDoneExecuting(Object token, int i, int j, int k) {
+  /**
+   * Called each time a service start, stop serviceargs,bind unbind is called. Type is important type 1
+   * 
+   * @param token
+   * @param type
+   * @param startId
+   * @param res
+   */
+  public void performServiceDoneExecuting(IBinder token, int type, int startId, int res) {
+    if (!(token instanceof ServiceRecord)) {
+      throw new IllegalArgumentException("Invalid service token");
+    }
+    ServiceRecord r = (ServiceRecord) token;
+    if (r != null) {
+      if (r != token) {
+        Slog.w(TAG, "Done executing service " + r.name + " with incorrect token: given " + token
+            + ", expected " + r);
+        return;
+      }
+
+      if (type == 1) {
+        // This is a call from a service start... take care of
+        // book-keeping.
+        r.callStart = true;
+        switch (res) {
+        case Service.START_STICKY_COMPATIBILITY:
+        case Service.START_STICKY: {
+          // We are done with the associated start arguments.
+          r.findDeliveredStart(startId, true);
+          // Don't stop if killed.
+          r.stopIfKilled = false;
+          break;
+        }
+        case Service.START_NOT_STICKY: {
+          // We are done with the associated start arguments.
+          r.findDeliveredStart(startId, true);
+          if (r.getLastStartId() == startId) {
+            // There is no more work, and this service
+            // doesn't want to hang around if killed.
+            r.stopIfKilled = true;
+          }
+          break;
+        }
+        case Service.START_REDELIVER_INTENT: {
+          // We'll keep this item until they explicitly
+          // call stop for it, but keep track of the fact
+          // that it was delivered.
+          ServiceRecord.StartItem si = r.findDeliveredStart(startId, false);
+          if (si != null) {
+            si.deliveryCount = 0;
+            si.doneExecutingCount++;
+            // Don't stop if killed.
+            r.stopIfKilled = true;
+          }
+          break;
+        }
+        case Service.START_TASK_REMOVED_COMPLETE: {
+          // Special processing for onTaskRemoved(). Don't
+          // impact normal onStartCommand() processing.
+          r.findDeliveredStart(startId, true);
+          break;
+        }
+        default:
+          throw new IllegalArgumentException("Unknown service start result: " + res);
+        }
+        if (res == Service.START_STICKY_COMPATIBILITY) {
+          r.callStart = false;
+        }
+      }
+    } else {
+      Slog.w(TAG, "Done executing unknown service from pid");
+    }
+  }
+
+  public void performSetServiceForeground(ComponentName componentName, IBinder mToken, int i, Object object,
+                                          boolean removeNotification) {
     // TODO Auto-generated method stub
 
   }
 
-  public void performStopServiceToken(ComponentName componentName, IBinder mToken, int startId) {
-    // TODO Auto-generated method stub
-
-  }
-
-  /* **************************** Receiver methods ******************************** */
+  /* **************************** Receiver meth ods ******************************** */
 
   public Intent performRegisterReceiver(ApplicationThread caller, String callerPackage,
                                         IIntentReceiver receiver, IntentFilter filter, String permission)
@@ -474,4 +715,5 @@ public class ActivityManager {
 
   public void performUnregisterReceiver(IIntentReceiver receiver) throws RemoteException {
   }
+
 }

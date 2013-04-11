@@ -55,7 +55,9 @@ import com.android.server.am.ActivityManager;
 /**
  * This manages the execution of the main thread in an application process, scheduling and executing
  * activities, broadcasts, and other operations on it as the activity manager requests. Adapted from Android
- * 4.1.
+ * 4.1. The purpose of this class is to synchronize all execution on the main thread. For example calling
+ * life-cycle methods of a service/ Activity. Especially Activities as they interact with the GUI that is not
+ * thread-safe.
  * 
  * We simplified it to support the testing of a single application. This includes the following
  * simplifications:
@@ -83,11 +85,8 @@ import com.android.server.am.ActivityManager;
  * 
  * TODO:
  * 
- * - restart of activity due to config change
- * - resource loading
- * - receiver
- * - test application
- * - refine resume activity
+ * - restart of activity due to config change - resource loading - receiver - test application - refine resume
+ * activity
  * 
  * * @author Heila van der Merwe
  */
@@ -866,7 +865,7 @@ public final class ActivityThread {
     Service service = null;
     try {
       java.lang.ClassLoader cl = packageInfo.getClassLoader();
-      service = (Service) cl.loadClass(data.info.name).newInstance();
+      service = (Service) cl.loadClass(data.info.packageName + data.info.name).newInstance();
     } catch (Exception e) {
       if (!mInstrumentation.onException(service, e)) {
         throw new RuntimeException("Unable to instantiate service " + data.info.name + ": " + e.toString(), e);
@@ -2054,7 +2053,7 @@ public final class ActivityThread {
 
   public native void init0();
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
 
     Looper.prepareMainLooper();
     if (sMainThreadHandler == null) {
@@ -2063,19 +2062,23 @@ public final class ActivityThread {
 
     ActivityThread thread = new ActivityThread();
     sPackageManager = new PackageManager(); // startup PackageManager
-   
+
     // Setup ActivityManager
     ActivityManager am = new ActivityManager(sPackageManager.getPackageInfo());
     // Setup WindowManager
     new WindowManager();
 
-    thread.attach();
+    try {
+      thread.attach();
+      if (DEBUG_MESSAGES) {
+        Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
+      }
 
-    if (DEBUG_MESSAGES) {
-      Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
+      Looper.loop();
+
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
-    Looper.loop();
   }
 
 }

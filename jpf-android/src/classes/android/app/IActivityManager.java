@@ -81,12 +81,12 @@ public class IActivityManager {
     am.performUnbindService(conn);
   }
 
-  public synchronized void unbindFinished(Object token, Intent intent, boolean doRebind)
+  public synchronized void unbindFinished(IBinder token, Intent intent, boolean doRebind)
       throws RemoteException {
     am.performUnbindFinished(token, intent, doRebind);
   }
 
-  public synchronized void serviceDoneExecuting(Object token, int i, int j, int k) throws RemoteException {
+  public synchronized void serviceDoneExecuting(IBinder token, int i, int j, int k) throws RemoteException {
     am.performServiceDoneExecuting(token, i, j, k);
 
   }
@@ -102,11 +102,12 @@ public class IActivityManager {
    * @param componentName
    * @param mToken
    * @param startId
+   * @return 
    * @throws RemoteException
    */
-  public void stopServiceToken(ComponentName componentName, IBinder mToken, int startId)
+  public boolean stopServiceToken(ComponentName componentName, IBinder mToken, int startId)
       throws RemoteException {
-    am.performStopServiceToken(componentName, mToken, startId);
+   return  am.performStopServiceToken(componentName, mToken, startId);
   }
 
   /* ****************************** BroadcastReciever Methods *********************************** */
@@ -135,6 +136,12 @@ public class IActivityManager {
 
   public void unregisterReceiver(IIntentReceiver receiver) throws RemoteException {
     am.performUnregisterReceiver(receiver);
+  }
+
+  public void setServiceForeground(ComponentName componentName, IBinder mToken, int i, Object object,
+                                   boolean removeNotification) throws RemoteException {
+    am.performSetServiceForeground(componentName, mToken, i, object, removeNotification);
+    
   }
 
 }

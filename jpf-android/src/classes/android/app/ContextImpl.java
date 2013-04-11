@@ -621,7 +621,7 @@ public class ContextImpl extends Context {
   public ComponentName startService(Intent service) {
     service.setAllowFds(false);
     ComponentName cn = ActivityManagerNative.getDefault().startService(service,
-        service.resolveTypeIfNeeded(getContentResolver()));
+        "");
     if (cn != null && cn.getPackageName().equals("!")) {
       throw new SecurityException("Not allowed to start service " + service + " without permission "
           + cn.getClassName());
@@ -633,7 +633,7 @@ public class ContextImpl extends Context {
   public boolean stopService(Intent service) {
     service.setAllowFds(false);
     int res = ActivityManagerNative.getDefault().stopService(service,
-        service.resolveTypeIfNeeded(getContentResolver()));
+        "");
     if (res < 0) {
       throw new SecurityException("Not allowed to stop service " + service);
     }
