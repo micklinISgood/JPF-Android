@@ -194,14 +194,4 @@ public class SampleProjectActivity extends Activity {
     super.finish();
   }
 
-  /**
-   * The main entry point to the application
-   * 
-   * @param args
-   * @throws Exception 
-   */
-  public static void main(String[] args) throws Exception {
-    ActivityThread.main(null);
-  }
-
 }

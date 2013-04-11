@@ -8,13 +8,6 @@ SECTION default {
 }
 
 SECTION com.example.calculator.SimpleActivity {
-	$button[0-9].onClick()
-	$button<Plus|Minus|Mul|Div|More>.onClick()
-	$button[0-9].onClick()
-	$buttonEquals.onClick()	
+	$backButton.onClick()	
 
-}
-
-SECTION com.example.calculator.ScientificActivity  {
-	$button<Sin|Cos|Sqrt>.onClick()
 }
