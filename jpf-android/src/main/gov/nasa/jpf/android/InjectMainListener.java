@@ -45,10 +45,11 @@ public class InjectMainListener extends ListenerAdapter {
    * @return
    */
   private MethodInfo generateMethodInfo(ClassInfo ci) {
-    MethodInfo m = new MethodInfo(ci, "main", "([Ljava/lang/String;)V", 1, 1, Modifier.PUBLIC);
+    MethodInfo m = new MethodInfo(ci, "main", "([Ljava/lang/String;)V", 1, 1, Modifier.PUBLIC
+        | Modifier.STATIC);
     CodeBuilder cb = m.createCodeBuilder();
     cb.aconst_null();
-    cb.invokestatic("android/app/ActivityThread", "main", "(Ljava/lang/String;)V");
+    cb.invokestatic("android/app/ActivityThread", "main", "([Ljava/lang/String;)V");
     cb.return_();
     cb.installCode();
     return m;
