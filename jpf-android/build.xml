@@ -279,7 +279,7 @@
 			<batchtest todir="build/tests">
 				<fileset dir="build/tests">
 					<exclude name="**/JPF_*.class" />
-					<include name="**/PackageManagerTest.class" />
+					<include name="**/*Test.class" />
 				</fileset>
 			</batchtest>
 		</junit>

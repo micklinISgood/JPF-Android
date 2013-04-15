@@ -16,10 +16,10 @@ public class ObjectConverterTest extends TestJPF {
 
   @Test
   public void testCreateObject() {
-    if (verifyNoPropertyViolation()) {
-      JavaTestObject obj = new JavaTestObject();
-      System.out.println(obj.o);
-      System.out.println(obj.s2);
-    }
+//    if (verifyNoPropertyViolation()) {
+//      JavaTestObject obj = new JavaTestObject();
+//      System.out.println(obj.o);
+//      System.out.println(obj.s2);
+//    }
   }
 }

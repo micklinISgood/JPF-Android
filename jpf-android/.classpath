@@ -3,7 +3,6 @@
 	<classpathentry kind="src" output="build/main" path="src/main"/>
 	<classpathentry kind="src" output="build/peers" path="src/peers"/>
 	<classpathentry kind="src" output="build/classes" path="src/classes"/>
-	<classpathentry kind="src" output="build/examples" path="src/examples"/>
 	<classpathentry kind="src" output="build/tests" path="src/tests"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jpf-core"/>
 	<classpathentry kind="lib" path="lib/android.jar"/>
