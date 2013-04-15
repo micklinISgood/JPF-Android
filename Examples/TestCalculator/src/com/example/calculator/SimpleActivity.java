@@ -138,14 +138,4 @@ public class SimpleActivity extends Activity implements android.view.View.OnClic
     b.putString("calcValue", calc.getText().toString());
     return b;
   }
-
-  /**
-   * The main entry point to the application
-   * 
-   * @param args
-   */
-  public static void main(String[] args) {
-    ActivityThread.main(null);
-  }
-
 }
