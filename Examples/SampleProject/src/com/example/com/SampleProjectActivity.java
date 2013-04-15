@@ -1,7 +1,6 @@
 package com.example.com;
 
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -192,6 +191,9 @@ public class SampleProjectActivity extends Activity {
   public void finish() {
     System.out.println("1  finish()");
     super.finish();
+  }
+
+  public static void main(String[] args) {
   }
 
 }
