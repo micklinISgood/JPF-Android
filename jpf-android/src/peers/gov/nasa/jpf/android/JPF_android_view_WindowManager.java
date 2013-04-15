@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 import android.view.Window;
 
 /**
- * Implements the native methods of the  WindowManager class.
+ * Implements the native methods of the WindowManager class.
  * 
  * One of the main functions of this class is to keep a list of all the View-objects of the application
  * registered in R.java. Their unique id's and names are resolved from the R.java file and stored as a map
@@ -45,8 +45,7 @@ import android.view.Window;
  * registered in the R.java file gets assigned the right id. This is is used in the application's code to
  * identify the views.
  * 
- * The componentMap contains  ViewEntry objects. They keep a reference to the actual View -objects in
- * memory.
+ * The componentMap contains ViewEntry objects. They keep a reference to the actual View -objects in memory.
  * 
  */
 public class JPF_android_view_WindowManager {
@@ -85,15 +84,13 @@ public class JPF_android_view_WindowManager {
   public static void init0(MJIEnv env, int robj) {
     if (rPath == null) {
       classRef = robj;
-      Config conf = env.getConfig();
-      String rPath = conf.getString("path"); // TODO get this path without it
-      // being specified in the config
-      if (rPath == null || rPath.equals("")) {
-        log.severe("path not set in jpf.properties");
+      // Lookup the path to the R.java file
+      rPath = AndroidFileUtil.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.',
+          '/'));
+      if (rPath == null || rPath.length() <= 0) {
+        log.severe("Could not find R.java file.");
         return;
       }
-      rPath = rPath + "/gen/" + JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/')
-          + "/R.java";
 
       parseRFile(rPath);
     }
@@ -199,17 +196,17 @@ public class JPF_android_view_WindowManager {
   }
 
   /**
-   * Used by setContentView(int resId) method in {@link Window} to resolve the resource id of a layout the
+   * Used by setContentView(int resId) method in {@link Window} to resolve the resource id of a layout to the
    * name of the layout file.
    * 
    * @param id
    *          the resource id of the layout as defined in the file R.java
    * @return
    */
-  static String getLayoutName(int id) {
+  static String getLayoutFileName(int id) {
     String name = layoutMap.get(id);
     log.fine("Getting the name of Layout " + id + ": " + name);
-    return name;
+    return AndroidFileUtil.getLayoutPath() + name + ".xml";
   }
 
   /**

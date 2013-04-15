@@ -54,14 +54,15 @@ public class JPF_android_os_MessageQueue {
 
     counter = 0;
 
-    String scriptName = conf.getString("awt.script");
-    System.out.println("scriptName");
+    String scriptName = conf.getString("android.script");
+    log.info("Running script: " + scriptName);
 
     if (scriptName == null) {
-      scriptName = conf.getString("inspect.script");
+      scriptName = conf.getString("android.script");
 
       if (scriptName == null) {
-        log.severe("no \"awt.script\" or \"inspect.script\" property");
+        log.severe("no \"android.script\" or \"inspect.script\" property");
+        return;
       }
     }
     try {

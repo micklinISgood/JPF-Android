@@ -37,7 +37,7 @@ public class AndroidManifestParserTest extends TestJPF {
 
     Assert.assertEquals(2, parser.getPackageInfo().activities.length);
     Assert.assertEquals("Activity1", parser.getPackageInfo().activities[0].name);
-    Assert.assertEquals("Activity2", parser.getPackageInfo().activities[1].name);
+    Assert.assertEquals("com.vdm.Activity2", parser.getPackageInfo().activities[1].name);
   }
 
   @Test
@@ -157,7 +157,7 @@ public class AndroidManifestParserTest extends TestJPF {
     } catch (InvalidManifestException e) {
       Assert.fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(parser.getComponent().name, sParam.substring(1));
+    Assert.assertEquals(parser.getComponent().name, sParam);
     Assert.assertEquals(parser.getComponent().packageName, sPackage);
 
   }
@@ -178,8 +178,8 @@ public class AndroidManifestParserTest extends TestJPF {
     } catch (InvalidManifestException e) {
       Assert.fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(parser.getComponent().name, sParam.substring(sParam.lastIndexOf(".") + 1));
-    Assert.assertEquals(parser.getComponent().packageName, "com.android");
+    Assert.assertEquals(parser.getComponent().name, sParam);
+    Assert.assertEquals(parser.getComponent().packageName, "za.vdm.android");
 
   }
 

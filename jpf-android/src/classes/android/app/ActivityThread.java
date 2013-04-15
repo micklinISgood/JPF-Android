@@ -2061,10 +2061,10 @@ public final class ActivityThread {
     }
 
     ActivityThread thread = new ActivityThread();
-    sPackageManager = new PackageManager(); // startup PackageManager
-
+    // Setup PackageManager
+    sPackageManager = new PackageManager(); 
     // Setup ActivityManager
-    ActivityManager am = new ActivityManager(sPackageManager.getPackageInfo());
+    new ActivityManager(sPackageManager.getPackageInfo());
     // Setup WindowManager
     new WindowManager();
 

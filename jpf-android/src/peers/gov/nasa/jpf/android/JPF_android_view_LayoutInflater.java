@@ -1,6 +1,5 @@
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
 
@@ -29,7 +28,7 @@ public class JPF_android_view_LayoutInflater {
 
   /**
    * Used to create an unique name and id field for components that are not named in the R.java file. Window
-   * has count 0. TODO what happens with multi-windows come into play?
+   * has count 0.
    */
   private static int count = 1;
 
@@ -38,14 +37,13 @@ public class JPF_android_view_LayoutInflater {
   private static LinkedList<Element> nodes = new LinkedList<Element>();
 
   public static int setup(MJIEnv env, int objref, int fileref) {
-    Config conf = env.getConfig();
-    String lPath = conf.getString("path") + "/res/layout/"; // TODO if specified in
-
-    String filename = JPF_android_view_WindowManager.getLayoutName(fileref);
+    
+    String filename = JPF_android_view_WindowManager.getLayoutFileName(fileref);
     log.fine("Inflating file " + filename);
+
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      InputStream is = new FileInputStream(lPath + filename + ".xml");
+      InputStream is = new FileInputStream(filename);
       DocumentBuilder builder = factory.newDocumentBuilder();
       Document dom = builder.parse(is, null);
 
@@ -53,10 +51,10 @@ public class JPF_android_view_LayoutInflater {
       buildQueue(docRoot);
 
     } catch (Exception e) {
-      log.severe("Could not setup LayoutInflator for file: " + lPath + filename + ".xml");
+      log.severe("Could not setup LayoutInflator for file: " + filename);
     }
 
-    return env.newString(lPath + filename + ".xml");
+    return env.newString(filename);
 
   }
 

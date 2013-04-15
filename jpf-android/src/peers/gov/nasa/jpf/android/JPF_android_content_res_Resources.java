@@ -18,7 +18,6 @@
 //
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.android.JPF_android_view_WindowManager.ViewEntry;
 import gov.nasa.jpf.jvm.MJIEnv;
@@ -58,14 +57,6 @@ public class JPF_android_content_res_Resources {
 
   DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-//  private HashMap<String, ViewEntry> componentMap = new HashMap<String, ViewEntry>();
-
-  /**
-   * Maps the resource ID of a layout to the name of the layout file. This information is read from the R.java
-   * class and stored as a map for quick lookup by the LayoutInflater.
-   */
-  private HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
-
   private HashMap<Integer, String> stringsMap = new HashMap<Integer, String>();
 
   private HashMap<Integer, String> drawableMap = new HashMap<Integer, String>();
@@ -80,14 +71,13 @@ public class JPF_android_content_res_Resources {
    * @param cref
    */
   public void init0____V(MJIEnv env, int cref) {
-    Config conf = env.getConfig();
-    rPath = conf.getString("path"); // TODO get this path without it
-    // being specified in the config
-    if (rPath == null || rPath.equals("")) {
-      log.severe("path not set in jpf.properties");
+    // Lookup the path to the R.java file
+    rPath = AndroidFileUtil.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/'));
+    if (rPath == null || rPath.length() <= 0) {
+      log.severe("Could not find R.java file.");
       return;
     }
-    rPath = rPath + "/gen/" +  JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/') + "/R.java";
+
     try {
       parseRFile(new FileInputStream(rPath));
     } catch (FileNotFoundException e) {
@@ -107,18 +97,10 @@ public class JPF_android_content_res_Resources {
     Scanner scanner = new Scanner(is);
     while (scanner != null && scanner.hasNextLine()) {
       nextLine = scanner.nextLine().trim();
-//      if (nextLine.equals(ID_HEADER)) {
-//        parseViews(scanner);
-//      }
-//      if (nextLine.equals(LAYOUT_HEADER)) {
-//        parseLayouts(scanner);
-//      }
       if (nextLine.equals(STRING_HEADER)) {
         parseStrings(scanner);
       }
-
     }
-
   }
 
   private void parseStrings(Scanner scanner) {
@@ -137,49 +119,6 @@ public class JPF_android_content_res_Resources {
     }
 
   }
-
-//  private void parseLayouts(Scanner scanner) {
-//    String next = "";
-//    String[] list;
-//    ViewEntry c;
-//    while (scanner.hasNextLine()) {
-//      next = scanner.nextLine().trim();
-//      if (next.equals(FOOTER))
-//        break;
-//      list = getFields(next);
-//      c = new ViewEntry();
-//      c.setId(Integer.parseInt(list[1].substring(2), 16));
-//      c.setName(list[0]);
-//      layoutMap.put(c.getId(), c.getName());
-//    }
-//
-//  }
-//
-//  private void parseViews(Scanner scanner) {
-//    String next = "";
-//    String[] list;
-//    ViewEntry c;
-//    while (scanner.hasNextLine()) {
-//      next = scanner.nextLine().trim();
-//      if (next.equals(FOOTER))
-//        break;
-//      list = getFields(next);
-//      c = new ViewEntry();
-//
-//      c.setId(Integer.parseInt(list[1].substring(2), 16));
-//      c.setName(list[0]);
-//      componentMap.put("$" + list[0], c);
-//      // System.out.println("insertign in map " + c.getId() + " "
-//      // + c.getName());
-//
-//    }
-//    // TODO Add window to the componentMap to catch window events
-//    c = new ViewEntry();
-//    c.setId(0);
-//    c.setName("window");
-//    componentMap.put("$" + c.getName(), c);
-//
-//  }
 
   /**
    * Returns the NAME and ID of an object given its declaration.
@@ -325,9 +264,10 @@ public class JPF_android_content_res_Resources {
    * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
    */
 
-  public static void main(String[] args) {
-    String s = "<resources><string name=\"app_name\">TestCalculator</string><string name=\"menu_settings\">Settings</string> <string name=\title_activity\">Calculator</string></resources>";
-    // getNodeValue(new StringReader(s));
-
-  }
+  // public static void main(String[] args) {
+  // String s =
+  // "<resources><string name=\"app_name\">TestCalculator</string><string name=\"menu_settings\">Settings</string> <string name=\title_activity\">Calculator</string></resources>";
+  // // getNodeValue(new StringReader(s));
+  //
+  // }
 }

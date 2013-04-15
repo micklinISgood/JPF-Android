@@ -18,7 +18,6 @@
 //
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ThreadInfo;
@@ -58,30 +57,25 @@ public class JPF_android_content_pm_PackageManager {
     if (!ti.hasReturnedFromDirectCall("[clinit]")) { // Make sure that when we repeat the code during static
                                                      // class initialization in ObjectConverter, this is not
                                                      // executed again.
-      parser = AndroidManifestParser.getInstance();
-
-      // build path to SUT's AndroidManifest.xml file
-      Config conf = env.getConfig();
-      String path = conf.getString("path");
-      if (path == null || path.length() == 0) {
-        logger
-            .severe("Path configuation variable was empty. Please add the project location in the config.jpf file. For example: \"path=path/to/sut/ExampleProject/\" ");
+      // Determine the path to the manifest file
+      String manifestPath = AndroidFileUtil.getManifestPath();
+      if (manifestPath == null || manifestPath.length() == 0) {
+        logger.severe("Could not determine the path of the AndroidManifest.xml file.");
         return;
-      } else if (path.endsWith("/")) {
-        path += "AndroidManifest.xml";
-      } else {
-        path += "/AndroidManifest.xml";
       }
+
+      // Parse the AndroidManifest.xml file
+      parser = AndroidManifestParser.getInstance();
       try {
-        parser.parseFile(path);
+        parser.parseFile(manifestPath);
         packageInfo = parser.getPackageInfo();
       } catch (Exception e) {
         logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
         packageInfo = null;
       }
     }
-    // If we have reached this point the package has been parsed and we need to populate the PackagManager on
-    // the JPF side
+    // If we have reached this point the package has been parsed and we need to populate the PackageManager
+    // model
     if (packageInfo != null) {
       int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
       if (packageInfo != null && AndroidObjectConverter.finished) {
