@@ -1,0 +1,20 @@
+target = com.example.MainActivity
+classpath=/Users/heila/workspace/ServiceExample/bin/classes/;${classpath}
+sourcepath=/Users/heila/workspace/ServiceExample/src;
+
+#--- which script to run
+android.script=${config_path}/ServiceScript.es
+
+# the modeled data acquisition thread needs it
+cg.enumerate_random=true
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.NullPointerException
+
+
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
+
+# Windows seem to have a different default
+log.level=info
