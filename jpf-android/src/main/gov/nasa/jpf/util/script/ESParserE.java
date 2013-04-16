@@ -30,77 +30,77 @@ import java.io.StreamTokenizer;
 
 public class ESParserE extends ESParser {
 
-  public ESParserE(String fname) throws Exception {
-    super(fname);
-  }
+	public ESParserE(String fname) throws Exception {
+		super(fname);
+	}
 
-  public ESParserE(String filename, Reader reader) throws Exception {
-    super(filename, reader);
-  }
+	public ESParserE(String filename, Reader reader) throws Exception {
+		super(filename, reader);
+	}
 
-  final public static String K_GROUP = "GROUP";
+	@Override
+	public StreamTokenizer createScanner(Reader r) {
+		StreamTokenizer s = new StreamTokenizer(r);
 
-  @Override
-  public StreamTokenizer createScanner (Reader r) {
-    StreamTokenizer s = new StreamTokenizer(r);
+		// disable number parsing, since it doesn't work in the context of
+		// string expansion
+		// and we also would have to preserve the number type (int or double)
+		s.ordinaryChars('0', '9');
+		s.wordChars('0', '9');
+		// s.wordChars('"', '"');
 
-    // disable number parsing, since it doesn't work in the context of string expansion
-    // and we also would have to preserve the number type (int or double)
-    s.ordinaryChars('0','9');
-    s.wordChars('0','9');
-    //s.wordChars('"', '"');
+		// those are used to expand events
+		s.wordChars('[', '[');
+		s.wordChars(']', ']');
+		s.wordChars('|', '|');
+		s.wordChars('-', '-');
+		s.wordChars('<', '<');
+		s.wordChars('>', '>');
 
-    // those are used to expand events
-    s.wordChars('[','[');
-    s.wordChars(']',']');
-    s.wordChars('|','|');
-    s.wordChars('-','-');
-    s.wordChars('<','<');
-    s.wordChars('>','>');
+		// those can be part of Event IDs
+		s.wordChars('_', '_');
+		s.wordChars('#', '#');
+		s.wordChars('*', '*');
+		s.wordChars('@', '@');
+		s.wordChars('$', '$');
+		s.wordChars(':', ':');
+		s.wordChars('~', '~');
+		s.wordChars('!', '!');
 
-    // those can be part of Event IDs
-    s.wordChars('_','_');
-    s.wordChars('#', '#');
-    s.wordChars('*','*');
-    s.wordChars('@','@');
-    s.wordChars('$','$');
-    s.wordChars(':',':');
-    s.wordChars('~','~');
-    s.wordChars('!', '!');
+		s.quoteChar('"');
 
-    s.quoteChar('"');
+		s.slashSlashComments(true);
+		s.slashStarComments(true);
 
-    s.slashSlashComments(true);
-    s.slashStarComments(true);
+		// s.whitespaceChars(',', ',');
+		s.whitespaceChars(';', ';');
 
-//    s.whitespaceChars(',', ',');
-    s.whitespaceChars(';', ';');
+		return s;
+	}
 
-    return s;
-  }
-  protected void alternative(ScriptElementContainer parent) throws Exception {
-    // matchKeyword(K_ANY);
+	protected void alternative(ScriptElementContainer parent) throws Exception {
+		// matchKeyword(K_ANY);
 
-    Alternative a = new Alternative(parent, scanner.lineno());
-    parent.add(a);
+		Alternative a = new Alternative(parent, scanner.lineno());
+		parent.add(a);
 
-    match('{');
-    while (!done && (scanner.ttype != '}')) {
-      group(a);
-    }
-    match('}');
-  }
+		match('{');
+		while (!done && (scanner.ttype != '}')) {
+			group(a);
+		}
+		match('}');
+	}
 
-  protected void group(ScriptElementContainer parent) throws Exception {
+	protected void group(ScriptElementContainer parent) throws Exception {
 
-    Group a = new Group(parent, scanner.lineno());
-    parent.add(a);
+		Group a = new Group(parent, scanner.lineno());
+		parent.add(a);
 
-    while (!done && (scanner.ttype != ',') && (scanner.ttype != '}')) {
-      sequence(a);
-    }
-    isMatch(',');
+		while (!done && (scanner.ttype != ',') && (scanner.ttype != '}')) {
+			sequence(a);
+		}
+		isMatch(',');
 
-  }
+	}
 
 }
