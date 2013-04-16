@@ -1,9 +1,9 @@
 SECTION default {
-	@intent1.setComponent("com.example.com.SampleProjectActivity")
+	@intent1.setComponent("com.example.com.ActivityTest")
 	startActivity(@intent1)
 }
 
-SECTION com.example.com.SampleProjectActivity {
+SECTION com.example.com.ActivityTest {
 	$buttonPrintHallo.onClick()
 	$buttonResult.onClick()
 	

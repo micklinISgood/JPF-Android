@@ -50,7 +50,7 @@ public class SampleProjectActivity extends Activity {
       @Override
       public void onClick(View v) {
         System.out.println("Button start Clicked!!!");
-        Intent i = new Intent(SampleProjectActivity.this, com.example.com.SampleProjectActivity.class);
+        Intent i = new Intent(SampleProjectActivity.this, com.example.com.ActivityTest.class);
         startActivity(i);
       }
     });

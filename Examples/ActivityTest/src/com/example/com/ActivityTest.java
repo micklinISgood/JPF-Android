@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-public class SampleProjectActivity extends Activity {
+public class ActivityTest extends Activity {
 
   /** Called when the activity is first created. */
   @Override
@@ -36,7 +36,7 @@ public class SampleProjectActivity extends Activity {
       @Override
       public void onClick(View v) {
         System.out.println("1 Start for result");
-        startActivityForResult(new Intent(SampleProjectActivity.this,
+        startActivityForResult(new Intent(ActivityTest.this,
             com.example.vdm.SampleProjectActivity.class), 1);
       }
     });
@@ -47,7 +47,7 @@ public class SampleProjectActivity extends Activity {
       @Override
       public void onClick(View v) {
         System.out.println("1 Starting");
-        Intent i = new Intent(SampleProjectActivity.this, com.example.vdm.SampleProjectActivity.class);
+        Intent i = new Intent(ActivityTest.this, com.example.vdm.SampleProjectActivity.class);
         startActivity(i);
       }
     });
@@ -58,7 +58,7 @@ public class SampleProjectActivity extends Activity {
       @Override
       public void onClick(View v) {
         System.out.println("1 Start with bundle");
-        Intent i = new Intent(SampleProjectActivity.this, com.example.vdm.SampleProjectActivity.class);
+        Intent i = new Intent(ActivityTest.this, com.example.vdm.SampleProjectActivity.class);
 
         // Create the bundle
         Bundle bundle = new Bundle();
@@ -81,7 +81,7 @@ public class SampleProjectActivity extends Activity {
       @Override
       public void onClick(View v) {
         System.out.println("1 Start List");
-        Intent i = new Intent(SampleProjectActivity.this, com.example.com.MylistView.class);
+        Intent i = new Intent(ActivityTest.this, com.example.com.MylistView.class);
         startActivity(i);
       }
     });
@@ -191,9 +191,6 @@ public class SampleProjectActivity extends Activity {
   public void finish() {
     System.out.println("1  finish()");
     super.finish();
-  }
-
-  public static void main(String[] args) {
   }
 
 }

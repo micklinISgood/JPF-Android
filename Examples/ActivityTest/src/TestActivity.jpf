@@ -1,10 +1,10 @@
-target = com.example.com.SampleProjectActivity
-classpath=${jpf-android}/../Examples/SampleProject/bin/classes/;${classpath}
-sourcepath=${jpf-android}/../Examples/SampleProject/src;
-path=${jpf-android}/../Examples/SampleProject
+target = com.example.com.ActivityTest
+classpath=${jpf-android}/../Examples/ActivityTest/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/ActivityTest/src;
+path=${jpf-android}/../Examples/ActivityTest
 
 #--- which script to run
-android.script=${config_path}/SampleScript.es
+android.script=${config_path}/TestActivity.es
 
 # the modeled data acquisition thread needs it
 cg.enumerate_random=true
