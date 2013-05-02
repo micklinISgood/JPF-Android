@@ -35,10 +35,13 @@
 		<!-- our own classes and libs come first -->
 		<pathelement location="build/main" />
 		<pathelement location="build/peers" />
-		<!-- add in what we need from the core -->
-		<pathelement location="lib/android.jar" />
-		<pathelement path="${jpf-core.native_classpath}" />
+		<pathelement location="build/annotations" />
 
+		<!-- add in what we need from the core -->
+		<fileset dir=".">
+			<include name="lib/android.jar" />
+		</fileset>
+		<pathelement path="${jpf-core.native_classpath}" />
 	</path>
 
 
@@ -124,6 +127,7 @@
 			<classpath>
 				<path refid="lib.path" />
 				<pathelement location="build/annotations" />
+
 			</classpath>
 		</javac>
 	</target>
@@ -135,9 +139,8 @@
 			includeantruntime="false" debug="${debug}" source="${src_level}"
 			deprecation="${deprecation}" includes="*,gov/nasa/jpf/**">
 			<classpath>
-				<pathelement location="build/annotations" />
-				<pathelement location="build/classes" />
 				<path refid="lib.path" />
+				<pathelement location="build/annotations" />
 			</classpath>
 		</javac>
 	</target>
@@ -260,7 +263,7 @@
 			</not>
 		</condition>
 
-		<junit printsummary="on" showoutput="on" haltonfailure="yes"
+		<junit printsummary="on" showoutput="on" haltonfailure="no"
 			dir="${basedir}" fork="yes" forkmode="perTest" maxmemory="1024m"
 			outputtoformatters="true">
 			<formatter type="plain" usefile="${junit.usefile}" />
