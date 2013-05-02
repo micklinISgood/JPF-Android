@@ -32,9 +32,21 @@ public class InjectMainListener extends ListenerAdapter {
   public void classLoaded(JVM vm) {
     ClassInfo last = vm.getLastClassInfo();
     if (last.getName().equals(target)) {
-      MethodInfo m = generateMethodInfo(last);
-      last.putDeclaredMethod(m);
-      logger.info("Main method injected into class: " + last.getName());
+
+      MethodInfo[] methods = last.getDeclaredMethodInfos();
+      boolean found = false;
+      for (MethodInfo method : methods) {
+        if (method.getClassName().contains("main")) {
+          found = true;
+        }
+      }
+
+      if (!found) {
+        MethodInfo m = generateMethodInfo(last);
+        last.putDeclaredMethod(m);
+      }
+
+      logger.info("main() method injected into class: " + last.getName());
     }
   }
 
@@ -49,7 +61,7 @@ public class InjectMainListener extends ListenerAdapter {
         | Modifier.STATIC);
     CodeBuilder cb = m.createCodeBuilder();
     cb.aconst_null();
-    cb.invokestatic("android/app/ActivityThread", "main", "([Ljava/lang/String;)V");
+    cb.invokestatic("android/app/ActivityThread", "start", "([Ljava/lang/String;)V");
     cb.return_();
     cb.installCode();
     return m;
