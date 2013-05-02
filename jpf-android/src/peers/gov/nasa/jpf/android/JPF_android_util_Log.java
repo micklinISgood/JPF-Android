@@ -21,7 +21,7 @@ public class JPF_android_util_Log {
 			int type, int stag, int smsg) {
 
 		String msg = env.getStringObject(smsg);
-		String tag = (env.getStringObject(stag)).toLowerCase();
+		String tag = env.getStringObject(stag);
 
 		switch (type) {
 		case Log.INFO:

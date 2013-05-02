@@ -51,7 +51,7 @@ public class JPF_android_view_LayoutInflater {
       buildQueue(docRoot);
 
     } catch (Exception e) {
-      log.severe("Could not setup LayoutInflator for file: " + filename);
+      log.severe("LayoutInflator could not parse file: " + filename);
     }
 
     return env.newString(filename);
