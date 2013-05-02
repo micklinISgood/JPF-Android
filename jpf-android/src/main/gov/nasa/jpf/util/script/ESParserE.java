@@ -20,7 +20,6 @@
 package gov.nasa.jpf.util.script;
 
 import java.io.Reader;
-import java.io.StreamTokenizer;
 
 /**
  * generic parser for event scripts
@@ -30,77 +29,41 @@ import java.io.StreamTokenizer;
 
 public class ESParserE extends ESParser {
 
-	public ESParserE(String fname) throws Exception {
-		super(fname);
-	}
+  final public static String K_GROUP = "GROUP";
 
-	public ESParserE(String filename, Reader reader) throws Exception {
-		super(filename, reader);
-	}
+  public ESParserE(String fname) throws Exception {
+    super(fname);
+  }
 
-	@Override
-	public StreamTokenizer createScanner(Reader r) {
-		StreamTokenizer s = new StreamTokenizer(r);
+  public ESParserE(String filename, Reader reader) throws Exception {
+    super(filename, reader);
 
-		// disable number parsing, since it doesn't work in the context of
-		// string expansion
-		// and we also would have to preserve the number type (int or double)
-		s.ordinaryChars('0', '9');
-		s.wordChars('0', '9');
-		// s.wordChars('"', '"');
+  }
 
-		// those are used to expand events
-		s.wordChars('[', '[');
-		s.wordChars(']', ']');
-		s.wordChars('|', '|');
-		s.wordChars('-', '-');
-		s.wordChars('<', '<');
-		s.wordChars('>', '>');
+  @Override
+  protected void alternative(ScriptElementContainer parent) throws Exception {
 
-		// those can be part of Event IDs
-		s.wordChars('_', '_');
-		s.wordChars('#', '#');
-		s.wordChars('*', '*');
-		s.wordChars('@', '@');
-		s.wordChars('$', '$');
-		s.wordChars(':', ':');
-		s.wordChars('~', '~');
-		s.wordChars('!', '!');
+    Alternative a = new AlternativeE(parent, scanner.lineno());
+    parent.add(a);
 
-		s.quoteChar('"');
+    match('{');
+    while (!done && (scanner.ttype != '}')) {
+      group(a);
+    }
+    match('}');
+  }
 
-		s.slashSlashComments(true);
-		s.slashStarComments(true);
+  protected void group(ScriptElementContainer parent) throws Exception {
+    super.matchKeyword(K_GROUP);
+    Group a = new Group(parent, scanner.lineno());
+    parent.add(a);
 
-		// s.whitespaceChars(',', ',');
-		s.whitespaceChars(';', ';');
+    match('{');
+    while (!done && (scanner.ttype != '}')) {
+      sequence(a);
 
-		return s;
-	}
-
-	protected void alternative(ScriptElementContainer parent) throws Exception {
-		// matchKeyword(K_ANY);
-
-		Alternative a = new Alternative(parent, scanner.lineno());
-		parent.add(a);
-
-		match('{');
-		while (!done && (scanner.ttype != '}')) {
-			group(a);
-		}
-		match('}');
-	}
-
-	protected void group(ScriptElementContainer parent) throws Exception {
-
-		Group a = new Group(parent, scanner.lineno());
-		parent.add(a);
-
-		while (!done && (scanner.ttype != ',') && (scanner.ttype != '}')) {
-			sequence(a);
-		}
-		isMatch(',');
-
-	}
+    }
+    match('}');
+  }
 
 }

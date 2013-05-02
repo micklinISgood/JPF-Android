@@ -16,124 +16,137 @@
 // THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
-
 package gov.nasa.jpf.util.script;
 
+import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
-import gov.nasa.jpf.util.script.ScriptElementContainer.SECIterator;
+import gov.nasa.jpf.util.JPFLogger;
 
 import java.util.List;
 
 /**
- * an interpreter that walks a ScriptElementContainer hierarchy, returning Events and Alternatives while
- * expanding loops
+ * Author: Heila van der Merwe
+ * 
  */
 public class AndroidSequenceIntpr extends SequenceInterpreter {
+  private static final JPFLogger logger = JPF.getLogger("AndroidSequenceIntpr");
+  boolean DEBUG = false;
+  
+  private MJIEnv env = null;
+
+
 
   public AndroidSequenceIntpr(ScriptElementContainer seq) {
     super(seq);
   }
 
   public ScriptElement getNext(MJIEnv env) {
-
-    SECIterator topIt = getTop();
-    if (topIt != null) {
-      ScriptElement e = topIt.next();
-      return handleScriptElement(env, topIt, e);
+    if (DEBUG)
+      logger.info("TOP = " + top);
+    this.env = env;
+    if (!isDone()) {
+      ScriptElement e = top.next();
+      if (e != null) {
+        return handleScriptElement(e);
+      } else {
+        pop();
+        return (top != null) ? getNext(env) : null;
+      }
     } else {
       return null;
     }
   }
 
-  private ScriptElement handleScriptElement(MJIEnv env, SECIterator topIt, ScriptElement e) {
-    if (e != null) {
-      if (e instanceof ScriptElementContainer && !(e instanceof Alternative)) {
-        push(((ScriptElementContainer) e).iterator());
-        return getNext(env);
-      } else if (e instanceof Alternative) {
-        return handleAlternative(env, e, topIt);
-      } else {
-        return addExpandedEvent(env, e, topIt);
-      }
+  private ScriptElement handleScriptElement(ScriptElement e) {
+    if (e instanceof Alternative) {
+      return handleAlternative((AlternativeE) e);
+    } else if (e instanceof ScriptElementContainer) {
+      push(((ScriptElementContainer) e).iterator());
+      return getNext(env);
     } else {
-      pop();
-      return (topIt != null) ? getNext(env) : null;
+      return handleEvent(e);
     }
+
   }
 
-  ScriptElement addExpandedEvent(MJIEnv env, ScriptElement se, SECIterator topIt) {
+  /**
+   * Expand the Event and add either return the Event or push the new Container
+   * on the stack
+   * 
+   * @param se
+   * @return
+   */
+  ScriptElement handleEvent(ScriptElement se) {
     List<Event> eventList = ((Event) se).expand();
     if (eventList.size() > 1) {
-      ScriptElementContainer s = new Alternative(se.getParent(), se.getLine());
+      AlternativeE s = new AlternativeE(se.getParent(), se.getLine());
       for (Event e : eventList) {
         Group g = new Group(s, se.getLine());
         g.add((ScriptElement) e);
         s.add(g);
       }
-      return handleAlternative(env, s, topIt);
+      return handleAlternative(s);
     } else
       return se;
   }
 
-  public ScriptElement handleAlternative(MJIEnv env, ScriptElement e, SECIterator topIt) {
+  /**
+   * Returns the next element determined by processing the current Alternative
+   * ScriptElement
+   * 
+   * @param e
+   *          the Alternative ScriptElement
+   * @return the
+   * @throws Exception
+   */
+  public ScriptElement handleAlternative(AlternativeE e) {
     ThreadInfo ti = env.getThreadInfo();
     SystemState ss = env.getSystemState();
-    Instruction insn = env.getInstruction();
 
-    if (!ti.isFirstStepInsn()) { // top half - first execution
-      IntIntervalGenerator cg = new IntIntervalGenerator("outerNext", 1,
-          ((ScriptElementContainer) e).getNumberOfChildren());
+    // top half (first execution)
+    if (!ti.isFirstStepInsn()) {
+
+      // create new ChoiceGenerator
+      AlternativeChoiceGenerator cg = createCG(e);
+      ss.setForced(true);
       ss.setNextChoiceGenerator(cg);
-      topIt.previous(e);
-      env.repeatInvocation();
-    } else { // bottom half - re-execution at the beginning of the next transition
-      if (!(e.getParent() instanceof Section)) {
-        if (((Alternative) e).used == false) {
-          IntIntervalGenerator[] list = ss.getChoiceGeneratorsOfType(IntIntervalGenerator.class);
 
-          IntIntervalGenerator cg = ss.getCurrentChoiceGenerator(String.valueOf(e.hashCode()),
-              IntIntervalGenerator.class);
-          if (cg == null) {
-            cg = new IntIntervalGenerator(String.valueOf(e.hashCode()), 1,
-                ((ScriptElementContainer) e).getNumberOfChildren());
-            ss.setForced(true);
-            ss.setNextChoiceGenerator(cg);
-            topIt.previous(e);
-            env.repeatInvocation();
-            return null;
-          } else {
-            int myChoice = cg.getNextChoice();
-            push(((Alternative) e).iterator(myChoice));
-            if (cg.getTotalNumberOfChoices() == cg.getProcessedNumberOfChoices())
-              ((Alternative) e).used = true;
-            return getNext(env);
-          }
-        } else {
-          if (e.getParent() instanceof Group)
-            e = e.getParent().getParent();
-          if (e.getParent() instanceof Section){
-            e = e.getParent();
-            return null;
-          }
-          else
-            e = e.getParent();
-          return handleScriptElement(env, topIt, e);
+      // reschedule this ScriptElement so that we try this again with the
+      // relevant group
+      top.rescheduleCurrent();
+      env.repeatInvocation(); // re-executes the current instruction to make
+                              // sure that we set the first choice
+                              // of the cg now.
+      return null;
 
-        }
+      // bottom-half (re -execution)
+    } else {
 
-      }
-      IntIntervalGenerator cg = ss.getCurrentChoiceGenerator("outerNext", IntIntervalGenerator.class);
-      if (cg != null) {
-        int myChoice = cg.getNextChoice();
-        push(((Alternative) e).iterator(myChoice));
-        return getNext(env);
-      }else
+      // get the choice generator for this script element
+      AlternativeChoiceGenerator cg = ss.getCurrentChoiceGenerator(String.valueOf(e.hashCode()),
+          AlternativeChoiceGenerator.class);
+
+      if (cg == null) {
+        pop();
+        top.rescheduleCurrent();
+        env.repeatInvocation();
         return null;
+
+      } else {
+        int myChoice = cg.getNextChoice();
+        push(e.iterator(myChoice));
+        env.repeatInvocation();
+        return null;
+      }
     }
-    return null;
   }
+
+  private AlternativeChoiceGenerator createCG(AlternativeE e) {
+    SystemState ss = env.getSystemState();
+    // push new ChoiceGenerator
+    return new AlternativeChoiceGenerator((String.valueOf(e.hashCode())), e.getNumberOfChildren());
+  }
+
 }

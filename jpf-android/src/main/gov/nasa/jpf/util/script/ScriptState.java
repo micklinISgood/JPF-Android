@@ -7,16 +7,16 @@ import java.util.Stack;
 
 public class ScriptState implements Cloneable {
   protected ArrayList<SectionState> sectionsState; // current state of all sections
-  protected Stack<UIAction> actions;
+  private Stack<UIAction> actions;
 
   ScriptState() {
     sectionsState = new ArrayList<SectionState>();
-    actions = new Stack<UIAction>();
+    setActions(new Stack<UIAction>());
   }
 
   ScriptState(ArrayList<SectionState> as, Stack<UIAction> actions) {
     sectionsState = as;
-    this.actions = actions;
+    this.setActions(actions);
   }
 
   public SectionState get(String sectionName) {
@@ -56,7 +56,7 @@ public class ScriptState implements Cloneable {
       // active state, in which case we skip
       for (SectionState as : newActives) { // *********************
         if (as != null && as.section == sec) {
-          ScriptState s = new ScriptState(newActives, (Stack<UIAction>) actions.clone());
+          ScriptState s = new ScriptState(newActives, (Stack<UIAction>) getActions().clone());
           return s;
         }
       }
@@ -69,7 +69,7 @@ public class ScriptState implements Cloneable {
       // this state
     }
 
-    ScriptState s = new ScriptState(newActives, actions);
+    ScriptState s = new ScriptState(newActives, getActions());
     return s;
   }
 
@@ -79,11 +79,19 @@ public class ScriptState implements Cloneable {
       for (SectionState as : this.sectionsState) {
         ss.sectionsState.add((SectionState) as.clone());
       }
-      ss.actions = (Stack<UIAction>) actions.clone();
+      ss.setActions((Stack<UIAction>) getActions().clone());
       return ss;
     } catch (CloneNotSupportedException nonsense) {
       return null; // we are a Cloneable, so we don't get here
     }
+  }
+
+  public Stack<UIAction> getActions() {
+    return actions;
+  }
+
+  public void setActions(Stack<UIAction> actions) {
+    this.actions = actions;
   }
 
 }
