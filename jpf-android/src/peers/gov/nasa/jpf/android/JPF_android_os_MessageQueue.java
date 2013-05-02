@@ -21,11 +21,9 @@ package gov.nasa.jpf.android;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.SystemState;
 import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+import gov.nasa.jpf.util.script.AndroidScriptEnvironment;
 import gov.nasa.jpf.util.script.ESParserE;
-import gov.nasa.jpf.util.script.ScriptingEnvironment;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
@@ -37,64 +35,60 @@ import java.util.logging.Logger;
  * 
  */
 public class JPF_android_os_MessageQueue {
-  static Logger log = JPF.getLogger("gov.nasa.jpf.android");
+  static Logger log = JPF.getLogger("JPF_android_os_MessageQueue");
   static final String UIACTION = "[UIAction]";
 
-  static int counter; // the number of UIActionCGs generated so far
-
-  // static UIActionGeneratorFactory cgFactory;
-  static ScriptingEnvironment scriptEnv;
+  static AndroidScriptEnvironment scriptEnv;
 
   /**
-   * Called from the MesaageQueue Constructor, i.e. before each application run. It opens and parses the input
-   * script.
+   * Called from the MesaageQueue Constructor, i.e. before each application run.
+   * It opens and parses the input script.
    */
   public static void init____V(MJIEnv env, int objref) {
     Config conf = env.getConfig();
 
-    counter = 0;
-
     String scriptName = conf.getString("android.script");
-    log.info("Running script: " + scriptName);
+    log.info("RUNNING SCRIPT: " + scriptName);
 
     if (scriptName == null) {
       scriptName = conf.getString("android.script");
 
       if (scriptName == null) {
-        log.severe("no \"android.script\" or \"inspect.script\" property");
+        log.severe("No \"android.script\" property in JPF property file.");
         return;
       }
     }
     try {
-      scriptEnv = new ScriptingEnvironment(scriptName);
+      scriptEnv = new AndroidScriptEnvironment(scriptName);
       scriptEnv.registerListener(env.getJPF());
       scriptEnv.parseScript();
     } catch (FileNotFoundException fnfx) {
-      log.severe("script file not found: " + scriptName);
+      log.severe("Script file (.es) not found: " + scriptName);
     } catch (ESParserE.Exception e) {
       log.severe(e.toString());
     }
   }
 
   /**
-   * Called from within the message queue to retrieve new message when queue is empty. If we return false, it
-   * means there is nothing else to check and we are done
+   * Called from within the message queue to retrieve new message when queue is
+   * empty. If we return false, it means there is nothing else to check and we
+   * are done
    */
-  public static boolean processScriptAction(MJIEnv env, int objref) {
+  public static boolean processScriptAction(MJIEnv env, int objref, int count) {
     ThreadInfo ti = env.getThreadInfo();
-    SystemState ss = env.getSystemState();
-    Instruction insn = ti.getPC();
 
     if (scriptEnv == null) {
-      log.warning("no UIScriptEnvironment, terminating");
+      log.warning("ScriptEnvironment not created, terminating");
       return false;
     }
+
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
       String currentWindow = JPF_android_view_WindowManager.getCurrentWindow(env);
-      System.out.println("Current Window: " + currentWindow);
+
       UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
       if (action != null) {
-        System.out.println("[ACTION] " + action.action + " " + action.target);
+        log.info("CURRENT WINDOW: " + currentWindow);
+        log.info("PROCESS ACTION: " + action.action + " " + action.target + " MSQ#" + count);
         runAction(env, action);
         return true;
       }
@@ -111,9 +105,6 @@ public class JPF_android_os_MessageQueue {
    * @param action
    */
   private static void runAction(MJIEnv env, UIAction action) {
-    System.out.println("*******************************");
-    log.info("ProcessAction: " + action.action + " on " + action.target);
-
     if (!action.isNone()) {
       if (action.target == null) { // componentAction
         JPF_com_android_server_am_ActivityManager.handleComponentAction(env, action);
@@ -123,6 +114,7 @@ public class JPF_android_os_MessageQueue {
         JPF_com_android_server_am_ActivityManager.setIntent(env, action);
       }
     }
+    System.out.println("*******************************");
   }
 
 }
