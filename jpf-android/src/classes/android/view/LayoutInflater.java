@@ -119,7 +119,7 @@ public class LayoutInflater {
     String text = getText();
     if (!text.equals(""))
       ((TextView) result).setText(text);
-    Log.i(TAG, "Inflating View:" + result.toString());
+    Log.i(TAG, "Inflating " + result.toString());
 
     return result;
   }

@@ -7,47 +7,46 @@ import android.util.AttributeSet;
 import android.util.SparseArray;
 
 /**
- * This is a model of the View class. Currently it only stores the listeners of the View and executes these
- * listeners when the onClick method is called.
+ * This is a model of the View class. Currently it only stores the listeners of
+ * the View and executes these listeners when the onClick method is called.
  * 
  * @author "Heila van der Merwe"
  * 
  */
 public class View {
   /**
-   * This view is visible.
-   * Use with {@link #setVisibility} and <a href="#attr_android:visibility">{@code
-   * android:visibility}.
+   * This view is visible. Use with {@link #setVisibility} and <a
+   * href="#attr_android:visibility">{@code android:visibility}.
    */
   public static final int VISIBLE = 0x00000000;
 
   /**
    * This view is invisible, but it still takes up space for layout purposes.
-   * Use with {@link #setVisibility} and <a href="#attr_android:visibility">{@code
-   * android:visibility}.
+   * Use with {@link #setVisibility} and <a href="#attr_android:visibility">
+   * {@code android:visibility}.
    */
   public static final int INVISIBLE = 0x00000004;
 
   /**
-   * This view is invisible, and it doesn't take any space for layout
-   * purposes. Use with {@link #setVisibility} and <a href="#attr_android:visibility">{@code
-   * android:visibility}.
+   * This view is invisible, and it doesn't take any space for layout purposes.
+   * Use with {@link #setVisibility} and <a href="#attr_android:visibility">
+   * {@code android:visibility}.
    */
   public static final int GONE = 0x00000008;
 
   /**
-   * Mask for use with setFlags indicating bits used for visibility.
-   * {@hide}
+   * Mask for use with setFlags indicating bits used for visibility. {@hide
+   * }
    */
   static final int VISIBILITY_MASK = 0x0000000C;
 
-  private static final int[] VISIBILITY_FLAGS = {VISIBLE, INVISIBLE, GONE};
+  private static final int[] VISIBILITY_FLAGS = { VISIBLE, INVISIBLE, GONE };
 
   /**
    * Used to mark a View that has no ID.
    */
   public static final int NO_ID = -1;
-  
+
   /** ID defined in R file */
   int mID = -1;
   String name = null;
@@ -68,20 +67,20 @@ public class View {
 
   static class ListenerInfo {
     /**
-     * Listener used to dispatch focus change events. This field should be made private, so it is hidden from
-     * the SDK. {@hide}
+     * Listener used to dispatch focus change events. This field should be made
+     * private, so it is hidden from the SDK. {@hide}
      */
     protected OnFocusChangeListener mOnFocusChangeListener;
 
     /**
-     * Listener used to dispatch click events. This field should be made private, so it is hidden from the
-     * SDK. {@hide}
+     * Listener used to dispatch click events. This field should be made
+     * private, so it is hidden from the SDK. {@hide}
      */
     public OnClickListener mOnClickListener;
 
     /**
-     * Listener used to dispatch long click events. This field should be made private, so it is hidden from
-     * the SDK. {@hide}
+     * Listener used to dispatch long click events. This field should be made
+     * private, so it is hidden from the SDK. {@hide}
      */
     protected OnLongClickListener mOnLongClickListener;
 
@@ -100,8 +99,8 @@ public class View {
   ListenerInfo mListenerInfo;
 
   /**
-   * The application environment this view lives in. This field should be made private, so it is hidden from
-   * the SDK. {@hide}
+   * The application environment this view lives in. This field should be made
+   * private, so it is hidden from the SDK. {@hide}
    */
   protected Context mContext;
 
@@ -110,17 +109,19 @@ public class View {
   }
 
   /**
-   * Constructor that is called when inflating a view from XML. This is called when a view is being
-   * constructed from an XML file, supplying attributes that were specified in the XML file. This version uses
-   * a default style of 0, so the only attribute values applied are those in the Context's Theme and the given
-   * AttributeSet.
+   * Constructor that is called when inflating a view from XML. This is called
+   * when a view is being constructed from an XML file, supplying attributes
+   * that were specified in the XML file. This version uses a default style of
+   * 0, so the only attribute values applied are those in the Context's Theme
+   * and the given AttributeSet.
    * 
    * <p>
-   * The method onFinishInflate() will be called after all children have been added.
+   * The method onFinishInflate() will be called after all children have been
+   * added.
    * 
    * @param context
-   *          The Context the view is running in, through which it can access the current theme, resources,
-   *          etc.
+   *          The Context the view is running in, through which it can access
+   *          the current theme, resources, etc.
    * @param attrs
    *          The attributes of the XML tag that is inflating the view.
    * @see #View(Context, AttributeSet, int)
@@ -130,20 +131,23 @@ public class View {
   }
 
   /**
-   * Perform inflation from XML and apply a class-specific base style. This constructor of View allows
-   * subclasses to use their own base style when they are inflating. For example, a Button class's constructor
-   * would call this version of the super class constructor and supply <code>R.attr.buttonStyle</code> for
-   * <var>defStyle</var>; this allows the theme's button style to modify all of the base view attributes (in
+   * Perform inflation from XML and apply a class-specific base style. This
+   * constructor of View allows subclasses to use their own base style when they
+   * are inflating. For example, a Button class's constructor would call this
+   * version of the super class constructor and supply
+   * <code>R.attr.buttonStyle</code> for <var>defStyle</var>; this allows the
+   * theme's button style to modify all of the base view attributes (in
    * particular its background) as well as the Button class's attributes.
    * 
    * @param context
-   *          The Context the view is running in, through which it can access the current theme, resources,
-   *          etc.
+   *          The Context the view is running in, through which it can access
+   *          the current theme, resources, etc.
    * @param attrs
    *          The attributes of the XML tag that is inflating the view.
    * @param defStyle
-   *          The default style to apply to this view. If 0, no style will be applied (beyond what is included
-   *          in the theme). This may either be an attribute resource, whose value will be retrieved from the
+   *          The default style to apply to this view. If 0, no style will be
+   *          applied (beyond what is included in the theme). This may either be
+   *          an attribute resource, whose value will be retrieved from the
    *          current theme, or an explicit style resource.
    * @see #View(Context, AttributeSet)
    */
@@ -153,7 +157,8 @@ public class View {
   }
 
   /**
-   * Look for a child view with the given id. If this view has the given id, return this view.
+   * Look for a child view with the given id. If this view has the given id,
+   * return this view.
    * 
    * @param id
    *          The id to search for.
@@ -211,7 +216,8 @@ public class View {
   }
 
   /**
-   * Set the enabled state of this view. The interpretation of the enabled state varies by subclass.
+   * Set the enabled state of this view. The interpretation of the enabled state
+   * varies by subclass.
    * 
    * @param enabled
    *          True if this view is enabled, false otherwise.
@@ -249,9 +255,10 @@ public class View {
   }
 
   /**
-   * Called by {@link #saveHierarchyState(android.util.SparseArray)} to store the state for this view and its
-   * children. May be overridden to modify how freezing happens to a view's children; for example, some views
-   * may want to not store state for their children.
+   * Called by {@link #saveHierarchyState(android.util.SparseArray)} to store
+   * the state for this view and its children. May be overridden to modify how
+   * freezing happens to a view's children; for example, some views may want to
+   * not store state for their children.
    * 
    * @param container
    *          The SparseArray in which to save the view's state.
@@ -264,7 +271,8 @@ public class View {
     // if (mID != NO_ID ) {
     // Parcelable state = onSaveInstanceState();
     // if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
-    // throw new IllegalStateException("Derived class did not call super.onSaveInstanceState()");
+    // throw new
+    // IllegalStateException("Derived class did not call super.onSaveInstanceState()");
     // }
     // if (state != null) {
     // // Log.i("View", "Freezing #" + Integer.toHexString(mID)
@@ -275,25 +283,29 @@ public class View {
   }
 
   /**
-   * Hook allowing a view to generate a representation of its internal state that can later be used to create
-   * a new instance with that same state. This state should only contain information that is not persistent or
-   * can not be reconstructed later. For example, you will never store your current position on screen because
-   * that will be computed again when a new instance of the view is placed in its view hierarchy.
+   * Hook allowing a view to generate a representation of its internal state
+   * that can later be used to create a new instance with that same state. This
+   * state should only contain information that is not persistent or can not be
+   * reconstructed later. For example, you will never store your current
+   * position on screen because that will be computed again when a new instance
+   * of the view is placed in its view hierarchy.
    * <p>
-   * Some examples of things you may store here: the current cursor position in a text view (but usually not
-   * the text itself since that is stored in a content provider or other persistent storage), the currently
-   * selected item in a list view.
+   * Some examples of things you may store here: the current cursor position in
+   * a text view (but usually not the text itself since that is stored in a
+   * content provider or other persistent storage), the currently selected item
+   * in a list view.
    * 
-   * @return Returns a Parcelable object containing the view's current dynamic state, or null if there is
-   *         nothing interesting to save. The default implementation returns null.
+   * @return Returns a Parcelable object containing the view's current dynamic
+   *         state, or null if there is nothing interesting to save. The default
+   *         implementation returns null.
    * @see #onRestoreInstanceState(android.os.Parcelable)
    * @see #saveHierarchyState(android.util.SparseArray)
    * @see #dispatchSaveInstanceState(android.util.SparseArray)
    * @see #setSaveEnabled(boolean)
    */
   protected Parcelable onSaveInstanceState() {
-//    mPrivateFlags |= SAVE_STATE_CALLED;
-//    return BaseSavedState.EMPTY_STATE;
+    // mPrivateFlags |= SAVE_STATE_CALLED;
+    // return BaseSavedState.EMPTY_STATE;
     return null;
   }
 
@@ -312,9 +324,10 @@ public class View {
   }
 
   /**
-   * Called by {@link #restoreHierarchyState(android.util.SparseArray)} to retrieve the state for this view
-   * and its children. May be overridden to modify how restoring happens to a view's children; for example,
-   * some views may want to not store state for their children.
+   * Called by {@link #restoreHierarchyState(android.util.SparseArray)} to
+   * retrieve the state for this view and its children. May be overridden to
+   * modify how restoring happens to a view's children; for example, some views
+   * may want to not store state for their children.
    * 
    * @param container
    *          The SparseArray which holds previously saved state.
@@ -324,40 +337,47 @@ public class View {
    * @see #onRestoreInstanceState(android.os.Parcelable)
    */
   protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
-//    if (mID != NO_ID) {
-//      Parcelable state = container.get(mID);
-//      if (state != null) {
-//        // Log.i("View", "Restoreing #" + Integer.toHexString(mID)
-//        // + ": " + state);
-//        mPrivateFlags &= ~SAVE_STATE_CALLED;
-//        onRestoreInstanceState(state);
-//        if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
-//          throw new IllegalStateException("Derived class did not call super.onRestoreInstanceState()");
-//        }
-//      }
-//    }
+    // if (mID != NO_ID) {
+    // Parcelable state = container.get(mID);
+    // if (state != null) {
+    // // Log.i("View", "Restoreing #" + Integer.toHexString(mID)
+    // // + ": " + state);
+    // mPrivateFlags &= ~SAVE_STATE_CALLED;
+    // onRestoreInstanceState(state);
+    // if ((mPrivateFlags & SAVE_STATE_CALLED) == 0) {
+    // throw new
+    // IllegalStateException("Derived class did not call super.onRestoreInstanceState()");
+    // }
+    // }
+    // }
   }
 
   /**
-   * Hook allowing a view to re-apply a representation of its internal state that had previously been
-   * generated by {@link #onSaveInstanceState}. This function will never be called with a null state.
+   * Hook allowing a view to re-apply a representation of its internal state
+   * that had previously been generated by {@link #onSaveInstanceState}. This
+   * function will never be called with a null state.
    * 
    * @param state
-   *          The frozen state that had previously been returned by {@link #onSaveInstanceState}.
+   *          The frozen state that had previously been returned by
+   *          {@link #onSaveInstanceState}.
    * 
    * @see #onSaveInstanceState()
    * @see #restoreHierarchyState(android.util.SparseArray)
    * @see #dispatchRestoreInstanceState(android.util.SparseArray)
    */
   protected void onRestoreInstanceState(Parcelable state) {
-//    mPrivateFlags |= SAVE_STATE_CALLED;
-//    if (state != BaseSavedState.EMPTY_STATE && state != null) {
-//      throw new IllegalArgumentException("Wrong state class, expecting View State but " + "received "
-//          + state.getClass().toString() + " instead. This usually happens "
-//          + "when two views of different type have the same id in the same hierarchy. "
-//          + "This view's id is " + ViewDebug.resolveId(mContext, getId()) + ". Make sure "
-//          + "other views do not use the same id.");
-//    }
+    // mPrivateFlags |= SAVE_STATE_CALLED;
+    // if (state != BaseSavedState.EMPTY_STATE && state != null) {
+    // throw new
+    // IllegalArgumentException("Wrong state class, expecting View State but " +
+    // "received "
+    // + state.getClass().toString() + " instead. This usually happens "
+    // +
+    // "when two views of different type have the same id in the same hierarchy. "
+    // + "This view's id is " + ViewDebug.resolveId(mContext, getId()) +
+    // ". Make sure "
+    // + "other views do not use the same id.");
+    // }
   }
 
   /**
@@ -381,8 +401,8 @@ public class View {
   }
 
   /**
-   * Register a callback to be invoked when this view is clicked. If this view is not clickable, it becomes
-   * clickable.
+   * Register a callback to be invoked when this view is clicked. If this view
+   * is not clickable, it becomes clickable.
    * 
    * @param l
    *          The callback that will run
@@ -400,8 +420,8 @@ public class View {
   }
 
   /**
-   * Return whether this view has an attached OnClickListener. Returns true if there is a listener, false if
-   * there is none.
+   * Return whether this view has an attached OnClickListener. Returns true if
+   * there is a listener, false if there is none.
    */
   public boolean hasOnClickListeners() {
     ListenerInfo li = getListenerInfo();
@@ -409,8 +429,8 @@ public class View {
   }
 
   /**
-   * Register a callback to be invoked when this view is clicked and held. If this view is not long clickable,
-   * it becomes long clickable.
+   * Register a callback to be invoked when this view is clicked and held. If
+   * this view is not long clickable, it becomes long clickable.
    * 
    * @param l
    *          The callback that will run
@@ -422,10 +442,12 @@ public class View {
   }
 
   /**
-   * Call this view's OnClickListener, if it is defined. Performs all normal actions associated with clicking:
-   * reporting accessibility event, playing a sound, etc.
+   * Call this view's OnClickListener, if it is defined. Performs all normal
+   * actions associated with clicking: reporting accessibility event, playing a
+   * sound, etc.
    * 
-   * @return True there was an assigned OnClickListener that was called, false otherwise is returned.
+   * @return True there was an assigned OnClickListener that was called, false
+   *         otherwise is returned.
    */
   public void onClick() {
     OnClickListener li = getOnClickListener();
@@ -436,10 +458,12 @@ public class View {
   }
 
   /**
-   * Directly call any attached OnClickListener. Unlike {@link #performClick()}, this only calls the listener,
-   * and does not do any associated clicking actions like reporting an accessibility event.
+   * Directly call any attached OnClickListener. Unlike {@link #performClick()},
+   * this only calls the listener, and does not do any associated clicking
+   * actions like reporting an accessibility event.
    * 
-   * @return True there was an assigned OnClickListener that was called, false otherwise is returned.
+   * @return True there was an assigned OnClickListener that was called, false
+   *         otherwise is returned.
    */
   public boolean callOnClick() {
     ListenerInfo li = getListenerInfo();
@@ -455,7 +479,8 @@ public class View {
   }
 
   /**
-   * Pass the touch screen motion event down to the target view, or this view if it is the target.
+   * Pass the touch screen motion event down to the target view, or this view if
+   * it is the target.
    * 
    * @param event
    *          The motion event to be dispatched.
@@ -497,10 +522,11 @@ public class View {
   }
 
   /**
-   * Call this view's OnLongClickListener, if it is defined. Invokes the context menu if the
-   * OnLongClickListener did not consume the event.
+   * Call this view's OnLongClickListener, if it is defined. Invokes the context
+   * menu if the OnLongClickListener did not consume the event.
    * 
-   * @return True if one of the above receivers consumed the event, false otherwise.
+   * @return True if one of the above receivers consumed the event, false
+   *         otherwise.
    */
   public boolean performLongClick() {
     boolean handled = false;
@@ -511,22 +537,22 @@ public class View {
     return handled;
   }
 
-  
   public int getVisibility() {
-    return 0;//TODO mViewFlags & VISIBILITY_MASK;
-}
+    return 0;// TODO mViewFlags & VISIBILITY_MASK;
+  }
 
-/**
- * Set the enabled state of this view.
- *
- * @param visibility One of {@link #VISIBLE}, {@link #INVISIBLE}, or {@link #GONE}.
- * @attr ref android.R.styleable#View_visibility
- */
-@RemotableViewMethod
-public void setVisibility(int visibility) {
-   //TODO setFlags(visibility, VISIBILITY_MASK);
-}
-  
+  /**
+   * Set the enabled state of this view.
+   * 
+   * @param visibility
+   *          One of {@link #VISIBLE}, {@link #INVISIBLE}, or {@link #GONE}.
+   * @attr ref android.R.styleable#View_visibility
+   */
+  @RemotableViewMethod
+  public void setVisibility(int visibility) {
+    // TODO setFlags(visibility, VISIBILITY_MASK);
+  }
+
   /**
    * Interface definition for a callback to be invoked when a view is clicked.
    */
@@ -541,13 +567,14 @@ public void setVisibility(int visibility) {
   }
 
   /**
-   * Interface definition for a callback to be invoked when a key event is dispatched to this view. The
-   * callback will be invoked before the key event is given to the view.
+   * Interface definition for a callback to be invoked when a key event is
+   * dispatched to this view. The callback will be invoked before the key event
+   * is given to the view.
    */
   public interface OnKeyListener {
     /**
-     * Called when a key is dispatched to a view. This allows listeners to get a chance to respond before the
-     * target view.
+     * Called when a key is dispatched to a view. This allows listeners to get a
+     * chance to respond before the target view.
      * 
      * @param v
      *          The view the key has been dispatched to.
@@ -561,61 +588,68 @@ public void setVisibility(int visibility) {
   }
 
   /**
-   * Interface definition for a callback to be invoked when a touch event is dispatched to this view. The
-   * callback will be invoked before the touch event is given to the view.
+   * Interface definition for a callback to be invoked when a touch event is
+   * dispatched to this view. The callback will be invoked before the touch
+   * event is given to the view.
    */
   public interface OnTouchListener {
     /**
-     * Called when a touch event is dispatched to a view. This allows listeners to get a chance to respond
-     * before the target view.
+     * Called when a touch event is dispatched to a view. This allows listeners
+     * to get a chance to respond before the target view.
      * 
      * @param v
      *          The view the touch event has been dispatched to.
      * @param event
-     *          The MotionEvent object containing full information about the event.
+     *          The MotionEvent object containing full information about the
+     *          event.
      * @return True if the listener has consumed the event, false otherwise.
      */
     boolean onTouch(View v, MotionEvent event);
   }
 
   /**
-   * Interface definition for a callback to be invoked when a hover event is dispatched to this view. The
-   * callback will be invoked before the hover event is given to the view.
+   * Interface definition for a callback to be invoked when a hover event is
+   * dispatched to this view. The callback will be invoked before the hover
+   * event is given to the view.
    */
   public interface OnHoverListener {
     /**
-     * Called when a hover event is dispatched to a view. This allows listeners to get a chance to respond
-     * before the target view.
+     * Called when a hover event is dispatched to a view. This allows listeners
+     * to get a chance to respond before the target view.
      * 
      * @param v
      *          The view the hover event has been dispatched to.
      * @param event
-     *          The MotionEvent object containing full information about the event.
+     *          The MotionEvent object containing full information about the
+     *          event.
      * @return True if the listener has consumed the event, false otherwise.
      */
     boolean onHover(View v, MotionEvent event);
   }
 
   /**
-   * Interface definition for a callback to be invoked when a generic motion event is dispatched to this view.
-   * The callback will be invoked before the generic motion event is given to the view.
+   * Interface definition for a callback to be invoked when a generic motion
+   * event is dispatched to this view. The callback will be invoked before the
+   * generic motion event is given to the view.
    */
   public interface OnGenericMotionListener {
     /**
-     * Called when a generic motion event is dispatched to a view. This allows listeners to get a chance to
-     * respond before the target view.
+     * Called when a generic motion event is dispatched to a view. This allows
+     * listeners to get a chance to respond before the target view.
      * 
      * @param v
      *          The view the generic motion event has been dispatched to.
      * @param event
-     *          The MotionEvent object containing full information about the event.
+     *          The MotionEvent object containing full information about the
+     *          event.
      * @return True if the listener has consumed the event, false otherwise.
      */
     boolean onGenericMotion(View v, MotionEvent event);
   }
 
   /**
-   * Interface definition for a callback to be invoked when a view has been clicked and held.
+   * Interface definition for a callback to be invoked when a view has been
+   * clicked and held.
    */
   public interface OnLongClickListener {
     /**
@@ -630,35 +664,40 @@ public void setVisibility(int visibility) {
   }
 
   /**
-   * Interface definition for a callback to be invoked when a drag is being dispatched to this view. The
-   * callback will be invoked before the hosting view's own onDrag(event) method. If the listener wants to
-   * fall back to the hosting view's onDrag(event) behavior, it should return 'false' from this callback.
+   * Interface definition for a callback to be invoked when a drag is being
+   * dispatched to this view. The callback will be invoked before the hosting
+   * view's own onDrag(event) method. If the listener wants to fall back to the
+   * hosting view's onDrag(event) behavior, it should return 'false' from this
+   * callback.
    * 
    * <div class="special reference"> <h3>Developer Guides</h3>
    * <p>
-   * For a guide to implementing drag and drop features, read the <a href="{@docRoot}
-   * guide/topics/ui/drag-drop.html">Drag and Drop</a> developer guide.
+   * For a guide to implementing drag and drop features, read the <a
+   * href="{@docRoot} guide/topics/ui/drag-drop.html">Drag and Drop</a>
+   * developer guide.
    * </p>
    * </div>
    */
   public interface OnDragListener {
     /**
-     * Called when a drag event is dispatched to a view. This allows listeners to get a chance to override
-     * base View behavior.
+     * Called when a drag event is dispatched to a view. This allows listeners
+     * to get a chance to override base View behavior.
      * 
      * @param v
      *          The View that received the drag event.
      * @param event
      *          The {@link android.view.DragEvent} object for the drag event.
-     * @return {@code true} if the drag event was handled successfully, or {@code false} if the drag event was
-     *         not handled. Note that {@code false} will trigger the View to call its
+     * @return {@code true} if the drag event was handled successfully, or
+     *         {@code false} if the drag event was not handled. Note that
+     *         {@code false} will trigger the View to call its
      *         {@link #onDragEvent(DragEvent) onDragEvent()} handler.
      */
     boolean onDrag(View v, DragEvent event);
   }
 
   /**
-   * Interface definition for a callback to be invoked when the focus state of a view changed.
+   * Interface definition for a callback to be invoked when the focus state of a
+   * view changed.
    */
   public interface OnFocusChangeListener {
     /**
@@ -673,8 +712,9 @@ public void setVisibility(int visibility) {
   }
 
   /**
-   * Interface definition for a callback to be invoked when the status bar changes visibility. This reports
-   * <strong>global</strong> changes to the system UI state, not just what the application is requesting.
+   * Interface definition for a callback to be invoked when the status bar
+   * changes visibility. This reports <strong>global</strong> changes to the
+   * system UI state, not just what the application is requesting.
    * 
    * @see View#setOnSystemUiVisibilityChangeListener(android.view.View.OnSystemUiVisibilityChangeListener)
    */
@@ -685,14 +725,16 @@ public void setVisibility(int visibility) {
      * 
      * @param visibility
      *          Bitwise-or of flags {@link #SYSTEM_UI_FLAG_LOW_PROFILE} or
-     *          {@link #SYSTEM_UI_FLAG_HIDE_NAVIGATION}. This tells you the <strong>global</strong> state of
-     *          the UI visibility flags, not what your app is currently applying.
+     *          {@link #SYSTEM_UI_FLAG_HIDE_NAVIGATION}. This tells you the
+     *          <strong>global</strong> state of the UI visibility flags, not
+     *          what your app is currently applying.
      */
     public void onSystemUiVisibilityChange(int visibility);
   }
 
   /**
-   * Interface definition for a callback to be invoked when this view is attached or detached from its window.
+   * Interface definition for a callback to be invoked when this view is
+   * attached or detached from its window.
    */
   public interface OnAttachStateChangeListener {
     /**
@@ -718,7 +760,7 @@ public void setVisibility(int visibility) {
 
   @Override
   public String toString() {
-    return "View [mID=" + mID + ", name=" + name + "]";
+    return "View [ type=" + getClass().getSimpleName() + " mID=" + mID + ", name=" + name + "]";
   }
 
   protected View findViewByName(String name) {
