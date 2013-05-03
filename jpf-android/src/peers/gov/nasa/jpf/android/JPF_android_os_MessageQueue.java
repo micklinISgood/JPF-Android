@@ -74,7 +74,7 @@ public class JPF_android_os_MessageQueue {
    * empty. If we return false, it means there is nothing else to check and we
    * are done
    */
-  public static boolean processScriptAction(MJIEnv env, int objref, int count) {
+  public static boolean processScriptAction(MJIEnv env, int objref) {
     ThreadInfo ti = env.getThreadInfo();
 
     if (scriptEnv == null) {
@@ -87,8 +87,8 @@ public class JPF_android_os_MessageQueue {
 
       UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
       if (action != null) {
-        log.info("CURRENT WINDOW: " + currentWindow);
-        log.info("PROCESS ACTION: " + action.action + " " + action.target + " MSQ#" + count);
+        System.out.println("*******************************");
+        log.info("PROCESSING: Window " + currentWindow + " Action " + action.action + " " + action.target);
         runAction(env, action);
         return true;
       }
@@ -114,7 +114,6 @@ public class JPF_android_os_MessageQueue {
         JPF_com_android_server_am_ActivityManager.setIntent(env, action);
       }
     }
-    System.out.println("*******************************");
   }
 
 }

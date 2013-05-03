@@ -53,29 +53,33 @@ import android.view.WindowManager;
 import com.android.server.am.ActivityManager;
 
 /**
- * This manages the execution of the main thread in an application process, scheduling and executing
- * activities, broadcasts, and other operations on it as the activity manager requests. Adapted from Android
- * 4.1. The purpose of this class is to synchronize all execution on the main thread. For example calling
- * life-cycle methods of a service/ Activity. Especially Activities as they interact with the GUI that is not
- * thread-safe.
+ * This manages the execution of the main thread in an application process,
+ * scheduling and executing activities, broadcasts, and other operations on it
+ * as the activity manager requests. Adapted from Android 4.1. The purpose of
+ * this class is to synchronize all execution on the main thread. For example
+ * calling life-cycle methods of a service/ Activity. Especially Activities as
+ * they interact with the GUI that is not thread-safe.
  * 
- * We simplified it to support the testing of a single application. This includes the following
- * simplifications:
+ * We simplified it to support the testing of a single application. This
+ * includes the following simplifications:
  * 
  * 1. Package Information & Class loading
  * 
- * Instead of storing the list mPackages of package information, we only store one LoadedApk representing the
- * loaded Android APK package of the system under test. As each loaded APK package has each own Application
- * class, we only store one Application class instead of the list mAllApplications. In other words we do not
- * support multiple applications running in the same process.
+ * Instead of storing the list mPackages of package information, we only store
+ * one LoadedApk representing the loaded Android APK package of the system under
+ * test. As each loaded APK package has each own Application class, we only
+ * store one Application class instead of the list mAllApplications. In other
+ * words we do not support multiple applications running in the same process.
  * 
  * 2. ClassLoader - see LoadedApk
  * 
- * We use the default (current) classloader in Loaded APK as the SUT's classes were already loaded by JPF
+ * We use the default (current) classloader in Loaded APK as the SUT's classes
+ * were already loaded by JPF
  * 
  * 3. Removed system classes
  * 
- * GCIdler Profiler BackupAgent BackupAgent CompatitblityInfo CloseGuard CompatibilityInfo
+ * GCIdler Profiler BackupAgent BackupAgent CompatitblityInfo CloseGuard
+ * CompatibilityInfo
  * 
  * 4. WindowManager
  * 
@@ -85,8 +89,8 @@ import com.android.server.am.ActivityManager;
  * 
  * TODO:
  * 
- * - restart of activity due to config change - resource loading - receiver - test application - refine resume
- * activity
+ * - restart of activity due to config change - resource loading - receiver -
+ * test application - refine resume activity
  * 
  * * @author Heila van der Merwe
  */
@@ -123,7 +127,8 @@ public final class ActivityThread {
   boolean mSystemThread = false;
   Application mInitialApplication;
 
-  LoadedApk mPackage; // For testing we do not have to store multiple packages, only one as we are only
+  LoadedApk mPackage; // For testing we do not have to store multiple packages,
+                      // only one as we are only
                       // testing a single application
 
   static ContextImpl mSystemContext = null;
@@ -179,16 +184,21 @@ public final class ActivityThread {
       // TODO
     }
 
-    /* ****************************** Activity Methods *********************************** */
+    /*
+     *  ****************************** Activity Methods
+     * ***********************************
+     */
 
     /**
-     * Called by the ActivityManagerService to schedule the launch of a new instance of an Activity.
+     * Called by the ActivityManagerService to schedule the launch of a new
+     * instance of an Activity.
      * 
      * @param intent
      *          - the intent containing the starting activity component
      * @param token
-     *          we use token to identify this activity without having to send the activity itself back to the
-     *          activity manager. (matters more with ipc)
+     *          we use token to identify this activity without having to send
+     *          the activity itself back to the activity manager. (matters more
+     *          with ipc)
      * 
      * @param ident
      * @param info
@@ -199,7 +209,8 @@ public final class ActivityThread {
      * @param state
      *          - previous state that was stored
      * @param pendingResults
-     *          - list of resultinfo objects that hav eto be delivered to this Actvity
+     *          - list of resultinfo objects that hav eto be delivered to this
+     *          Actvity
      * @param pendingNewIntents
      * @param notResumed
      * @param isForward
@@ -208,7 +219,8 @@ public final class ActivityThread {
                                              Configuration curConfig, CompatibilityInfo compatInfo,
                                              Bundle state, List<ResultInfo> pendingResults,
                                              List<Intent> pendingNewIntents, boolean notResumed,
-                                             boolean isForward) {// , String profileName,
+                                             boolean isForward) {// , String
+                                                                 // profileName,
       // ParcelFileDescriptor profileFd, boolean autoStopProfiler) {
       ActivityClientRecord r = new ActivityClientRecord();
 
@@ -244,10 +256,12 @@ public final class ActivityThread {
       queueOrSendMessage(showWindow ? H.STOP_ACTIVITY_SHOW : H.STOP_ACTIVITY_HIDE, token, 0, configChanges);
     }
 
-    // public final void scheduleRelaunchActivity(IBinder token, List<ResultInfo> pendingResults,
+    // public final void scheduleRelaunchActivity(IBinder token,
+    // List<ResultInfo> pendingResults,
     // List<Intent> pendingNewIntents, int configChanges,
     // boolean notResumed, Configuration config) {
-    // // requestRelaunchActivity(token, pendingResults, pendingNewIntents, configChanges, notResumed, config,
+    // // requestRelaunchActivity(token, pendingResults, pendingNewIntents,
+    // configChanges, notResumed, config,
     // // true);
     // queueOrSendMessage(H.RELAUNCH_ACTIVITY, null, 0, 0);
     //
@@ -300,7 +314,10 @@ public final class ActivityThread {
       // queueOrSendMessage(H.NEW_INTENT, data);
     }
 
-    /* ****************************** Service Methods *********************************** */
+    /*
+     *  ****************************** Service Methods
+     * ***********************************
+     */
 
     public final void scheduleCreateService(IBinder token, ServiceInfo info, CompatibilityInfo compatInfo) {
       CreateServiceData s = new CreateServiceData();
@@ -476,6 +493,7 @@ public final class ActivityThread {
   // if the thread hasn't started yet, we don't have the handler, so just
   // save the messages until we're ready.
   private void queueOrSendMessage(int what, Object obj) {
+
     queueOrSendMessage(what, obj, 0, 0);
   }
 
@@ -518,7 +536,81 @@ public final class ActivityThread {
     public static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
     public static final int RELAUNCH_ACTIVITY = 126;
 
+    String codeToString(int code) {
+      if (DEBUG_MESSAGES) {
+        switch (code) {
+        case LAUNCH_ACTIVITY:
+          return "LAUNCH_ACTIVITY";
+        case PAUSE_ACTIVITY:
+          return "PAUSE_ACTIVITY";
+        case PAUSE_ACTIVITY_FINISHING:
+          return "PAUSE_ACTIVITY_FINISHING";
+        case STOP_ACTIVITY_SHOW:
+          return "STOP_ACTIVITY_SHOW";
+        case STOP_ACTIVITY_HIDE:
+          return "STOP_ACTIVITY_HIDE";
+        case SHOW_WINDOW:
+          return "SHOW_WINDOW";
+        case HIDE_WINDOW:
+          return "HIDE_WINDOW";
+        case RESUME_ACTIVITY:
+          return "RESUME_ACTIVITY";
+        case SEND_RESULT:
+          return "SEND_RESULT";
+        case DESTROY_ACTIVITY:
+          return "DESTROY_ACTIVITY";
+        case BIND_APPLICATION:
+          return "BIND_APPLICATION";
+          // case EXIT_APPLICATION: return "EXIT_APPLICATION";
+        case NEW_INTENT:
+          return "NEW_INTENT";
+        case RECEIVER:
+          return "RECEIVER";
+        case CREATE_SERVICE:
+          return "CREATE_SERVICE";
+        case SERVICE_ARGS:
+          return "SERVICE_ARGS";
+        case STOP_SERVICE:
+          return "STOP_SERVICE";
+          // case REQUEST_THUMBNAIL: return "REQUEST_THUMBNAIL";
+          // case CONFIGURATION_CHANGED: return "CONFIGURATION_CHANGED";
+        case CLEAN_UP_CONTEXT:
+          return "CLEAN_UP_CONTEXT";
+          // case GC_WHEN_IDLE: return "GC_WHEN_IDLE";
+        case BIND_SERVICE:
+          return "BIND_SERVICE";
+        case UNBIND_SERVICE:
+          return "UNBIND_SERVICE";
+          // case DUMP_SERVICE: return "DUMP_SERVICE";
+          // case LOW_MEMORY: return "LOW_MEMORY";
+        case ACTIVITY_CONFIGURATION_CHANGED:
+          return "ACTIVITY_CONFIGURATION_CHANGED";
+        case RELAUNCH_ACTIVITY:
+          return "RELAUNCH_ACTIVITY";
+          // case PROFILER_CONTROL: return "PROFILER_CONTROL";
+          // case CREATE_BACKUP_AGENT: return "CREATE_BACKUP_AGENT";
+          // case DESTROY_BACKUP_AGENT: return "DESTROY_BACKUP_AGENT";
+          // case SUICIDE: return "SUICIDE";
+          // case REMOVE_PROVIDER: return "REMOVE_PROVIDER";
+          // case ENABLE_JIT: return "ENABLE_JIT";
+          // case DISPATCH_PACKAGE_BROADCAST: return
+          // "DISPATCH_PACKAGE_BROADCAST";
+          // case SCHEDULE_CRASH: return "SCHEDULE_CRASH";
+          // case DUMP_HEAP: return "DUMP_HEAP";
+          // case DUMP_ACTIVITY: return "DUMP_ACTIVITY";
+          // case SLEEPING: return "SLEEPING";
+          // case SET_CORE_SETTINGS: return "SET_CORE_SETTINGS";
+          // case UPDATE_PACKAGE_COMPATIBILITY_INFO: return
+          // "UPDATE_PACKAGE_COMPATIBILITY_INFO";
+          // case TRIM_MEMORY: return "TRIM_MEMORY";
+        }
+      }
+      return "(unknown)";
+    }
+
     public void handleMessage(Message msg) {
+      Log.i(TAG, "Message " + codeToString(msg.what));
+
       switch (msg.what) {
       case LAUNCH_ACTIVITY: {
         ActivityClientRecord r = (ActivityClientRecord) msg.obj;
@@ -648,7 +740,8 @@ public final class ActivityThread {
   }
 
   /**
-   * Simplified to only support one package: mPackage instead of looking up the package in mPackages.
+   * Simplified to only support one package: mPackage instead of looking up the
+   * package in mPackages.
    * 
    * @param packageName
    * @param flags
@@ -792,7 +885,10 @@ public final class ActivityThread {
     return mSystemContext;
   }
 
-  /* ************************** Broadcast Receiver ********************************* */
+  /*
+   *  ************************** Broadcast Receiver
+   * *********************************
+   */
 
   private void handleReceiver(ReceiverData data) {
     // If we are getting ready to gc after going to the background, well
@@ -1005,9 +1101,13 @@ public final class ActivityThread {
     }
   }
 
-  /* ****************************** Activity Methods *********************************** */
+  /*
+   *  ****************************** Activity Methods
+   * ***********************************
+   */
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
-    // System.out.println("##### [" + System.currentTimeMillis() + "] ActivityThread.performLaunchActivity(" +
+    // System.out.println("##### [" + System.currentTimeMillis() +
+    // "] ActivityThread.performLaunchActivity(" +
     // r + ")");
 
     ActivityInfo aInfo = r.activityInfo;
@@ -1049,7 +1149,8 @@ public final class ActivityThread {
       // Slog.v(
       // TAG,
       // r + ": app=" + app + ", appName=" + app.getPackageName() + ", pkg="
-      // + r.packageInfo.getPackageName() + ", comp=" + r.intent.getComponent().toShortString()
+      // + r.packageInfo.getPackageName() + ", comp=" +
+      // r.intent.getComponent().toShortString()
       // + ", dir=" + r.packageInfo.getAppDir());
 
       if (activity != null) {
@@ -1059,7 +1160,7 @@ public final class ActivityThread {
         CharSequence title = r.activityInfo.loadLabel(appContext.getPackageManager());
         Configuration config = new Configuration(mCompatConfiguration);
         if (DEBUG_CONFIGURATION)
-          Slog.v(TAG, "Launching activity " + r.activityInfo.name + " with config " + config);
+          Log.i(TAG, "Launching " + r.activityInfo.name + " with config " + config);
         activity.attach(appContext, this, getInstrumentation(), r.token, r.ident, app, r.intent,
             r.activityInfo, title, r.parent, r.embeddedID, r.lastNonConfigurationInstances, config);
 
@@ -1197,7 +1298,8 @@ public final class ActivityThread {
         // }
         r.activity.performResume();
 
-        // EventLog.writeEvent(LOG_ON_RESUME_CALLED, r.activity.getComponentName().getClassName());
+        // EventLog.writeEvent(LOG_ON_RESUME_CALLED,
+        // r.activity.getComponentName().getClassName());
 
         r.paused = false;
         r.stopped = false;
@@ -1246,7 +1348,8 @@ public final class ActivityThread {
         Slog.v(TAG, "Resume " + r + " started activity: " + a.mStartedActivity + ", hideForNow: "
             + r.hideForNow + ", finished: " + a.mFinished);
 
-      // final int forwardBit = isForward ? WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
+      // final int forwardBit = isForward ?
+      // WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION : 0;
 
       // If the window hasn't yet been added to the window manager,
       // and this guy didn't finish itself or start another activity,
@@ -1254,7 +1357,8 @@ public final class ActivityThread {
       // boolean willBeVisible = !a.mStartedActivity;
       // if (!willBeVisible) {
       // try {
-      // willBeVisible = ActivityManagerNative.getDefault().willActivityBeVisible(a.getActivityToken());
+      // willBeVisible =
+      // ActivityManagerNative.getDefault().willActivityBeVisible(a.getActivityToken());
       // } catch (RemoteException e) {
       // }
       // }
@@ -1286,18 +1390,23 @@ public final class ActivityThread {
 
       // The window is now visible if it has been added, we are not
       // simply finishing, and we are not starting another activity.
-      // if (!r.activity.mFinished && willBeVisible && r.activity.mDecor != null && !r.hideForNow) {
+      // if (!r.activity.mFinished && willBeVisible && r.activity.mDecor != null
+      // && !r.hideForNow) {
       // if (r.newConfig != null) {
       // if (DEBUG_CONFIGURATION)
-      // Slog.v(TAG, "Resuming activity " + r.activityInfo.name + " with newConfig " + r.newConfig);
+      // Slog.v(TAG, "Resuming activity " + r.activityInfo.name +
+      // " with newConfig " + r.newConfig);
       // performConfigurationChanged(r.activity, r.newConfig);
       // r.newConfig = null;
       // }
       // if (localLOGV)
       // Slog.v(TAG, "Resuming " + r + " with isForward=" + isForward);
       // WindowManager.LayoutParams l = r.window.getAttributes();
-      // if ((l.softInputMode & WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION) != forwardBit) {
-      // l.softInputMode = (l.softInputMode & (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
+      // if ((l.softInputMode &
+      // WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION) !=
+      // forwardBit) {
+      // l.softInputMode = (l.softInputMode &
+      // (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
       // | forwardBit;
       // if (r.activity.mVisibleFromClient) {
       // ViewManager wm = a.getWindowManager();
@@ -1414,10 +1523,12 @@ public final class ActivityThread {
   }
 
   /**
-   * Core implementation of stopping an activity. Note this is a little tricky because the server's meaning of
-   * stop is slightly different than our client -- for the server, stop means to save state and give it the
-   * result when it is done, but the window may still be visible. For the client, we want to call
-   * onStop()/onStart() to indicate when the activity's UI visibillity changes.
+   * Core implementation of stopping an activity. Note this is a little tricky
+   * because the server's meaning of stop is slightly different than our client
+   * -- for the server, stop means to save state and give it the result when it
+   * is done, but the window may still be visible. For the client, we want to
+   * call onStop()/onStart() to indicate when the activity's UI visibillity
+   * changes.
    */
   private void performStopActivityInner(ActivityClientRecord r, StopInfo info, boolean keepShown,
                                         boolean saveState) {
@@ -1590,7 +1701,8 @@ public final class ActivityThread {
       // }
       // }
       // if (wtoken != null && r.mPendingRemoveWindow == null) {
-      // WindowManagerImpl.getDefault().closeAll(wtoken, r.activity.getClass().getName(), "Activity");
+      // WindowManagerImpl.getDefault().closeAll(wtoken,
+      // r.activity.getClass().getName(), "Activity");
       // }
       // r.activity.mDecor = null;
       // }
@@ -1601,7 +1713,8 @@ public final class ActivityThread {
       // by the app will leak. Well we try to warning them a lot
       // about leaking windows, because that is a bug, so if they are
       // using this recreate facility then they get to live with leaks.
-      // WindowManagerImpl.getDefault().closeAll(token, r.activity.getClass().getName(), "Activity");
+      // WindowManagerImpl.getDefault().closeAll(token,
+      // r.activity.getClass().getName(), "Activity");
     }
 
     // Mocked out contexts won't be participating in the normal
@@ -1610,7 +1723,8 @@ public final class ActivityThread {
     // cleanly.
     // Context c = r.activity.getBaseContext();
     // / if (c instanceof ContextImpl) {
-    // ((ContextImpl) c).scheduleFinalCleanup(r.activity.getClass().getName(), "Activity");
+    // ((ContextImpl) c).scheduleFinalCleanup(r.activity.getClass().getName(),
+    // "Activity");
     // }
     // }
     if (finishing) {
@@ -1634,7 +1748,8 @@ public final class ActivityThread {
         try {
           r.activity.mCalled = false;
           mInstrumentation.callActivityOnPause(r.activity);
-          // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
+          // EventLog.writeEvent(LOG_ON_PAUSE_CALLED,
+          // r.activity.getComponentName().getClassName());
           if (!r.activity.mCalled) {
             throw new SuperNotCalledException("Activity " + r.intent.getComponent().getClassName()
                 + " did not call through to super.onPause()");
@@ -1756,7 +1871,8 @@ public final class ActivityThread {
       // Now we are idle.
       r.activity.mCalled = false;
       mInstrumentation.callActivityOnPause(r.activity);
-      // EventLog.writeEvent(LOG_ON_PAUSE_CALLED, r.activity.getComponentName().getClassName());
+      // EventLog.writeEvent(LOG_ON_PAUSE_CALLED,
+      // r.activity.getComponentName().getClassName());
       if (!r.activity.mCalled) {
         throw new SuperNotCalledException("Activity " + r.intent.getComponent().toShortString()
             + " did not call through to super.onPause()");
@@ -1942,7 +2058,10 @@ public final class ActivityThread {
     // handleLaunchActivity(r, currentIntent);
   }
 
-  /* ****************************** System Methods *********************************** */
+  /*
+   *  ****************************** System Methods
+   * ***********************************
+   */
 
   final void scheduleContextCleanup(ContextImpl context, String who, String what) {
     ContextCleanupInfo cci = new ContextCleanupInfo();
@@ -1980,15 +2099,17 @@ public final class ActivityThread {
     mCompatConfiguration = new Configuration(data.config);
 
     /*
-     * Update the system configuration since its preloaded and might not reflect configuration changes. The
-     * configuration object passed in AppBindData can be safely assumed to be up to date
+     * Update the system configuration since its preloaded and might not reflect
+     * configuration changes. The configuration object passed in AppBindData can
+     * be safely assumed to be up to date
      */
     // TODO resources applyConfigurationToResourcesLocked(data.config);
     // applyCompatConfiguration();
 
     data.info = getPackageInfoNoCheck(data.appInfo);
 
-    mInstrumentation = new Instrumentation(); // currently we dont support custom impl of instrumentation
+    mInstrumentation = new Instrumentation(); // currently we dont support
+                                              // custom impl of instrumentation
 
     // If the app is being launched for full backup or restore, bring it up in
     // a restricted environment with the base application class.
@@ -2020,7 +2141,8 @@ public final class ActivityThread {
     } catch (RemoteException ex) {
       // Ignore
     }
-    sThreadLocal.set(this); // so that this class can be reached anywhere in this thread
+    sThreadLocal.set(this); // so that this class can be reached anywhere in
+                            // this thread
     // TODO ViewRootImpl.addConfigCallback(new ComponentCallbacks2() {
     // public void onConfigurationChanged(Configuration newConfig) {
     // synchronized (mPackages) {
@@ -2053,7 +2175,7 @@ public final class ActivityThread {
 
   public native void init0();
 
-  public static void main(String[] args) {
+  public static void start(String[] args) {
 
     Looper.prepareMainLooper();
     if (sMainThreadHandler == null) {
@@ -2062,7 +2184,7 @@ public final class ActivityThread {
 
     ActivityThread thread = new ActivityThread();
     // Setup PackageManager
-    sPackageManager = new PackageManager(); 
+    sPackageManager = new PackageManager();
     // Setup ActivityManager
     new ActivityManager(sPackageManager.getPackageInfo());
     // Setup WindowManager

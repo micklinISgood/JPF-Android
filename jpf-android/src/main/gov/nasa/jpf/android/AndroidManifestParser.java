@@ -137,7 +137,7 @@ public class AndroidManifestParser extends DefaultHandler {
    * 
    */
   private void parseSuccessful() {
-    logger.info("Manifest parsed successfully");
+    logger.info("AndroidManifestParser: Manifest parsed successfully");
     packageInfo.activities = new ActivityInfo[activities.size()];
     activities.toArray(packageInfo.activities);
 
@@ -150,9 +150,6 @@ public class AndroidManifestParser extends DefaultHandler {
     packageInfo.receivers = new ActivityInfo[receivers.size()];
     receivers.toArray(packageInfo.receivers);
 
-    for (ActivityInfo a : packageInfo.activities) {
-      logger.info(a.name + a.packageName + a.processName);
-    }
   }
 
   @Override

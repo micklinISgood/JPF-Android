@@ -32,7 +32,7 @@ public class ScriptParser {
       s = getNextScriptElement();
       if (s != null && s.length() > 0) {
         numElementsParsed++;
-        outputSequence.append("#" + numElementsParsed + ": " + s + "\n");
+        outputSequence.append("#" + numElementsParsed + "[" + s +"] " );
       }
     } while (s != null && s.length() > 0);
     

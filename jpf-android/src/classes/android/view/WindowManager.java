@@ -1,5 +1,7 @@
 package android.view;
 
+import android.util.Log;
+
 public class WindowManager {
   private final static String TAG = "WindowManager";
 
@@ -12,7 +14,7 @@ public class WindowManager {
   public static native void init0();
 
   public static void setWindow(Window window) {
-    System.out.println("Changing from Window " + currentWindow + " to  " + window);
+    Log.i(TAG, currentWindow + " ----> " + window);
     currentWindow = window;
   }
 

@@ -162,8 +162,8 @@ public class Window extends ViewGroup {
 
   void handleViewAction(String name, String action) {
 
-    Log.i(TAG, "Invoking " + action + " on view " + name);
-    // find the view object
+    Log.i(TAG, "Invoking " + name + "." + action);
+    // find the view object 
     View view = findViewByName(name.substring(1));
     if (view == null) {
       Log.e(TAG, "No view with name " + name + " exists for window " + this.name);
