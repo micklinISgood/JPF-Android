@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
@@ -25,6 +26,7 @@ import com.android.internal.policy.PolicyManager;
 public class Activity extends ContextThemeWrapper implements Window.Callback {
   private static int uniqueID = 0;
   private static final String TAG = "Activity";
+  private static final boolean DEBUG_ACTIVITY = false;
 
   /** Standard activity result: operation cancelled. */
   public static final int RESULT_CANCELED = 0;
@@ -77,9 +79,12 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   /** true if the activity is going through a transient pause */
   /* package */boolean mTemporaryPause = false; //used by deliver results and deliver intents in activitythread
 
-  /** true if the activity is being destroyed in order to recreate it with a new configuration */
+  /**
+   * true if the activity is being destroyed in order to recreate it with a new
+   * configuration
+   */
   /* package */boolean mChangingConfigurations = false; // used in activity to know when to stop loader manager, in case of relaunch, do no stop
-  /* package */int mConfigChangeFlags; 
+  /* package */int mConfigChangeFlags;
   /* package */Configuration mCurrentConfig;
 
   // private SearchManager mSearchManager; //TODO
@@ -104,7 +109,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 
   private CharSequence mTitle; //TODO not used yet
   private int mTitleColor = 0; //TODO not used
-  
+
   // final FragmentManagerImpl mFragments = new FragmentManagerImpl(); TODO
   //
   // SparseArray<LoaderManagerImpl> mAllLoaderManagers; //TODO
@@ -136,7 +141,14 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   private Thread mUiThread;
   final Handler mHandler = new Handler();
 
+  public Activity() {
+    Log.i(TAG, "Constucting Activity " + this.getClass().getName());
+  }
+
   protected void onCreate(Bundle savedInstanceState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onCreate()");
+
     // if (mLastNonConfigurationInstances != null) { -- comes from attach
     // mAllLoaderManagers = mLastNonConfigurationInstances.loaders;
     // }
@@ -163,11 +175,17 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
    *          contains the saved state
    */
   final void performRestoreInstanceState(Bundle savedInstanceState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".performRestoreInstanceState()");
+
     onRestoreInstanceState(savedInstanceState);
     restoreManagedDialogs(savedInstanceState);
   }
 
   protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onRestoreInstanceState()");
+
     if (mWindow != null) {
       Bundle windowState = savedInstanceState.getBundle(WINDOW_HIERARCHY_TAG);
       if (windowState != null) {
@@ -177,6 +195,9 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   private void restoreManagedDialogs(Bundle savedInstanceState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".restoreManagedDialogs()");
+
     final Bundle b = savedInstanceState.getBundle(SAVED_DIALOGS_TAG);
     if (b == null) {
       return;
@@ -205,6 +226,9 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onPostCreate(Bundle savedInstanceState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onPostCreate()");
+
     if (!isChild()) {
       // mTitleReady = true;
       // onTitleChanged(getTitle(), getTitleColor());
@@ -223,6 +247,9 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onStart() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onStart()");
+
     mCalled = true;
     //
     // if (!mLoadersStarted) {
@@ -239,15 +266,24 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onRestart() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onRestart()");
+
     mCalled = true;
   }
 
   protected void onResume() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onResume()");
+
     getApplication().dispatchActivityResumed(this);
     mCalled = true;
   }
 
   protected void onPostResume() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onPostResume()");
+
     // final Window win = getWindow();
     // if (win != null) win.makeActive();
     // if (mActionBar != null) mActionBar.setShowHideAnimationEnabled(true);
@@ -255,11 +291,17 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onPause() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onPause()");
+
     getApplication().dispatchActivityPaused(this);
     mCalled = true;
   }
 
   protected void onStop() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onStop()");
+
     // if (mActionBar != null)
     // mActionBar.setShowHideAnimationEnabled(false);
     getApplication().dispatchActivityStopped(this);
@@ -267,9 +309,11 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onDestroy() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onDestroy()");
+
     mCalled = true;
-    //
-    // // dismiss any dialogs we are managing.
+    // dismiss any dialogs we are managing.
     if (mManagedDialogs != null) {
       final int numDialogs = mManagedDialogs.size();
       for (int i = 0; i < numDialogs; i++) {
@@ -302,15 +346,18 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Generate a new description for this activity. This method is called before pausing the activity and can,
-   * if desired, return some textual description of its current state to be displayed to the user.
+   * Generate a new description for this activity. This method is called before
+   * pausing the activity and can,
+   * if desired, return some textual description of its current state to be
+   * displayed to the user.
    * 
    * <p>
-   * The default implementation returns null, which will cause you to inherit the description from the
-   * previous activity. If all activities return null, generally the label of the top activity will be used as
-   * the description.
+   * The default implementation returns null, which will cause you to inherit
+   * the description from the previous activity. If all activities return null,
+   * generally the label of the top activity will be used as the description.
    * 
-   * @return A description of what the user is doing. It should be short and sweet (only a few words).
+   * @return A description of what the user is doing. It should be short and
+   *         sweet (only a few words).
    * 
    * @see #onCreateThumbnail
    * @see #onSaveInstanceState
@@ -348,7 +395,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   void makeVisible() {
-     //if (!mWindowAdded) {
+    //if (!mWindowAdded) {
     // ViewManager wm = getWindowManager();
     // wm.addView(mDecor, getWindow().getAttributes());
     // mWindowAdded = true;
@@ -368,9 +415,12 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public final void startActivityForResult(Intent intent, int requestCode) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".startActivityForResult(intent=" + intent + " requestCode="
+          + requestCode + ")");
     // if (mParent == null) {
     // Instrumentation.ActivityResult ar =
-     onPause();
+    onPause();
     // System.out.println("Activity for result");
     ActivityManagerNative.getDefault().startActivity(intent, requestCode);
     // if (ar != null) {
@@ -409,8 +459,10 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Runs the specified action on the UI thread. If the current thread is the UI thread, then the action is
-   * executed immediately. If the current thread is not the UI thread, the action is posted to the event queue
+   * Runs the specified action on the UI thread. If the current thread is the UI
+   * thread, then the action is
+   * executed immediately. If the current thread is not the UI thread, the
+   * action is posted to the event queue
    * of the UI thread.
    * 
    * @param action
@@ -442,6 +494,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
                     Application application, Intent intent, ActivityInfo info, CharSequence title,
                     Activity parent, String id, NonConfigurationInstances lastNonConfigurationInstances,
                     Configuration config) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".attach()");
 
     attachBaseContext(context);
 
@@ -478,7 +532,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
     // if (mParent != null) {
     // mWindow.setContainer(mParent.getWindow());
     // }
-    // mWindowManager = mWindow.getWindowManager();
+    mWindowManager = mWindow.getWindowManager();
     mCurrentConfig = config;
   }
 
@@ -548,7 +602,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 
     // mFragments.execPendingActions();
 
-     mLastNonConfigurationInstances = null;
+    mLastNonConfigurationInstances = null;
 
     mCalled = false;
     // mResumed is set by the instrumentation
@@ -576,10 +630,10 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
     mCalled = false;
     onPause();
     mResumed = false;
-    // if (!mCalled && getApplicationInfo().targetSdkVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-    // throw new SuperNotCalledException("Activity " + mComponent.toShortString()
-    // + " did not call through to super.onPause()");
-    // }
+    if (!mCalled) {
+      throw new SuperNotCalledException("Activity " + mComponent.toShortString()
+          + " did not call through to super.onPause()");
+    }
     mResumed = false;
   }
 
@@ -630,7 +684,7 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   final void performDestroy() {
-     mWindow.destroy();
+    mWindow.destroy();
     // mFragments.dispatchDestroy();
     onDestroy();
     // if (mLoaderManager != null) {
@@ -661,6 +715,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onActivityResult()");
   }
 
   @Override
@@ -686,6 +742,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   protected void onSaveInstanceState(Bundle outState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onSaveInstanceState()");
     // outState.putBundle(WINDOW_HIERARCHY_TAG, mWindow.saveHierarchyState());
     // Parcelable p = mFragments.saveAllState();
     // if (p != null) {
@@ -695,9 +753,10 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Check to see whether this activity is in the process of finishing, either because you called
-   * {@link #finish} on it or someone else has requested that it finished. This is often used in
-   * {@link #onPause} to determine whether the activity is simply pausing or completely finishing.
+   * Check to see whether this activity is in the process of finishing, either
+   * because you called {@link #finish} on it or someone else has requested that
+   * it finished. This is often used in {@link #onPause} to determine whether
+   * the activity is simply pausing or completely finishing.
    * 
    * @return If the activity is finishing, returns true; else returns false.
    * 
@@ -708,10 +767,13 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Call this when your activity is done and should be closed. The ActivityResult is propagated back to
+   * Call this when your activity is done and should be closed. The
+   * ActivityResult is propagated back to
    * whoever launched you via onActivityResult().
    */
   public void finish() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".finish()");
     // if (mParent == null) {
     int resultCode;
     Intent resultData;
@@ -723,20 +785,26 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
       // resultData.setAllowFds(false);
     }
     mFinished = true;
-      ActivityManagerNative.getDefault().finishActivity(mToken, resultCode, resultData);
+    ActivityManagerNative.getDefault().finishActivity(mToken, resultCode, resultData);
   }
 
   /**
-   * Called when the activity has detected the user's press of the back key. The default implementation simply
-   * finishes the current activity, but you can override this to do whatever you want.
+   * Called when the activity has detected the user's press of the back key. The
+   * default implementation simply
+   * finishes the current activity, but you can override this to do whatever you
+   * want.
    */
   public void onBackPressed() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".onBackPressed()");
     // if (!mFragments.popBackStackImmediate()) {
     finish();
     // }
   }
 
   public final void setResult(int resultCode) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".setResult(resultCode=" + resultCode + ")");
     synchronized (this) {
       mResultCode = resultCode;
       mResultData = null;
@@ -744,6 +812,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public final void setResult(int resultCode, Intent data) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".setResult(resultCode=" + resultCode + " data=" + data + ")");
     synchronized (this) {
       mResultCode = resultCode;
       mResultData = data;
@@ -755,10 +825,16 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public Object getLastNonConfigurationInstance() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".getLastNonConfigurationInstance()");
+
     return mLastNonConfigurationInstances != null ? mLastNonConfigurationInstances.activity : null;
   }
 
   NonConfigurationInstances retainNonConfigurationInstances() {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".retainNonConfigurationInstances()");
+
     Object activity = onRetainNonConfigurationInstance();
     // HashMap<String, Object> children = onRetainNonConfigurationChildInstances();
     // ArrayList<Fragment> fragments = mFragments.retainNonConfig();
@@ -802,20 +878,26 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Called whenever a key, touch, or trackball event is dispatched to the activity. Implement this method if
-   * you wish to know that the user has interacted with the device in some way while your activity is running.
-   * This callback and {@link #onUserLeaveHint} are intended to help activities manage status bar
-   * notifications intelligently; specifically, for helping activities determine the proper time to cancel a
+   * Called whenever a key, touch, or trackball event is dispatched to the
+   * activity. Implement this method if
+   * you wish to know that the user has interacted with the device in some way
+   * while your activity is running.
+   * This callback and {@link #onUserLeaveHint} are intended to help activities
+   * manage status bar
+   * notifications intelligently; specifically, for helping activities determine
+   * the proper time to cancel a
    * notfication.
    * 
    * <p>
-   * All calls to your activity's {@link #onUserLeaveHint} callback will be accompanied by calls to
-   * {@link #onUserInteraction}. This ensures that your activity will be told of relevant user activity such
-   * as pulling down the notification pane and touching an item there.
+   * All calls to your activity's {@link #onUserLeaveHint} callback will be
+   * accompanied by calls to {@link #onUserInteraction}. This ensures that your
+   * activity will be told of relevant user activity such as pulling down the
+   * notification pane and touching an item there.
    * 
    * <p>
-   * Note that this callback will be invoked for the touch down action that begins a touch gesture, but may
-   * not be invoked for the touch-moved and touch-up actions that follow.
+   * Note that this callback will be invoked for the touch down action that
+   * begins a touch gesture, but may not be invoked for the touch-moved and
+   * touch-up actions that follow.
    * 
    * @see #onUserLeaveHint()
    */
@@ -823,16 +905,21 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   /**
-   * Called as part of the activity lifecycle when an activity is about to go into the background as the
-   * result of user choice. For example, when the user presses the Home key, {@link #onUserLeaveHint} will be
-   * called, but when an incoming phone call causes the in-call Activity to be automatically brought to the
-   * foreground, {@link #onUserLeaveHint} will not be called on the activity being interrupted. In cases when
-   * it is invoked, this method is called right before the activity's {@link #onPause} callback.
+   * Called as part of the activity lifecycle when an activity is about to go
+   * into the background as the
+   * result of user choice. For example, when the user presses the Home key,
+   * {@link #onUserLeaveHint} will be
+   * called, but when an incoming phone call causes the in-call Activity to be
+   * automatically brought to the
+   * foreground, {@link #onUserLeaveHint} will not be called on the activity
+   * being interrupted. In cases when
+   * it is invoked, this method is called right before the activity's
+   * {@link #onPause} callback.
    * 
    * <p>
-   * This callback and {@link #onUserInteraction} are intended to help activities manage status bar
-   * notifications intelligently; specifically, for helping activities determine the proper time to cancel a
-   * notfication.
+   * This callback and {@link #onUserInteraction} are intended to help
+   * activities manage status bar notifications intelligently; specifically, for
+   * helping activities determine the proper time to cancel a notfication.
    * 
    * @see #onUserInteraction()
    */
@@ -840,6 +927,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   private void saveManagedDialogs(Bundle outState) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".saveManagedDialogs()");
     if (mManagedDialogs == null) {
       return;
     }
@@ -877,6 +966,9 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   private Dialog createDialog(Integer dialogId, Bundle state, Bundle args) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".createDialog(id=" + dialogId + ")");
+
     final Dialog dialog = onCreateDialog(dialogId, args);
     if (dialog == null) {
       return null;
@@ -906,6 +998,9 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public final boolean showDialog(int id, Bundle args) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".showDialog(id=" + id + ")");
+
     if (mManagedDialogs == null) {
       mManagedDialogs = new SparseArray<ManagedDialog>();
     }
@@ -926,6 +1021,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public final void dismissDialog(int id) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".dismissDialog(id=" + id + ")");
     if (mManagedDialogs == null) {
       throw missingDialog(id);
     }
@@ -943,6 +1040,8 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
   }
 
   public final void removeDialog(int id) {
+    if (DEBUG_ACTIVITY)
+      Log.i(TAG, this.getClass().getName() + ".removeDialog(id=" + id + ")");
     if (mManagedDialogs != null) {
       final ManagedDialog md = mManagedDialogs.get(id);
       if (md != null) {
@@ -954,6 +1053,11 @@ public class Activity extends ContextThemeWrapper implements Window.Callback {
 
   @Override
   public boolean dispatchKeyEvent(KeyEvent event) {
+    if (DEBUG_ACTIVITY)
+      Log.i(
+          TAG,
+          this.getClass().getName() + ".dispatchKeyEvent(Event=" + event.getKeyCode() + "."
+              + event.getAction() + ")");
     onBackPressed();
     return true;
   }
