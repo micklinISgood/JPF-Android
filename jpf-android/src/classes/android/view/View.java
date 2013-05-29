@@ -36,6 +36,7 @@ public class View {
 
   /**
    * Mask for use with setFlags indicating bits used for visibility. {@hide
+   * 
    * }
    */
   static final int VISIBILITY_MASK = 0x0000000C;
@@ -49,7 +50,7 @@ public class View {
 
   /** ID defined in R file */
   int mID = -1;
-  String name = null;
+  protected String name = null;
 
   protected ViewGroup mParent = null;
 
