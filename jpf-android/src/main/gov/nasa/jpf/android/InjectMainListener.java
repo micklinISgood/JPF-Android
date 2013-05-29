@@ -36,17 +36,23 @@ public class InjectMainListener extends ListenerAdapter {
       MethodInfo[] methods = last.getDeclaredMethodInfos();
       boolean found = false;
       for (MethodInfo method : methods) {
-        if (method.getClassName().contains("main")) {
+        if (method.getFullName().contains("main([Ljava/lang/String;)V")) {
           found = true;
+          logger.info("&&&&&&&&"+ method.getFullName());
+
         }
       }
 
       if (!found) {
         MethodInfo m = generateMethodInfo(last);
         last.putDeclaredMethod(m);
+        logger.info("main() method injected into class: " + last.getName());
+
+      }else{
+        logger.info("main() method foud in class: " + last.getName());
+
       }
 
-      logger.info("main() method injected into class: " + last.getName());
     }
   }
 
