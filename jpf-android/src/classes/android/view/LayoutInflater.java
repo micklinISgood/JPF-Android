@@ -31,7 +31,21 @@ public class LayoutInflater {
   }
 
   /**
-   * Inflates the layout with ID resID and sets root as the root of the {@link View} hierarchy.
+   * Obtains the LayoutInflater from the given context.
+   */
+  public static LayoutInflater from(Context context) {
+    LayoutInflater layoutInflater = (LayoutInflater) context
+        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+    if (layoutInflater == null) {
+      throw new AssertionError("LayoutInflater not found.");
+    }
+    return layoutInflater;
+  }
+
+  /**
+   * Inflates the layout with ID resID and sets root as the root of the
+   * {@link View} hierarchy.
    * 
    * @param resId
    * @param root
@@ -62,8 +76,8 @@ public class LayoutInflater {
   }
 
   /**
-   * Recursively parses the layout file and inflates the {@link View} objects to form a {@link View}
-   * hierarchy.
+   * Recursively parses the layout file and inflates the {@link View} objects to
+   * form a {@link View} hierarchy.
    * 
    * @return the root of the hierarchy
    */
@@ -89,7 +103,8 @@ public class LayoutInflater {
   }
 
   /**
-   * Makes use of Java reflection to create an instance of a {@link View} object.
+   * Makes use of Java reflection to create an instance of a {@link View}
+   * object.
    * 
    * @param type
    *          The type of the {@link View}
@@ -119,7 +134,7 @@ public class LayoutInflater {
     String text = getText();
     if (!text.equals(""))
       ((TextView) result).setText(text);
-    Log.i(TAG, "Inflating " + result.toString());
+    Log.v(TAG, "Inflating " + result.toString());
 
     return result;
   }
