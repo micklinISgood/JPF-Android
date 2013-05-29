@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * @author Heila van der Merwe
  * 
  */
-public class JPF_com_android_server_am_ActivityManager {
+public class JPF_com_android_server_am_ActivityManagerService {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
   /**
@@ -167,7 +167,6 @@ public class JPF_com_android_server_am_ActivityManager {
    *          - action as read from the script file
    */
   public static void setIntent(MJIEnv env, UIAction action) {
-    System.out.println("Setting " + action.toString());
     IntentEntry intent = intentMap.get(action.getTarget());
 
     if (intent == null) {
