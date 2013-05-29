@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -35,7 +35,8 @@ import java.util.logging.Logger;
  * 
  */
 public class JPF_android_os_MessageQueue {
-  static Logger log = JPF.getLogger("JPF_android_os_MessageQueue");
+  private static final String TAG = "JPF_MessageQueue";
+  static Logger log = JPF.getLogger(TAG);
   static final String UIACTION = "[UIAction]";
 
   static AndroidScriptEnvironment scriptEnv;
@@ -48,13 +49,13 @@ public class JPF_android_os_MessageQueue {
     Config conf = env.getConfig();
 
     String scriptName = conf.getString("android.script");
-    log.info("RUNNING SCRIPT: " + scriptName);
+    log.info(TAG + ": Running script " + scriptName);
 
     if (scriptName == null) {
       scriptName = conf.getString("android.script");
 
       if (scriptName == null) {
-        log.severe("No \"android.script\" property in JPF property file.");
+        log.severe(TAG + ": No \"android.script\" property in JPF property file.");
         return;
       }
     }
@@ -63,9 +64,9 @@ public class JPF_android_os_MessageQueue {
       scriptEnv.registerListener(env.getJPF());
       scriptEnv.parseScript();
     } catch (FileNotFoundException fnfx) {
-      log.severe("Script file (.es) not found: " + scriptName);
+      log.severe(TAG + ": Script file (.es) not found: " + scriptName);
     } catch (ESParserE.Exception e) {
-      log.severe(e.toString());
+      log.severe(TAG + ": Error: " + e.toString());
     }
   }
 
@@ -88,7 +89,8 @@ public class JPF_android_os_MessageQueue {
       UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
       if (action != null) {
         System.out.println("*******************************");
-        log.info("PROCESSING: Window " + currentWindow + " Action " + action.action + " " + action.target);
+        log.info(TAG + ": Processing action \"" + action.action + "\" on \"" + action.target
+            + "\" on Window \"" + currentWindow + "\"");
         runAction(env, action);
         return true;
       }
@@ -106,12 +108,14 @@ public class JPF_android_os_MessageQueue {
    */
   private static void runAction(MJIEnv env, UIAction action) {
     if (!action.isNone()) {
-      if (action.target == null) { // componentAction
-        JPF_com_android_server_am_ActivityManager.handleComponentAction(env, action);
-      } else if (action.target.startsWith("$")) { // viewAction
+      if (action.target == null) { // componentAction sendBroadcast() startActivity() startService() registerListener()
+        JPF_com_android_server_am_ActivityManagerService.handleComponentAction(env, action);
+      } else if (action.target.startsWith("$")) { // viewAction includes: $back, $homeButton.onClick(), $powerButton.onClick(), $volumeButton.onClick(), $menuButton.onClick(), $orientation.onClick()
         JPF_android_view_WindowManager.handleViewAction(env, action);
-      } else if (action.target.startsWith("@")) { // intentAction
-        JPF_com_android_server_am_ActivityManager.setIntent(env, action);
+      } else if (action.target.startsWith("@")) { // references annotation in code 
+        JPF_com_android_server_am_ActivityManagerService.setIntent(env, action); //temp until we need this
+      } else {      // intent action:  intent1.setAction("Hallo")
+        JPF_com_android_server_am_ActivityManagerService.setIntent(env, action);
       }
     }
   }
