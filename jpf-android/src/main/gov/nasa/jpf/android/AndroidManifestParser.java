@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -49,8 +49,10 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 
 /**
- * AndroidManifest.xml parser. Implemented as a singleton class. Creates a PackageInfo object containing all
- * the package information. It also stores all filters, permissions etc. defined in the AndroidManifest.xml
+ * AndroidManifest.xml parser. Implemented as a singleton class. Creates a
+ * PackageInfo object containing all
+ * the package information. It also stores all filters, permissions etc. defined
+ * in the AndroidManifest.xml
  * file of the SUT.
  * 
  * @author Heila van der Merwe
@@ -58,7 +60,8 @@ import android.content.pm.ServiceInfo;
  * 
  *         TODO:
  * 
- *         - parse permissions - check filters - add further properties as needed for Activity, Service and
+ *         - parse permissions - check filters - add further properties as
+ *         needed for Activity, Service and
  *         Content Provider
  */
 public class AndroidManifestParser extends DefaultHandler {
@@ -74,8 +77,10 @@ public class AndroidManifestParser extends DefaultHandler {
   private IntentFilter filterTemp;
 
   /**
-   * Temporary stores the list of Activities. As we do not know how many Activities are defined in the
-   * Manifest we store them in an expandable ArrayList and afterwards copy them into PackageInfo's activities
+   * Temporary stores the list of Activities. As we do not know how many
+   * Activities are defined in the
+   * Manifest we store them in an expandable ArrayList and afterwards copy them
+   * into PackageInfo's activities
    * field.
    */
   private ArrayList<ActivityInfo> activities;
@@ -86,7 +91,7 @@ public class AndroidManifestParser extends DefaultHandler {
   private ArrayList<PermissionInfo> permissions;
 
   /** List of Filters by component */
-  private Map<PackageItemInfo, List<IntentFilter>> filterMap;
+  private Map<String, List<IntentFilter>> filterMap;
 
   private AndroidManifestParser() {
     // this is a singleton class
@@ -107,7 +112,7 @@ public class AndroidManifestParser extends DefaultHandler {
     services = new ArrayList<ServiceInfo>();
     providers = new ArrayList<ProviderInfo>();
     receivers = new ArrayList<ActivityInfo>();
-    filterMap = new HashMap<PackageItemInfo, List<IntentFilter>>();
+    filterMap = new HashMap<String, List<IntentFilter>>();
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser parser = factory.newSAXParser();
     parser.parse(filename, this);
@@ -124,7 +129,7 @@ public class AndroidManifestParser extends DefaultHandler {
     services = new ArrayList<ServiceInfo>();
     providers = new ArrayList<ProviderInfo>();
     receivers = new ArrayList<ActivityInfo>();
-    filterMap = new HashMap<PackageItemInfo, List<IntentFilter>>();
+    filterMap = new HashMap<String, List<IntentFilter>>();
 
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser parser = factory.newSAXParser();
@@ -205,14 +210,16 @@ public class AndroidManifestParser extends DefaultHandler {
     if (element.equalsIgnoreCase("receiver")) {
       ((ActivityInfo) componentTemp).applicationInfo = packageInfo.applicationInfo;
       receivers.add((ActivityInfo) componentTemp);
+
     }
     if (element.equalsIgnoreCase("application")) {
       packageInfo.applicationInfo.packageName = packageInfo.packageName;
     }
     if (element.equalsIgnoreCase("intent-filter")) {
-      List<IntentFilter> filters = filterMap.get(componentTemp);
+      List<IntentFilter> filters = filterMap.get(componentTemp.name);
       if (filters == null) {
         filters = new ArrayList<IntentFilter>();
+        filterMap.put(componentTemp.name, filters);
       }
       filters.add(filterTemp);
       ((ComponentInfo) componentTemp).exported = true;
@@ -221,23 +228,11 @@ public class AndroidManifestParser extends DefaultHandler {
 
   protected void parseApplication(Attributes attributes) throws InvalidManifestException {
     packageInfo.applicationInfo = new ApplicationInfo();
-    String name = parseString(attributes.getValue("android:name"), "", false);
-    // String packageName = "";
-    // if (name != null && name.length() > 0) {
-    // if (name.startsWith(".")) {
-    // name = name.substring(1);
-    // }
-    // String[] nameArr = name.split("\\.");
-    // if (nameArr.length > 1) { // packageName included in name
-    // packageName = name.substring(0, name.lastIndexOf("."));
-    // } else {
-    // packageName = packageInfo.packageName;
-    // }
-    // packageInfo.applicationInfo.name = packageName + nameArr[nameArr.length - 1]; // get the string after
-    // // the last "."
-    // } else
-    packageInfo.applicationInfo.name = name;
+    String name = parseString(attributes.getValue("android:name"), null, false);
+
+    packageInfo.applicationInfo.className = name;
     packageInfo.applicationInfo.packageName = packageInfo.packageName;
+
   }
 
   /**
@@ -464,35 +459,27 @@ public class AndroidManifestParser extends DefaultHandler {
    */
   protected void parseName(Attributes attributes) throws InvalidManifestException {
     String tempName = parseString(attributes.getValue("android:name"), "", true);
-
-    // if (tempName.startsWith(".")) {
-    // tempName = tempName.substring(1);
-    // }
-    // String[] name = tempName.split("\\.");
-    // if (name.length > 1) { // packageName included in name
-    // componentTemp.packageName = tempName.substring(0, tempName.lastIndexOf("."));
-    // } else {
-    // componentTemp.packageName = packageInfo.packageName;
-    // }
-    // componentTemp.name = name[name.length - 1]; // get the string after the last "."
     componentTemp.name = tempName;
     componentTemp.packageName = packageInfo.packageName;
   }
 
   /**
-   * Parses and returns the boolean value of the attribute <code>value</code>. The default value is returned
+   * Parses and returns the boolean value of the attribute <code>value</code>.
+   * The default value is returned
    * if the attribute is not set and not required to be set by in the Manifest.
    * 
    * @param value
    *          the attribute value to parse
    * @param defaultValue
-   *          the default value to return if the attribute is not required and is null/length < 1
+   *          the default value to return if the attribute is not required and
+   *          is null/length < 1
    * @param required
    *          true if this attribute is required
    * @return the boolean value of the attribute
    * 
    * @throws InvalidManifestException
-   *           - thrown when the boolean attribute is required and not set or when the attribute could not be
+   *           - thrown when the boolean attribute is required and not set or
+   *           when the attribute could not be
    *           parsed to a boolean value
    * 
    * 
@@ -517,19 +504,22 @@ public class AndroidManifestParser extends DefaultHandler {
   }
 
   /**
-   * Parses and returns the integer value of the attribute <code>value</code>. The default value is returned
+   * Parses and returns the integer value of the attribute <code>value</code>.
+   * The default value is returned
    * if the attribute is not set and not required to be set by the Manifest.
    * 
    * @param value
    *          the attribute value to parse
    * @param defaultValue
-   *          the default value to return if the attribute is not required and is null/length < 1
+   *          the default value to return if the attribute is not required and
+   *          is null/length < 1
    * @param required
    *          true if this attribute is required
    * @return the integer value of the attribute
    * 
    * @throws InvalidManifestException
-   *           - thrown when the int attribute is required and not set or when the attribute could not be
+   *           - thrown when the int attribute is required and not set or when
+   *           the attribute could not be
    *           parsed to an integer
    * 
    * 
@@ -552,13 +542,16 @@ public class AndroidManifestParser extends DefaultHandler {
   }
 
   /**
-   * Parses and returns the String representation of the attribute <code>value</code>. The default value is
-   * returned if the attribute is not set and not required to be set by the Manifest.
+   * Parses and returns the String representation of the attribute
+   * <code>value</code>. The default value is
+   * returned if the attribute is not set and not required to be set by the
+   * Manifest.
    * 
    * @param value
    *          the attribute value to parse
    * @param defaultValue
-   *          the default value to return if the attribute is not required and is null/length < 1
+   *          the default value to return if the attribute is not required and
+   *          is null/length < 1
    * @param required
    *          true if this attribute is required
    * @return the String value of the attribute
@@ -590,7 +583,8 @@ public class AndroidManifestParser extends DefaultHandler {
   }
 
   /**
-   * For testing purposes only. We want to be able to test that the component is correctly populated.
+   * For testing purposes only. We want to be able to test that the component is
+   * correctly populated.
    * 
    * @return The component that is currently being parsed.
    */
@@ -599,7 +593,8 @@ public class AndroidManifestParser extends DefaultHandler {
   }
 
   /**
-   * Returns the PackageInfo object containing the information in the AndroidManifest.xml file
+   * Returns the PackageInfo object containing the information in the
+   * AndroidManifest.xml file
    * 
    * @return a PackageInfo object
    */
@@ -612,7 +607,7 @@ public class AndroidManifestParser extends DefaultHandler {
    * 
    * @return
    */
-  protected Map<PackageItemInfo, List<IntentFilter>> getFilters() {
+  protected Map<String, List<IntentFilter>> getFilters() {
     return filterMap;
   }
 
