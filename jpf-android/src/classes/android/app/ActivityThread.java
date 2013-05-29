@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
@@ -50,7 +51,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.android.server.am.ActivityManager;
+import com.android.server.am.ActivityManagerService;
 
 /**
  * This manages the execution of the main thread in an application process,
@@ -184,10 +185,9 @@ public final class ActivityThread {
       // TODO
     }
 
-    /*
-     *  ****************************** Activity Methods
-     * ***********************************
-     */
+    //////////////////////////////////////
+    //          Activity Methods        //    
+    //////////////////////////////////////
 
     /**
      * Called by the ActivityManagerService to schedule the launch of a new
@@ -286,6 +286,10 @@ public final class ActivityThread {
       queueOrSendMessage(showWindow ? H.SHOW_WINDOW : H.HIDE_WINDOW, token);
     }
 
+    //////////////////////////////////////
+    //          Receiver Methods        //    
+    //////////////////////////////////////
+
     /**
      * Schedules a receiver to be executes on the main looper.
      * 
@@ -306,18 +310,17 @@ public final class ActivityThread {
       queueOrSendMessage(H.RECEIVER, r);
     }
 
-    public final void scheduleNewIntent(List<Intent> intents, IBinder token) {
-      // NewIntentData data = new NewIntentData();
-      // data.intents = intents;
-      // data.token = token;
-      //
-      // queueOrSendMessage(H.NEW_INTENT, data);
+    // This function exists to make sure all receiver dispatching is
+    // correctly ordered, since these are one-way calls and the binder driver
+    // applies transaction ordering per object for such calls.
+    public void scheduleRegisteredReceiver(IIntentReceiver receiver, Intent intent, int resultCode,
+                                           String dataStr, Bundle extras, boolean ordered, boolean sticky) {
+      receiver.performReceive(intent, resultCode, dataStr, extras, ordered, sticky);
     }
 
-    /*
-     *  ****************************** Service Methods
-     * ***********************************
-     */
+    //////////////////////////////////////
+    //          Service Methods         //    
+    //////////////////////////////////////
 
     public final void scheduleCreateService(IBinder token, ServiceInfo info, CompatibilityInfo compatInfo) {
       CreateServiceData s = new CreateServiceData();
@@ -361,6 +364,25 @@ public final class ActivityThread {
       queueOrSendMessage(H.STOP_SERVICE, token);
     }
 
+    //////////////////////////////////////
+    //          Other Methods           //    
+    //////////////////////////////////////
+
+    public void scheduleLowMemory() {
+      queueOrSendMessage(H.LOW_MEMORY, null);
+    }
+
+    public void scheduleActivityConfigurationChanged(IBinder token) {
+      queueOrSendMessage(H.ACTIVITY_CONFIGURATION_CHANGED, token);
+    }
+
+    public final void scheduleNewIntent(List<Intent> intents, IBinder token) {
+      // NewIntentData data = new NewIntentData();
+      // data.intents = intents;
+      // data.token = token;
+      //
+      // queueOrSendMessage(H.NEW_INTENT, data);
+    }
   }
 
   static final class CreateServiceData {
@@ -533,6 +555,7 @@ public final class ActivityThread {
     public static final int CLEAN_UP_CONTEXT = 119;
     public static final int BIND_SERVICE = 121;
     public static final int UNBIND_SERVICE = 122;
+    public static final int LOW_MEMORY = 124;
     public static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
     public static final int RELAUNCH_ACTIVITY = 126;
 
@@ -582,7 +605,8 @@ public final class ActivityThread {
         case UNBIND_SERVICE:
           return "UNBIND_SERVICE";
           // case DUMP_SERVICE: return "DUMP_SERVICE";
-          // case LOW_MEMORY: return "LOW_MEMORY";
+        case LOW_MEMORY:
+          return "LOW_MEMORY";
         case ACTIVITY_CONFIGURATION_CHANGED:
           return "ACTIVITY_CONFIGURATION_CHANGED";
         case RELAUNCH_ACTIVITY:
@@ -609,7 +633,7 @@ public final class ActivityThread {
     }
 
     public void handleMessage(Message msg) {
-      Log.i(TAG, "Message " + codeToString(msg.what));
+      Log.i(TAG, "Processing message " + codeToString(msg.what));
 
       switch (msg.what) {
       case LAUNCH_ACTIVITY: {
@@ -678,6 +702,9 @@ public final class ActivityThread {
       case RECEIVER:
         handleReceiver((ReceiverData) msg.obj);
         maybeSnapshot();
+        break;
+      case LOW_MEMORY:
+        //  handleLowMemory();
         break;
       }
 
@@ -779,12 +806,13 @@ public final class ActivityThread {
   private LoadedApk getPackageInfo(ApplicationInfo aInfo) {
     LoadedApk packageInfo = mPackage;
 
-    if (packageInfo == null)
+    if (packageInfo == null) {
       if (localLOGV)
         Slog.v(TAG, "Loading code package " + aInfo.packageName + " (in "
             + (mBoundApplication != null ? mBoundApplication.processName : null) + ")");
-    packageInfo = new LoadedApk(this, aInfo, this);
-    mPackage = packageInfo;
+      packageInfo = new LoadedApk(this, aInfo, this);
+      mPackage = packageInfo;
+    }
     return packageInfo;
   }
 
@@ -885,10 +913,7 @@ public final class ActivityThread {
     return mSystemContext;
   }
 
-  /*
-   *  ************************** Broadcast Receiver
-   * *********************************
-   */
+  /* ****************** Broadcast Receiver *************** */
 
   private void handleReceiver(ReceiverData data) {
     // If we are getting ready to gc after going to the background, well
@@ -898,56 +923,50 @@ public final class ActivityThread {
     String component = data.intent.getComponent().getClassName();
 
     LoadedApk packageInfo = getPackageInfoNoCheck(data.info.applicationInfo);
-    //
-    // IActivityManager mgr = ActivityManagerNative.getDefault();
-    //
-    // BroadcastReceiver receiver;
-    // try {
-    // java.lang.ClassLoader cl = packageInfo.getClassLoader();
-    // data.intent.setExtrasClassLoader(cl);
-    // data.setExtrasClassLoader(cl);
-    // receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
-    // } catch (Exception e) {
-    // if (DEBUG_BROADCAST) Slog.i(TAG,
-    // "Finishing failed broadcast to " + data.intent.getComponent());
-    // data.sendFinished(mgr);
-    // throw new RuntimeException(
-    // "Unable to instantiate receiver " + component
-    // + ": " + e.toString(), e);
-    // }
 
-    // try {
-    // Application app = packageInfo.makeApplication(false, mInstrumentation);
-    //
-    // if (localLOGV) Slog.v(
-    // TAG, "Performing receive of " + data.intent
-    // + ": app=" + app
-    // + ", appName=" + app.getPackageName()
-    // + ", pkg=" + packageInfo.getPackageName()
-    // + ", comp=" + data.intent.getComponent().toShortString()
-    // + ", dir=" + packageInfo.getAppDir());
-    //
-    // ContextImpl context = (ContextImpl)app.getBaseContext();
-    // sCurrentBroadcastIntent.set(data.intent);
-    // receiver.setPendingResult(data);
-    // receiver.onReceive(context.getReceiverRestrictedContext(),
-    // data.intent);
-    // } catch (Exception e) {
-    // if (DEBUG_BROADCAST) Slog.i(TAG,
-    // "Finishing failed broadcast to " + data.intent.getComponent());
-    // data.sendFinished(mgr);
-    // if (!mInstrumentation.onException(receiver, e)) {
-    // throw new RuntimeException(
-    // "Unable to start receiver " + component
-    // + ": " + e.toString(), e);
-    // }
-    // } finally {
-    // sCurrentBroadcastIntent.set(null);
-    // }
-    //
-    // if (receiver.getPendingResult() != null) {
-    // data.finish();
-    // }
+    IActivityManager mgr = ActivityManagerNative.getDefault();
+
+    BroadcastReceiver receiver;
+    try {
+      java.lang.ClassLoader cl = packageInfo.getClassLoader();
+      data.intent.setExtrasClassLoader(cl);
+      data.setExtrasClassLoader(cl);
+      receiver = (BroadcastReceiver) cl.loadClass(component).newInstance();
+    } catch (Exception e) {
+      if (DEBUG_BROADCAST)
+        Slog.i(TAG, "Finishing failed broadcast to " + data.intent.getComponent());
+      data.sendFinished(mgr);
+      throw new RuntimeException("Unable to instantiate receiver " + component + ": " + e.toString(), e);
+    }
+
+    try {
+      Application app = packageInfo.makeApplication(false, mInstrumentation);
+
+      if (localLOGV)
+        Slog.v(TAG,
+            "Performing receive of " + data.intent + ": app=" + app + ", appName=" + app.getPackageName()
+                + ", pkg=" + packageInfo.getPackageName() + ", comp="
+                + data.intent.getComponent().toShortString());
+
+      ContextImpl context = (ContextImpl) app.getBaseContext();
+      receiver.setPendingResult(data);
+      Log.i("BroadcastReceiver", receiver.getClass().getName() + ".onReceive with " + data.intent);
+      receiver.onReceive(context.getReceiverRestrictedContext(), data.intent);
+    } catch (Exception e) {
+      if (DEBUG_BROADCAST)
+        Slog.i(TAG, "Finishing failed broadcast to " + data.intent.getComponent());
+      data.sendFinished(mgr);
+
+      if (!mInstrumentation.onException(receiver, e)) {
+        throw new RuntimeException("Unable to start receiver " + component + ": " + e.toString(), e);
+      }
+    }
+    // the pending result can only by null if goAsync is called in which case
+    // the pending intent will be finished by the Async call
+    if (receiver.getPendingResult() != null) {
+      data.finish();
+    }
+
   }
 
   /* ************************** Service ************************************* */
@@ -1102,7 +1121,7 @@ public final class ActivityThread {
   }
 
   /*
-   *  ****************************** Activity Methods
+   * ****************************** Activity Methods
    * ***********************************
    */
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
@@ -2058,10 +2077,9 @@ public final class ActivityThread {
     // handleLaunchActivity(r, currentIntent);
   }
 
-  /*
-   *  ****************************** System Methods
-   * ***********************************
-   */
+  //////////////////////////////////////
+  //          System Methods        //    
+  //////////////////////////////////////
 
   final void scheduleContextCleanup(ContextImpl context, String who, String what) {
     ContextCleanupInfo cci = new ContextCleanupInfo();
@@ -2170,28 +2188,36 @@ public final class ActivityThread {
   }
 
   public ActivityThread() {
+    Log.i(TAG, "Creating new ActivityThread");
+
     init0();
   }
 
   public native void init0();
 
   public static void start(String[] args) {
+    Log.i(TAG, "Starting up...");
 
     Looper.prepareMainLooper();
     if (sMainThreadHandler == null) {
       sMainThreadHandler = new Handler();
     }
 
+    // Create new ActivityThread for this pplication
     ActivityThread thread = new ActivityThread();
+
     // Setup PackageManager
     sPackageManager = new PackageManager();
+
     // Setup ActivityManager
-    new ActivityManager(sPackageManager.getPackageInfo());
+    new ActivityManagerService(sPackageManager.getPackageInfo());
+
     // Setup WindowManager
-    new WindowManager();
+    WindowManager.getInstance();
 
     try {
       thread.attach();
+
       if (DEBUG_MESSAGES) {
         Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
       }
