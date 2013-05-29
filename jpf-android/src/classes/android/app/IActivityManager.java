@@ -2,6 +2,7 @@ package android.app;
 
 import android.app.ActivityThread.ApplicationThread;
 import android.content.ComponentName;
+import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -9,11 +10,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.android.server.am.ActivityManager;
+import com.android.server.am.ActivityManagerService;
 
 /**
- * These methods are called from ContextImpl when an Activity/Service has to be stopped/started. As we are not
- * modelling AIDL we can just create small model of the interface class that directs the calls to the
+ * These methods are called from ContextImpl when an Activity/Service has to be
+ * stopped/started. As we are not
+ * modelling AIDL we can just create small model of the interface class that
+ * directs the calls to the
  * ActvityManager class.
  * 
  * @author Heila van der Merwe
@@ -21,9 +24,9 @@ import com.android.server.am.ActivityManager;
  */
 public class IActivityManager {
 
-  ActivityManager am;
+  ActivityManagerService am;
 
-  public IActivityManager(ActivityManager am) {
+  public IActivityManager(ActivityManagerService am) {
     this.am = am;
   }
 
@@ -32,7 +35,7 @@ public class IActivityManager {
 
   }
 
-  /* ****************************** Activity Methods *********************************** */
+  /* *****************Activity Methods ********************* */
 
   public void startActivity(Intent intent, int requestCode) {
     am.performLaunchActivity(intent, requestCode);
@@ -61,7 +64,7 @@ public class IActivityManager {
 
   }
 
-  /* ****************************** Service Methods *********************************** */
+  /* ***************** Service Methods ********************* */
 
   public synchronized ComponentName startService(Intent service, String resolvedType) {
     return am.performStartService(service, resolvedType);
@@ -73,7 +76,7 @@ public class IActivityManager {
   }
 
   public synchronized int bindService(IBinder token, Intent service, String resolvedType,
-                                      ServiceConnection connection, int flags) {
+                                      IServiceConnection connection, int flags) {
     return am.performBindService(token, service, resolvedType, connection, flags);
   }
 
@@ -102,15 +105,15 @@ public class IActivityManager {
    * @param componentName
    * @param mToken
    * @param startId
-   * @return 
+   * @return
    * @throws RemoteException
    */
   public boolean stopServiceToken(ComponentName componentName, IBinder mToken, int startId)
       throws RemoteException {
-   return  am.performStopServiceToken(componentName, mToken, startId);
+    return am.performStopServiceToken(componentName, mToken, startId);
   }
 
-  /* ****************************** BroadcastReciever Methods *********************************** */
+  /* ***************** Broadcast Methods ********************* */
 
   public Intent registerReceiver(ApplicationThread caller, String callerPackage, IIntentReceiver receiver,
                                  IntentFilter filter, String permission) throws RemoteException {
@@ -141,7 +144,12 @@ public class IActivityManager {
   public void setServiceForeground(ComponentName componentName, IBinder mToken, int i, Object object,
                                    boolean removeNotification) throws RemoteException {
     am.performSetServiceForeground(componentName, mToken, i, object, removeNotification);
-    
+
+  }
+
+  public IBinder peekService(Intent service, String resolveTypeIfNeeded) throws RemoteException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

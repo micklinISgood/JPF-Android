@@ -295,6 +295,7 @@ public class Instrumentation {
    */
   static public Application newApplication(Class<?> clazz, Context context) throws InstantiationException,
       IllegalAccessException, ClassNotFoundException {
+
     Application app = (Application) clazz.newInstance();
     app.attach(context);
     return app;
