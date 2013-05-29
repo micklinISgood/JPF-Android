@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -25,16 +25,16 @@ import gov.nasa.jpf.util.JPFLogger;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Map;
 
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageItemInfo;
 
 /**
- * Responsible for parsing and setting up Package information that is used by PackageManager.
+ * Responsible for parsing and setting up Package information that is used by
+ * PackageManager.
  * 
- * TODO: - Bring Filters over as well or provide call back for resolving components natively.
+ * TODO: - Bring Filters over as well or provide call back for resolving
+ * components natively.
  * 
  * @author Heila van der Merwe
  */
@@ -43,7 +43,6 @@ public class JPF_android_content_pm_PackageManager {
 
   private static AndroidManifestParser parser;
   private static PackageInfo packageInfo;
-  private static Map<PackageItemInfo, List<IntentFilter>> filterMap;
 
   /**
    * Intercept default constructor and initialize package information.
@@ -51,7 +50,7 @@ public class JPF_android_content_pm_PackageManager {
    * @param env
    * @param robj
    */
-  public static void $init____V(MJIEnv env, int robj) {
+  public static void init0(MJIEnv env, int robj) {
     ThreadInfo ti = env.getThreadInfo();
 
     if (!ti.hasReturnedFromDirectCall("[clinit]")) { // Make sure that when we repeat the code during static
@@ -75,17 +74,19 @@ public class JPF_android_content_pm_PackageManager {
       }
     }
     // If we have reached this point the package has been parsed and we need to populate the PackageManager
-    // model
+    // model object
     if (packageInfo != null) {
       int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
       if (packageInfo != null && AndroidObjectConverter.finished) {
         env.setReferenceField(robj, "packageInfo", packageRef);
       }
     }
+
   }
 
   /**
-   * Intercept constructor used during testing. The constructor is provided with an XML string that contains
+   * Intercept constructor used during testing. The constructor is provided with
+   * an XML string that contains
    * the contents of the AndroidManifestFile.
    * 
    * @param env
@@ -119,4 +120,31 @@ public class JPF_android_content_pm_PackageManager {
   public static String getPackageName() {
     return packageInfo.packageName;
   }
+
+  /**
+   * Returns the reference to an array of Intent Filters that was registered for
+   * the component in the AndroidManifest.
+   * 
+   * @param componentName
+   *          The string name of the component
+   * @return the array of IntentFilters.
+   */
+  public static int getFilters(MJIEnv env, int objRef, int componentNameRef) {
+    ThreadInfo ti = env.getThreadInfo();
+
+    int filtersRef = -1;
+
+    List<IntentFilter> filters = null;
+
+    String componentName = env.getStringObject(componentNameRef);
+    filters = parser.getFilters().get(componentName);
+    if (filters == null)
+      return -1;
+
+    filtersRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, filters);
+
+    return filtersRef;
+
+  }
+
 }
