@@ -5,7 +5,4 @@ SECTION default {
 
 SECTION com.example.MainActivity {
 	$buttonStart.onClick()
-	$buttonStart.onClick()
-	$buttonStart.onClick()
-	$buttonStart.onClick()
 }

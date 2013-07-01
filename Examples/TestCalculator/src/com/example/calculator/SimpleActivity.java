@@ -1,7 +1,6 @@
 package com.example.calculator;
 
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -84,8 +83,10 @@ public class SimpleActivity extends Activity implements android.view.View.OnClic
       if (!val.equals("") && op != 0) { // there is no starting value
         value = eval(value, op, Double.parseDouble(val));
         valueEdit.setText(String.valueOf(value));
-
         calc.setText(String.valueOf(old) + Character.toString(op) + Double.parseDouble(val) + "=");
+        System.out.println(calc.getText() + valueEdit.getText().toString());
+        System.out.println("******************************");
+
       }
       op = 0;
     } else if (text.equals("C")) {
@@ -116,7 +117,7 @@ public class SimpleActivity extends Activity implements android.view.View.OnClic
       break;
     case '/':
       if (v2 == 0) {
-        throw new ArithmeticException("DivisionByZero");
+       // throw new ArithmeticException("DivisionByZero");
       }
       result = v1 / v2;
       break;

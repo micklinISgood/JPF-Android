@@ -41,7 +41,8 @@ public class CounterService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     System.out.println("onStartCommand" + startId);
-    stopSelf(startId);
+//    stopSelf(startId);
+   // stopSelf(-1);
     return START_STICKY;
   }
 
