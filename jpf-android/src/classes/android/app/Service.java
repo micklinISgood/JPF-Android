@@ -16,19 +16,19 @@
 
 package android.app;
 
-import android.content.ComponentCallbacks2;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ContextWrapper;
-import android.content.Context;
-import android.content.res.Configuration;
-import android.os.Build;
-import android.os.RemoteException;
-import android.os.IBinder;
-import android.util.Log;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+
+import android.content.ComponentCallbacks2;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
 
 /**
  * A Service is an application component representing either an application's desire

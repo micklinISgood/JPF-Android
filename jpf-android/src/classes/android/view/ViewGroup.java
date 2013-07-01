@@ -10,6 +10,10 @@ import android.content.Context;
  */
 public class ViewGroup extends View {
 
+  public class LayoutParams {
+
+  }
+
   private static final int ARRAY_INITIAL_CAPACITY = 12;
   private static final int ARRAY_CAPACITY_INCREMENT = 12;
   private int mLastTouchDownIndex = -1;

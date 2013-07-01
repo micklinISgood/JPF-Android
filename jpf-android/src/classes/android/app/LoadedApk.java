@@ -5,12 +5,14 @@ import java.util.Iterator;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.util.Log;
 import android.util.Slog;
 
 /**
@@ -40,6 +42,15 @@ public final class LoadedApk {
   private ClassLoader mClassLoader;
   private Application mApplication;
 
+  /**
+   * We need this to store references to broadcast receivers per context that
+   * started them. A context (component) can register many broadcast receivers
+   * and a broadcast receiver can be registered multiple times by different
+   * contexts.
+   * 
+   * Why do we need this? We can use this to remove all registrations when a
+   * context is destroyed --- in other words leaked BR
+   */
   private final HashMap<Context, HashMap<BroadcastReceiver, LoadedApk.ReceiverDispatcher>> mReceivers = new HashMap<Context, HashMap<BroadcastReceiver, LoadedApk.ReceiverDispatcher>>();
   private final HashMap<Context, HashMap<BroadcastReceiver, LoadedApk.ReceiverDispatcher>> mUnregisteredReceivers = new HashMap<Context, HashMap<BroadcastReceiver, LoadedApk.ReceiverDispatcher>>();
 
@@ -51,8 +62,8 @@ public final class LoadedApk {
   /**
    * Create information about a new .apk
    * 
-   * NOTE: This constructor is called with ActivityThread's lock held, so MUST NOT call back out to the
-   * activity manager.
+   * NOTE: This constructor is called with ActivityThread's lock held, so MUST
+   * NOT call back out to the activity manager.
    */
   public LoadedApk(ActivityThread activityThread, ApplicationInfo aInfo, ActivityThread mainThread) {
     mActivityThread = activityThread;
@@ -77,7 +88,7 @@ public final class LoadedApk {
       // mainThread.getDisplayMetricsLocked(compatInfo, false), compatInfo);
     }
     mClassLoader = ClassLoader.getSystemClassLoader();
-    // mResources = ActivityThread.mSystemContext.getResources();
+    mResources = ActivityThread.mSystemContext.getResources();
   }
 
   public ClassLoader getClassLoader() {
@@ -96,6 +107,10 @@ public final class LoadedApk {
     return mApplicationInfo;
   }
 
+  public Resources getResources(ActivityThread mainThread) {
+    return mResources;
+  }
+
   public Application makeApplication(boolean forceDefaultAppClass, Instrumentation instrumentation) {
     if (mApplication != null) {
       return mApplication;
@@ -104,7 +119,7 @@ public final class LoadedApk {
     Application app = null;
 
     String appClass = mApplicationInfo.className;
-    if (forceDefaultAppClass || (appClass == null)) {
+    if (forceDefaultAppClass || (appClass == null) || (appClass.trim().equals(""))) {
       appClass = "android.app.Application";
     }
 
@@ -120,17 +135,6 @@ public final class LoadedApk {
       }
     }
     mApplication = app;
-
-    if (instrumentation != null) {
-      try {
-        instrumentation.callApplicationOnCreate(app);
-      } catch (Exception e) {
-        if (!instrumentation.onException(app, e)) {
-          throw new RuntimeException("Unable to create application " + app.getClass().getName() + ": "
-              + e.toString(), e);
-        }
-      }
-    }
 
     return app;
   }
@@ -253,10 +257,16 @@ public final class LoadedApk {
   static final class ReceiverDispatcher {
 
     final static class IntentReceiver extends IIntentReceiver {
+
       final LoadedApk.ReceiverDispatcher mStrongRef;
 
       IntentReceiver(LoadedApk.ReceiverDispatcher rd) {
         mStrongRef = rd;
+      }
+
+      @Override
+      public String toString() {
+        return "BroadcastReceiver [ name=" + mStrongRef.mReceiver.getClass().getName() + " ]";
       }
 
       public void performReceive(Intent intent, int resultCode, String data, Bundle extras, boolean ordered,
@@ -339,6 +349,7 @@ public final class LoadedApk {
           intent.setExtrasClassLoader(cl);
           setExtrasClassLoader(cl);
           receiver.setPendingResult(this);
+          Log.i("BroadcastReceiver", receiver.getClass().getName() + ".onReceive with " + intent);
           receiver.onReceive(mContext, intent);
         } catch (Exception e) {
           if (mRegistered && ordered) {

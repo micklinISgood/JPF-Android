@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -37,53 +37,53 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import android.view.Window;
-
 public class JPF_android_content_res_Resources {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-  private String ID_HEADER = "public static final class id {";
-  private String LAYOUT_HEADER = "public static final class layout {";
-  private String STRING_HEADER = "public static final class string {";
-  private String MENU_HEADER = "public static final class menu {";
-  private String STYLE_HEADER = "public static final class style {";
-  private String BOOL_HEADER = "public static final class bool {";
-  private String COLOR_HEADER = "public static final class color {";
-  private String ARRAY_HEADER = "public static final class array {";
-  private String ANIM_HEADER = "public static final class anim {";
-  private String INTEGER_HEADER = "public static final class int {";
+  private static String LAYOUT_HEADER = "public static final class layout {";
+  private static String STRING_HEADER = "public static final class string {";
+  private static String MENU_HEADER = "public static final class menu {";
+  private static String STYLE_HEADER = "public static final class style {";
+  private static String BOOL_HEADER = "public static final class bool {";
+  private static String COLOR_HEADER = "public static final class color {";
+  private static String ARRAY_HEADER = "public static final class array {";
+  private static String ANIM_HEADER = "public static final class anim {";
+  private static String INTEGER_HEADER = "public static final class int {";
 
-  private String FOOTER = "}";
+  private static String FOOTER = "}";
 
-  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+  static DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-  private HashMap<Integer, String> stringsMap = new HashMap<Integer, String>();
+  private static HashMap<Integer, String> stringsMap = new HashMap<Integer, String>();
 
-  private HashMap<Integer, String> drawableMap = new HashMap<Integer, String>();
+  private static HashMap<Integer, String> drawableMap = new HashMap<Integer, String>();
 
-  private HashMap<Integer, String> menuMap = new HashMap<Integer, String>();
-  String rPath = "";
+  private static HashMap<Integer, String> menuMap = new HashMap<Integer, String>();
+  private static String rPath = "";
 
-  /**
-   * Sets up the environment for the {@link Window} class. Creates componentMap and layoutMap.
-   * 
-   * @param env
-   * @param cref
-   */
-  public void init0____V(MJIEnv env, int cref) {
-    // Lookup the path to the R.java file
-    rPath = AndroidFileUtil.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/'));
-    if (rPath == null || rPath.length() <= 0) {
-      log.severe("Could not find R.java file.");
-      return;
-    }
-
-    try {
-      parseRFile(new FileInputStream(rPath));
-    } catch (FileNotFoundException e) {
-      log.severe("R.java file not found.");
-    }
-  }
+//  /**
+//   * Sets up the environment for the {@link Window} class. Creates componentMap
+//   * and layoutMap.
+//   * 
+//   * @param env
+//   * @param cref
+//   */
+//  public static void $init____V(MJIEnv env, int robj) {
+//
+//    // Lookup the path to the R.java file
+//    rPath = AndroidFileUtil
+//        .getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/'));
+//    if (rPath == null || rPath.length() <= 0) {
+//      log.severe("Could not find R.java file.");
+//      return;
+//    }
+//
+//    try {
+//      parseRFile(new FileInputStream(rPath));
+//    } catch (FileNotFoundException e) {
+//      log.severe("R.java file not found.");
+//    }
+//  }
 
   /**
    * Parse the R.java file and builds the componentMap and layoutMap.
@@ -92,7 +92,7 @@ public class JPF_android_content_res_Resources {
    * @param rPath
    *          the path to the R.java file on disk
    */
-  public void parseRFile(InputStream is) {
+  private static void parseRFile(InputStream is) {
     String nextLine;
     Scanner scanner = new Scanner(is);
     while (scanner != null && scanner.hasNextLine()) {
@@ -103,7 +103,7 @@ public class JPF_android_content_res_Resources {
     }
   }
 
-  private void parseStrings(Scanner scanner) {
+  private static void parseStrings(Scanner scanner) {
     String next = "";
     String[] list;
     ViewEntry c;
@@ -166,20 +166,27 @@ public class JPF_android_content_res_Resources {
   // /////////////////
 
   /*
-   * public int getAnimation(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getAnimation(MJIEnv env, int objref, int id) { // TODO add
+   * config String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
    * public int getComponent(MJIEnv env, int objref, int id) {
    * 
    * return 0; }
    * 
-   * public int getColorStateList(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath
-   * + "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getColorStateList(MJIEnv env, int objref, int id) { // TODO add
+   * config String filename = rPath
+   * + "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    */
   /**
-   * Reads the value of the language in the config and returns the corresponding value of a String object.
+   * Reads the value of the language in the config and returns the corresponding
+   * value of a String object.
    * 
    * @param env
    * @param objref
@@ -203,9 +210,12 @@ public class JPF_android_content_res_Resources {
   }
 
   /*
-   * public int getDrawable(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getDrawable(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    */
   public int getLayout(MJIEnv env, int objref, int id) {
     // TODO add config
@@ -219,49 +229,82 @@ public class JPF_android_content_res_Resources {
   }
 
   /*
-   * public int getMenu(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getMenu(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getStringArray(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getStringArray(MJIEnv env, int objref, int id) { // TODO add
+   * config String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getPlurals(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getPlurals(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getBool(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getBool(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getColor(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getColor(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public float getDim(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public float getDim(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getStyle(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getStyle(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getID(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getID(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getInteger(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getInteger(MJIEnv env, int objref, int id) { // TODO add config
+   * String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getIntegerArray(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getIntegerArray(MJIEnv env, int objref, int id) { // TODO add
+   * config String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    * 
-   * public int getTypedArray(MJIEnv env, int objref, int id) { // TODO add config String filename = rPath +
-   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new FileInputStream(filename),
-   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return env.newString(s); }
+   * public int getTypedArray(MJIEnv env, int objref, int id) { // TODO add
+   * config String filename = rPath +
+   * "/res/values/strings.xml"; String s = null; try { s = getNodeValue(new
+   * FileInputStream(filename),
+   * "String", valueMap.get(id)); } catch (FileNotFoundException e) { } return
+   * env.newString(s); }
    */
 
   // public static void main(String[] args) {

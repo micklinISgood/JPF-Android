@@ -2,7 +2,6 @@ package android.content.res;
 
 import java.util.Locale;
 
-import android.util.LocaleUtil;
 
 /**
  * This class describes all device configuration information that can impact the resources the application
@@ -326,9 +325,9 @@ public final class Configuration {// implements Parcelable, Comparable<Configura
       sb.append(" (no locale)");
     }
     switch (textLayoutDirection) {
-    case LocaleUtil.TEXT_LAYOUT_DIRECTION_RTL_DO_NOT_USE:
-      sb.append(" rtl");
-      break;
+//    case LocaleUtil.TEXT_LAYOUT_DIRECTION_RTL_DO_NOT_USE:
+//      sb.append(" rtl");
+//      break;
     default:
       sb.append(" layoutdir=");
       sb.append(textLayoutDirection);
@@ -572,7 +571,7 @@ public final class Configuration {// implements Parcelable, Comparable<Configura
     screenWidthDp = compatScreenWidthDp = SCREEN_WIDTH_DP_UNDEFINED;
     screenHeightDp = compatScreenHeightDp = SCREEN_HEIGHT_DP_UNDEFINED;
     smallestScreenWidthDp = compatSmallestScreenWidthDp = SMALLEST_SCREEN_WIDTH_DP_UNDEFINED;
-    textLayoutDirection = LocaleUtil.TEXT_LAYOUT_DIRECTION_LTR_DO_NOT_USE;
+//    textLayoutDirection = LocaleUtil.TEXT_LAYOUT_DIRECTION_LTR_DO_NOT_USE;
     seq = 0;
   }
 

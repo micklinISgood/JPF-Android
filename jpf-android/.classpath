@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" output="build/main" path="src/main"/>
+	<classpathentry kind="src" output="build/annotations" path="src/annotations"/>
 	<classpathentry kind="src" output="build/peers" path="src/peers"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="build/classes" path="src/classes"/>
 	<classpathentry kind="src" output="build/tests" path="src/tests"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jpf-core"/>
-	<classpathentry kind="lib" path="lib/android.jar" sourcepath="/Users/heila/Android/android-sdk-macosx/sources/android-15"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/junit-4.10.jar"/>
+	<classpathentry kind="lib" path="lib/android.jar" sourcepath="/Users/heila/Android/android-sdk-macosx/sources/android-15"/>
+	<classpathentry kind="lib" path="lib/jsqlparser.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

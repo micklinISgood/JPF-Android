@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -28,13 +28,20 @@ import gov.nasa.jpf.jvm.ThreadInfo;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
+import android.os.Bundle;
+
 /**
- * Models the Android ActivityManagerService. This Service is traditionally run in the system process and is
- * not part of the application process. That is why it is modelled in native code. This class is not
- * scheduling relevant. It is necessary to model the communication between the system and the application. For
- * testing purposes this class only supports this one application and assumes that for now no other
+ * Models the Android ActivityManagerService. This Service is traditionally run
+ * in the system process and is
+ * not part of the application process. That is why it is modelled in native
+ * code. This class is not
+ * scheduling relevant. It is necessary to model the communication between the
+ * system and the application. For
+ * testing purposes this class only supports this one application and assumes
+ * that for now no other
  * applications are install
  * 
  * @see com.android.server.am.ActivityManagerService
@@ -44,11 +51,14 @@ import java.util.logging.Logger;
  * 
  */
 public class JPF_com_android_server_am_ActivityManagerService {
+  public static final String TAG = "JPF_ActivityManagerService";
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
   /**
-   * Reference to the instance of this class. This is so that we can call its modelled methods such as
-   * startActivity() from the native side even if it is started from the native massageQueue class.
+   * Reference to the instance of this class. This is so that we can call its
+   * modelled methods such as
+   * startActivity() from the native side even if it is started from the native
+   * massageQueue class.
    */
   private static int activityManagerRef;
 
@@ -59,18 +69,78 @@ public class JPF_com_android_server_am_ActivityManagerService {
   private static HashMap<String, IntentEntry> intentMap = new HashMap<String, IntentEntry>();
 
   /**
-   * Stores reference this class so that we can call methods on the ActivityManager from the native peer.
+   * Stores reference this class so that we can call methods on the
+   * ActivityManager from the native peer.
    * 
    * @param env
    * @param objectRef
    */
-  public static void init0(MJIEnv env, int objectRef) {
-    activityManagerRef = objectRef;
+  public static void init0(MJIEnv env, int activityManagerRef) {
+    JPF_com_android_server_am_ActivityManagerService.activityManagerRef = activityManagerRef;
+    createPreDefinedIntents();
+
+  }
+
+  public static void createPreDefinedIntents() {
+    IntentEntry intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "WIFI");
+    intent.putExtraString("state", "DISCONNECTED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@WifiOffIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "WIFI");
+    intent.putExtraString("state", "CONNECTED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@WifiOnIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "WIFI");
+    intent.putExtraString("state", "SUSPENDED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@WifiSuspendedIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "MOBILE");
+    intent.putExtraString("state", "DISCONNECTED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@MobileDisconnectedIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "MOBILE");
+    intent.putExtraString("state", "CONNECTED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@MobileConnectedIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.CONNECTION_CHANGE");
+    intent.putExtraString("type", "MOBILE");
+    intent.putExtraString("state", "SUSPENDED");
+    intent.putExtraString("reason", "");
+    intent.putExtraString("extra", "");
+    intentMap.put("@WifiConnectedIntent", intent);
+
+    intent = new IntentEntry();
+    intent.setAction("android.net.conn.URL_INPUT_STREAM");
+    intentMap.put("@urlInputStreamIntent", intent);
+
   }
 
   /**
-   * Forwards script actions related to application components to the ActivityManager model as if they were
-   * called from the system. These actions include starting and stopping activities and sending broadcasts
+   * Forwards script actions related to application components to the
+   * ActivityManager model as if they were
+   * called from the system. These actions include starting and stopping
+   * activities and sending broadcasts
    * etc. that are scripted in the application's *.es file.
    * 
    * @param env
@@ -90,16 +160,56 @@ public class JPF_com_android_server_am_ActivityManagerService {
     } else if (action.action.equals("homeButton")) {
       homeButton(env);
     } else if (action.action.equals("sendBroadcast")) {
-      // TODO
-    } else if (action.action.equals("lowBattery")) {
-      // TODO
-    } else if (action.action.equals("networkDown")) {
-      // TODO
+      String intentName = (String) action.arguments[0];
+      sendBroadcast(env, intentName);
     } else if (action.action.equals("killActivity")) {
       // TODO
     } else if (action.action.equals("killService")) {
       // TODO
     }
+  }
+
+  /**
+   * Handles all Broadcasts sent from the script.
+   * 
+   * @param env
+   * @param intentName
+   */
+  private static void sendBroadcast(MJIEnv env, String intentName) {
+    //get the actual intent from the map.
+    IntentEntry intent = intentMap.get(intentName);
+
+    // If we could find the intent with name intentName
+    if (intent != null) {
+
+      if (intent.getAction().equals("android.net.conn.CONNECTION_CHANGE")) {
+        // send connection change events to the ConnectionManager
+
+        String methodName = "changeNetworkState(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V";
+
+        int[] args = { env.newString((String) intent.getExtra("type")),
+            env.newString((String) intent.getExtra("state")),
+            env.newString((String) intent.getExtra("reason")),
+            env.newString((String) intent.getExtra("info")) };
+
+        callMethod(env, JPF_android_os_ServiceManager.connectionManagerRef, methodName, args);
+
+      } else if (intent.getAction().equals("android.net.conn.URL_INPUT_STREAM")) {
+        // send connection change events to the ConnectionManager
+
+        String url = (String) intent.getExtra("url");
+        String input = (String) intent.getExtra("file");
+
+        JPF_javax_xml_parsers_SAXParser.URLInput.put(url, input);
+      } else {
+        // TODO send Broadcast to system
+        log.severe(TAG + ": Could not send broadcast, undefined action " + intentName);
+
+      }
+    } else {
+      log.severe(TAG + ": Could not send broadcast, undefined intent " + intentName);
+    }
+
   }
 
   /**
@@ -154,12 +264,15 @@ public class JPF_com_android_server_am_ActivityManagerService {
 
   }
 
-  /* ***************************** System Methods ******************************* */
+  /* ****************** System Methods ****************** */
 
   /**
-   * Retrieves the reference to an intent in the intentMap using its name specified by action.target. If no
-   * such intent exists, an Intent object is created and stored in the intentMap. It then sets the field of
-   * the intent (specified by action.getAction()) with value action.arguments[0] which is the value of the
+   * Retrieves the reference to an intent in the intentMap using its name
+   * specified by action.target. If no
+   * such intent exists, an Intent object is created and stored in the
+   * intentMap. It then sets the field of
+   * the intent (specified by action.getAction()) with value action.arguments[0]
+   * which is the value of the
    * field to set..
    * 
    * @param env
@@ -177,17 +290,25 @@ public class JPF_com_android_server_am_ActivityManagerService {
     // Use reflection to call the setter method on the Intent object
     @SuppressWarnings("unchecked")
     Class<IntentEntry> intentClass = (Class<IntentEntry>) intent.getClass();
-    try {
-      Method m = intentClass.getMethod(action.getAction(), String.class);
-      m.invoke(intent, action.getArguments());
 
+    try {
+      Method method = null;
+      Method[] methods = intentClass.getMethods();
+      for (int i = 0; i < methods.length; i++) {
+        method = methods[i];
+        if (method.getName().equals(action.getAction())) {
+          break;
+        }
+      }
+      method.invoke(intent, action.getArguments());
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   /**
-   * Returns the reference to an the Intent object. This has to be extended to allow not only explicit intents
+   * Returns the reference to an the Intent object. This has to be extended to
+   * allow not only explicit intents
    * but also implicit intents.
    * 
    * @param env
@@ -250,6 +371,9 @@ public class JPF_com_android_server_am_ActivityManagerService {
 
     private String mPackage;
     private String mClass;
+    private String action;
+    private HashSet<String> mCategories;
+    private Bundle mExtras;
 
     public IntentEntry() {
 
@@ -285,6 +409,104 @@ public class JPF_com_android_server_am_ActivityManagerService {
 
     public void setClassName(String mClass) {
       this.mClass = mClass;
+    }
+
+    public String getAction() {
+      return action;
+    }
+
+    public void setAction(String action) {
+      this.action = action;
+    }
+
+    public boolean hasCategory(String category) {
+      boolean value = (mCategories != null) ? mCategories.contains(category) : false;
+      return value;
+    }
+
+    public void addCategories(String mCategory) {
+      if (this.mCategories == null) {
+        this.mCategories = new HashSet<String>();
+      }
+      this.mCategories.add(mCategory);
+    }
+
+    public Bundle getExtras() {
+      return mExtras;
+    }
+
+    public void setExtras(Bundle mExtras) {
+      this.mExtras = mExtras;
+    }
+
+    public void putExtraBool(String name, boolean value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putBoolean(name, value);
+    }
+
+    public void putExtraByte(String name, byte value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putByte(name, value);
+    }
+
+    public void putExtraChar(String name, char value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putChar(name, value);
+    }
+
+    public void putExtraShort(String name, short value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putShort(name, value);
+    }
+
+    public void putExtraInt(String name, int value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putInt(name, value);
+    }
+
+    public void putExtraLong(String name, long value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putLong(name, value);
+    }
+
+    public void putExtraFloat(String name, float value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putFloat(name, value);
+    }
+
+    public void putExtraDouble(String name, double value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putDouble(name, value);
+    }
+
+    public void putExtraString(String name, String value) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      mExtras.putString(name, value);
+    }
+
+    public Object getExtra(String name) {
+      if (mExtras == null) {
+        mExtras = new Bundle();
+      }
+      return mExtras.get(name);
     }
 
   }

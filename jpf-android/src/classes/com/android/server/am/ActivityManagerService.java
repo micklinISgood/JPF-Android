@@ -64,7 +64,7 @@ import com.android.server.IntentResolver;
 public class ActivityManagerService {
   public static final String TAG = "ActivityManager";
   // public static final boolean DEBUG = true;
-  public static final boolean DEBUG_BROADCAST = false;
+  public static final boolean DEBUG_BROADCAST = true;
 
   public static final int BROADCAST_SUCCESS = 0;
   public static final int BROADCAST_STICKY_CANT_HAVE_PERMISSION = -1;
@@ -138,6 +138,8 @@ public class ActivityManagerService {
     protected String packageForFilter(BroadcastFilter filter) {
       return filter.packageName;
     }
+
+  
   };
 
   public ActivityManagerService(PackageInfo pi) {
@@ -834,7 +836,7 @@ public class ActivityManagerService {
    * @return
    * @throws RemoteException
    */
-  public Intent performRegisterReceiver(ApplicationThread caller, String callerPackage,
+  public synchronized Intent performRegisterReceiver(ApplicationThread caller, String callerPackage,
                                         IIntentReceiver receiver, IntentFilter filter, String permission)
       throws RemoteException {
 
@@ -940,7 +942,7 @@ public class ActivityManagerService {
    * @return
    * @throws RemoteException
    */
-  public final int performBroadcastIntent(ApplicationThread caller, Intent intent, String resolvedType,
+  public synchronized final int performBroadcastIntent(ApplicationThread caller, Intent intent, String resolvedType,
                                           IIntentReceiver resultTo, int resultCode, String resultData,
                                           Bundle map, String requiredPermission, boolean ordered,
                                           boolean sticky) throws RemoteException {
@@ -1392,7 +1394,7 @@ public class ActivityManagerService {
       throws RemoteException {
   }
 
-  public void performFinishReceiver(IBinder who, int resultCode, String resultData, Bundle resultExtras,
+  public synchronized void performFinishReceiver(IBinder who, int resultCode, String resultData, Bundle resultExtras,
                                     boolean resultAbort) {
     if (DEBUG_BROADCAST)
       Slog.v(TAG, "Finish receiver: " + who);
@@ -1460,7 +1462,7 @@ public class ActivityManagerService {
 
   }
 
-  public void performUnregisterReceiver(IIntentReceiver receiver) throws RemoteException {
+  public synchronized void performUnregisterReceiver(IIntentReceiver receiver) throws RemoteException {
     if (DEBUG_BROADCAST)
       Slog.v(TAG, "Unregister receiver: " + receiver);
 

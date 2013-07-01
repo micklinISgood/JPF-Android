@@ -46,7 +46,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -54,11 +53,10 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.test.mock.MockContext;
 import android.util.AndroidRuntimeException;
 import android.util.Log;
-import android.view.WindowManager;
-
-import com.android.internal.policy.PolicyManager;
+import android.view.LayoutInflater;
 
 /**
  * Restricted Context given to BroadcastReceivers to make sure they can't bind
@@ -94,7 +92,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
  * for Activity and other
  * application components.
  */
-public class ContextImpl extends Context {
+public class ContextImpl extends MockContext {
   private final static String TAG = "Context";
   private final static boolean DEBUG_CONTEXT = true;
 
@@ -125,310 +123,6 @@ public class ContextImpl extends Context {
   // private File mExternalCacheDir;
   //
   // private static final String[] EMPTY_FILE_LIST = {};
-
-  /**
-   * Override this class when the system service constructor needs a
-   * ContextImpl. Else, use StaticServiceFetcher below.
-   */
-  static class ServiceFetcher {
-
-    /**
-     * Main entrypoint; only override if you don't need caching.
-     */
-    public Object getService(ContextImpl ctx) {
-      return null;
-    }
-
-    /**
-     * Override this to create a new per-Context instance of the
-     * service. getService() will handle locking and caching.
-     */
-    public Object createService(ContextImpl ctx) {
-      throw new RuntimeException("Not implemented");
-    }
-  }
-
-  /**
-   * Override this class for services to be cached process-wide.
-   */
-  abstract static class StaticServiceFetcher extends ServiceFetcher {
-    private Object mCachedInstance;
-
-    @Override
-    public final Object getService(ContextImpl unused) {
-      synchronized (StaticServiceFetcher.this) {
-        Object service = mCachedInstance;
-        if (service != null) {
-          return service;
-        }
-        return mCachedInstance = createStaticService();
-      }
-    }
-
-    public abstract Object createStaticService();
-  }
-
-  private static final HashMap<String, ServiceFetcher> SYSTEM_SERVICE_MAP = new HashMap<String, ServiceFetcher>();
-
-  private static void registerService(String serviceName, ServiceFetcher fetcher) {
-    SYSTEM_SERVICE_MAP.put(serviceName, fetcher);
-  }
-
-  static {
-    registerService(ACCESSIBILITY_SERVICE, new ServiceFetcher() {
-      public Object getService(ContextImpl ctx) {
-        // return AccessibilityManager.getInstance(ctx);
-        return null;
-      }
-    });
-    registerService(ACCOUNT_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        IBinder b = ServiceManager.getService(ACCOUNT_SERVICE);
-        //        IAccountManager service = IAccountManager.Stub.asInterface(b);
-        //        return new AccountManager(ctx, service);
-        return null;
-
-      }
-    });
-
-    registerService(ACTIVITY_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new ActivityManager(ctx.getOuterContext(), ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    registerService(ALARM_SERVICE, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        //        IBinder b = ServiceManager.getService(ALARM_SERVICE);
-        //        IAlarmManager service = IAlarmManager.Stub.asInterface(b);
-        //        return new AlarmManager(service);
-        return null;
-      }
-    });
-
-    registerService(AUDIO_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        return null;
-        //        return new AudioManager(ctx);
-      }
-    });
-
-    registerService(CLIPBOARD_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        return null;
-        //        return new ClipboardManager(ctx.getOuterContext(), ctx.mMainThread.getHandler());
-      }
-    });
-
-    registerService(CONNECTIVITY_SERVICE, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        IBinder b = ServiceManager.getService(CONNECTIVITY_SERVICE);
-        return new ConnectivityManager();
-      }
-    });
-
-    registerService(COUNTRY_DETECTOR, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        //        IBinder b = ServiceManager.getService(COUNTRY_DETECTOR);
-        //        return new CountryDetector(ICountryDetector.Stub.asInterface(b));
-        return null;
-      }
-    });
-
-    registerService(DEVICE_POLICY_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //return DevicePolicyManager.create(ctx, ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    registerService(DOWNLOAD_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //return new DownloadManager(ctx.getContentResolver(), ctx.getPackageName());
-        return null;
-      }
-    });
-
-    registerService(NFC_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new NfcManager(ctx);
-        return null;
-      }
-    });
-
-    registerService(DROPBOX_SERVICE, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        //        return createDropBoxManager();
-        return null;
-      }
-    });
-
-    registerService(INPUT_METHOD_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return InputMethodManager.getInstance(ctx);
-        return null;
-      }
-    });
-
-    registerService(TEXT_SERVICES_MANAGER_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return TextServicesManager.getInstance();
-        return null;
-      }
-    });
-
-    registerService(KEYGUARD_SERVICE, new ServiceFetcher() {
-      public Object getService(ContextImpl ctx) {
-        // TODO: why isn't this caching it?  It wasn't
-        // before, so I'm preserving the old behavior and
-        // using getService(), instead of createService()
-        // which would do the caching.
-        //        return new KeyguardManager();
-        return null;
-      }
-    });
-
-    registerService(LAYOUT_INFLATER_SERVICE, new ServiceFetcher() {
-      public Object getService(ContextImpl ctx) {
-        return PolicyManager.makeNewLayoutInflater(ctx.getOuterContext());
-      }
-    });
-
-    registerService(LOCATION_SERVICE, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        //        IBinder b = ServiceManager.getService(LOCATION_SERVICE);
-        //        return new LocationManager(ILocationManager.Stub.asInterface(b));
-        return null;
-      }
-    });
-
-    registerService(NETWORK_POLICY_SERVICE, new ServiceFetcher() {
-      @Override
-      public Object createService(ContextImpl ctx) {
-        //        return new NetworkPolicyManager(INetworkPolicyManager.Stub.asInterface(ServiceManager
-        //            .getService(NETWORK_POLICY_SERVICE)));
-        return null;
-      }
-    });
-
-    registerService(NOTIFICATION_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        final Context outerContext = ctx.getOuterContext();
-        //        return new NotificationManager(new ContextThemeWrapper(outerContext, Resources.selectSystemTheme(0,
-        //            outerContext.getApplicationInfo().targetSdkVersion, com.android.internal.R.style.Theme_Dialog,
-        //            com.android.internal.R.style.Theme_Holo_Dialog,
-        //            com.android.internal.R.style.Theme_DeviceDefault_Dialog)), ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    // Note: this was previously cached in a static variable, but
-    // constructed using mMainThread.getHandler(), so converting
-    // it to be a regular Context-cached service...
-    registerService(POWER_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        IBinder b = ServiceManager.getService(POWER_SERVICE);
-        //        IPowerManager service = IPowerManager.Stub.asInterface(b);
-        //        return new PowerManager(service, ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    registerService(SEARCH_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new SearchManager(ctx.getOuterContext(), ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    registerService(SENSOR_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new SensorManager(ctx.mMainThread.getHandler().getLooper());
-        return null;
-      }
-    });
-
-    registerService(STATUS_BAR_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new StatusBarManager(ctx.getOuterContext());
-        return null;
-      }
-    });
-
-    registerService(STORAGE_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        try {
-        //          return new StorageManager(ctx.mMainThread.getHandler().getLooper());
-        //        } catch (RemoteException rex) {
-        //          Log.e(TAG, "Failed to create StorageManager", rex);
-        //          return null;
-        return null;
-        //        }
-      }
-    });
-
-    registerService(TELEPHONY_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new TelephonyManager(ctx.getOuterContext());
-        return null;
-      }
-    });
-
-    registerService(THROTTLE_SERVICE, new StaticServiceFetcher() {
-      public Object createStaticService() {
-        //        IBinder b = ServiceManager.getService(THROTTLE_SERVICE);
-        //        return new ThrottleManager(IThrottleManager.Stub.asInterface(b));
-        return null;
-      }
-    });
-
-    registerService(UI_MODE_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new UiModeManager();
-        return null;
-      }
-    });
-
-    registerService(USB_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        IBinder b = ServiceManager.getService(USB_SERVICE);
-        //        return new UsbManager(ctx, IUsbManager.Stub.asInterface(b));
-        return null;
-      }
-    });
-
-    registerService(VIBRATOR_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        return new Vibrator();
-        return null;
-      }
-    });
-
-    registerService(WIFI_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        IBinder b = ServiceManager.getService(WIFI_SERVICE);
-        //        IWifiManager service = IWifiManager.Stub.asInterface(b);
-        //        return new WifiManager(service, ctx.mMainThread.getHandler());
-        return null;
-      }
-    });
-
-    registerService(WIFI_P2P_SERVICE, new ServiceFetcher() {
-      public Object createService(ContextImpl ctx) {
-        //        IBinder b = ServiceManager.getService(WIFI_P2P_SERVICE);
-        //        IWifiP2pManager service = IWifiP2pManager.Stub.asInterface(b);
-        //        return new WifiP2pManager(service);
-        return null;
-      }
-    });
-
-    registerService(WINDOW_SERVICE, new ServiceFetcher() {
-      public Object getService(ContextImpl ctx) {
-        return WindowManager.getInstance();
-      }
-    });
-  }
 
   ContextImpl() {
     mOuterContext = this;
@@ -763,12 +457,6 @@ public class ContextImpl extends Context {
 
   }
 
-  @Override
-  @Deprecated
-  public void clearWallpaper() throws IOException {
-    throw new UnsupportedOperationException();
-
-  }
 
   @Override
   public void startActivity(Intent intent) {
@@ -968,7 +656,7 @@ public class ContextImpl extends Context {
   public void unregisterReceiver(BroadcastReceiver receiver) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "unregisterReceiver(receiver=" + receiver + ")");
-    
+
     if (mLoadedPackageInfo != null) {
       IIntentReceiver rd = mLoadedPackageInfo.forgetReceiverDispatcher(getOuterContext(), receiver);
       try {
@@ -984,7 +672,7 @@ public class ContextImpl extends Context {
   public ComponentName startService(Intent service) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "startService(Intent=" + service + ")");
-    
+
     service.setAllowFds(false);
     ComponentName cn = ActivityManagerNative.getDefault().startService(service, "");
     if (cn != null && cn.getPackageName().equals("!")) {
@@ -998,7 +686,7 @@ public class ContextImpl extends Context {
   public boolean stopService(Intent service) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "stopService(Intent=" + service + ")");
-    
+
     service.setAllowFds(false);
     int res = ActivityManagerNative.getDefault().stopService(service, "");
     if (res < 0) {
@@ -1012,7 +700,7 @@ public class ContextImpl extends Context {
   public boolean bindService(Intent service, ServiceConnection conn, int flags) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "bindService(Intent=" + service + ")");
-    
+
     ServiceConnection sd;
     // if (mPackageInfo != null) {
     // sd = mPackageInfo.getServiceDisPapatcher(conn, getOuterContext(), mMainThread.getHandler(), flags);
@@ -1041,7 +729,7 @@ public class ContextImpl extends Context {
   public void unbindService(ServiceConnection conn) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "unbindService(ServiceConnection=" + conn + ")");
-    
+
     if (mLoadedPackageInfo != null) {
       // IServiceConnection sd = mPackageInfo.forgetServiceDispatcher(
       // getOuterContext(), conn);
@@ -1061,8 +749,9 @@ public class ContextImpl extends Context {
   public Object getSystemService(String name) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "getSystemService(name=" + name + ")");
-    ServiceFetcher fetcher = SYSTEM_SERVICE_MAP.get(name);
-    return fetcher == null ? null : fetcher.getService(this);
+    if (name.equals(Context.LAYOUT_INFLATER_SERVICE))
+      return new LayoutInflater(this);
+    return ServiceManager.getSystemService(name);
   }
 
   @Override
@@ -1154,6 +843,9 @@ public class ContextImpl extends Context {
   @Override
   public Context createPackageContext(String packageName, int flags)
       throws PackageManager.NameNotFoundException {
+    if (DEBUG_CONTEXT)
+      Log.i(TAG, "createPackageContext(packageName=" + packageName + " flags=" + flags + ")");
+    
     LoadedApk pi = mMainThread.getPackageInfo(packageName);
     if (pi != null) {
       ContextImpl c = new ContextImpl();
@@ -1169,6 +861,8 @@ public class ContextImpl extends Context {
   }
 
   public static ContextImpl createSystemContext(ActivityThread mainThread) {
+    if (DEBUG_CONTEXT)
+      Log.i(TAG, "createSystemContext()");
     ContextImpl context = new ContextImpl();
     context.init(Resources.getSystem(), mainThread);
     return context;

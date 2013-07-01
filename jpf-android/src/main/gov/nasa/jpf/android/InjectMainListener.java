@@ -38,7 +38,6 @@ public class InjectMainListener extends ListenerAdapter {
       for (MethodInfo method : methods) {
         if (method.getFullName().contains("main([Ljava/lang/String;)V")) {
           found = true;
-          logger.info("&&&&&&&&"+ method.getFullName());
 
         }
       }

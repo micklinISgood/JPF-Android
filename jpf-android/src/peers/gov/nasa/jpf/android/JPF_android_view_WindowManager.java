@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -19,7 +19,6 @@
 
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.jvm.ClassInfo;
 import gov.nasa.jpf.jvm.DirectCallStackFrame;
@@ -39,13 +38,17 @@ import android.view.Window;
 /**
  * Implements the native methods of the WindowManager class.
  * 
- * One of the main functions of this class is to keep a list of all the View-objects of the application
- * registered in R.java. Their unique id's and names are resolved from the R.java file and stored as a map
- * <code>componentMap</code>. This is used during layout inflation of the views to make sure the views
- * registered in the R.java file gets assigned the right id. This is is used in the application's code to
+ * One of the main functions of this class is to keep a list of all the
+ * View-objects of the application
+ * registered in R.java. Their unique id's and names are resolved from the
+ * R.java file and stored as a map <code>componentMap</code>. This is used
+ * during layout inflation of the views to make sure the views
+ * registered in the R.java file gets assigned the right id. This is is used in
+ * the application's code to
  * identify the views.
  * 
- * The componentMap contains ViewEntry objects. They keep a reference to the actual View -objects in memory.
+ * The componentMap contains ViewEntry objects. They keep a reference to the
+ * actual View -objects in memory.
  * 
  */
 public class JPF_android_view_WindowManager {
@@ -59,14 +62,17 @@ public class JPF_android_view_WindowManager {
   private static final char NAME_PREFIX = '$'; // put is front of view
   // object's names
   /**
-   * Maps script actions to View objects. The key is the name of the View-object as defined in the R.java
-   * file. The value keeps a reference to the actual View-object. This map contains all the components of the
+   * Maps script actions to View objects. The key is the name of the View-object
+   * as defined in the R.java
+   * file. The value keeps a reference to the actual View-object. This map
+   * contains all the components of the
    * application. The R.java file requires that these names be unique.
    */
   private static HashMap<String, ViewEntry> componentMap = new HashMap<String, ViewEntry>();
 
   /**
-   * Maps the resource ID of a layout to the name of the layout file. This information is read from the R.java
+   * Maps the resource ID of a layout to the name of the layout file. This
+   * information is read from the R.java
    * class and stored as a map fir quick lookup by the LayoutInflater.
    */
   static HashMap<Integer, String> layoutMap = new HashMap<Integer, String>();
@@ -196,7 +202,8 @@ public class JPF_android_view_WindowManager {
   }
 
   /**
-   * Used by setContentView(int resId) method in {@link Window} to resolve the resource id of a layout to the
+   * Used by setContentView(int resId) method in {@link Window} to resolve the
+   * resource id of a layout to the
    * name of the layout file.
    * 
    * @param id
@@ -210,7 +217,8 @@ public class JPF_android_view_WindowManager {
   }
 
   /**
-   * Returns the name field of a View . If the name field is null, a unique name is generated.
+   * Returns the name field of a View . If the name field is null, a unique name
+   * is generated.
    * 
    * @param env
    * @param objref
@@ -225,7 +233,8 @@ public class JPF_android_view_WindowManager {
   }
 
   /**
-   * Calls the handleViewAction(String target, String action) method on the JPF model of WindowManager to
+   * Calls the handleViewAction(String target, String action) method on the JPF
+   * model of WindowManager to
    * handle the event.
    * 
    * @param env
@@ -234,13 +243,21 @@ public class JPF_android_view_WindowManager {
   static void handleViewAction(MJIEnv env, UIAction uiAction) {
     String action = uiAction.getAction();
     String target = uiAction.getTarget();
-
+    Object[] arguments = uiAction.getArguments();
+    int aref = -1;
+    if (arguments != null && arguments.length > 0) {
+      aref = env.newObjectArray("java.lang.String", arguments.length);
+      for (int i = 0; i < arguments.length; i++) {
+        env.setReferenceArrayElement(aref, i, env.newString(arguments[i].toString()));
+      }
+    }
     env.getElementInfo(classRef);
 
     ClassInfo ei = env.getReferredClassInfo(classRef);
 
     // Ok, now we make the (direct) call
-    MethodInfo mi = ei.getMethod("handleViewAction(Ljava/lang/String;Ljava/lang/String;)V", false);
+    MethodInfo mi = ei.getMethod(
+        "handleViewAction(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V", false);
 
     if (mi != null) {
       MethodInfo stub = mi.createDirectCallStub(UIACTION);
@@ -249,6 +266,8 @@ public class JPF_android_view_WindowManager {
       frame.push(classRef, false);
       frame.push(env.newString(target), true);
       frame.push(env.newString(action), true);
+      frame.push(aref, true);
+
       ThreadInfo ti = env.getThreadInfo();
       ti.pushFrame(frame);
 
@@ -258,11 +277,13 @@ public class JPF_android_view_WindowManager {
   }
 
   /**
-   * Returns the name of the current Window that is showing on the screen. It is used to determine which part
+   * Returns the name of the current Window that is showing on the screen. It is
+   * used to determine which part
    * of the script has to be executed.
    * 
    * @param env
-   * @return the name of the section of the script to execute or default if no window is currently on the
+   * @return the name of the section of the script to execute or default if no
+   *         window is currently on the
    *         screen
    */
   public static String getCurrentWindow(MJIEnv env) {
@@ -285,12 +306,14 @@ public class JPF_android_view_WindowManager {
    */
   public static class ViewEntry {
     /**
-     * The unique id of a {@link View} as defined in the R.java file else generated in native Window class.
+     * The unique id of a {@link View} as defined in the R.java file else
+     * generated in native Window class.
      */
     private int id;
 
     /**
-     * The unique name of the {@link View} as defined in the R.java file else generated in native Window
+     * The unique name of the {@link View} as defined in the R.java file else
+     * generated in native Window
      * class.
      */
     private String name;

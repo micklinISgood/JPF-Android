@@ -2,8 +2,6 @@ package android.view;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-//import android.content.res.Resources;
-//import android.os.Build;
 
 /**
  * A ContextWrapper that allows you to modify the theme from what is in the

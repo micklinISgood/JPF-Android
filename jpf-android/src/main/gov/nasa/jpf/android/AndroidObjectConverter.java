@@ -34,7 +34,7 @@ import java.lang.reflect.Field;
  *
  * @author Ivan Mushketik
  *
- * Modified for Android on March 2013.
+ * Modified for Android on March 2013. We added callbacks to make sure static fields in a object is initiated.
  * @author Heila van der Merwe 
  */
 public class AndroidObjectConverter {

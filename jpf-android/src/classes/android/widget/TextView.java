@@ -8,11 +8,13 @@ public class TextView extends View {
 
   public TextView(Context context) {
     super(context);
-    mText = "";
   }
 
   public final void setText(CharSequence text) {
     mText = text;
+    if (name == null || name.length() == 0) {
+      name = text.toString();
+    }
   }
 
   public CharSequence getText() {

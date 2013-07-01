@@ -37,9 +37,10 @@
 		<pathelement location="build/peers" />
 		<pathelement location="build/annotations" />
 
-		<!-- add in what we need from the core -->
+	 	<!-- add in what we need from the core -->
 		<fileset dir=".">
 			<include name="lib/android.jar" />
+			<include name="lib/jsqlparser.jar" />
 		</fileset>
 		<pathelement path="${jpf-core.native_classpath}" />
 	</path>
@@ -177,8 +178,7 @@
 		<jar jarfile="build/${ant.project.name}-classes.jar"
 			whenmanifestonly="skip">
 			<fileset dir="build/classes" erroronmissingdir="true" />
-			<!-- don't have these<fileset dir="build/annotations" erroronmissingdir="false" 
-				/> -->
+			<fileset dir="build/annotations" erroronmissingdir="false" /> 
 		</jar>
 	</target>
 

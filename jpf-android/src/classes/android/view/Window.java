@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.TextView;
@@ -191,7 +193,7 @@ public class Window extends ViewGroup {
    * @param name
    * @param action
    */
-  void handleViewAction(String name, String action) {
+  void handleViewAction(String name, String action, String[] arguments) {
     Log.i(TAG, "Dispatching " + name + "." + action);
 
     // find the view object 
@@ -203,7 +205,7 @@ public class Window extends ViewGroup {
       try {
         Class<? extends View> viewClass = (Class<? extends View>) view.getClass(); // get the class
         Method m = viewClass.getMethod(action, new Class[] {});
-        m.invoke(view, (Object[]) null);
+        m.invoke(view, (Object[]) arguments);
 
       } catch (NoSuchMethodException e) {
         Log.e(TAG, "View " + name + "has no method " + action);
@@ -251,7 +253,7 @@ public class Window extends ViewGroup {
      *          The key shortcut event.
      * @return True if this event was consumed.
      */
-    // public boolean dispatchKeyShortcutEvent(KeyEvent event);
+     public boolean dispatchKeyShortcutEvent(KeyEvent event);
 
     /**
      * Called to process touch screen events. At the very least your
@@ -264,7 +266,7 @@ public class Window extends ViewGroup {
      * 
      * @return boolean Return true if this event was consumed.
      */
-    // public boolean dispatchTouchEvent(MotionEvent event);
+     public boolean dispatchTouchEvent(MotionEvent event);
 
     /**
      * Called to process trackball events. At the very least your implementation
@@ -276,7 +278,7 @@ public class Window extends ViewGroup {
      * 
      * @return boolean Return true if this event was consumed.
      */
-    // public boolean dispatchTrackballEvent(MotionEvent event);
+     public boolean dispatchTrackballEvent(MotionEvent event);
 
     /**
      * Called to process generic motion events. At the very least your
@@ -289,7 +291,7 @@ public class Window extends ViewGroup {
      * 
      * @return boolean Return true if this event was consumed.
      */
-    // public boolean dispatchGenericMotionEvent(MotionEvent event);
+     public boolean dispatchGenericMotionEvent(MotionEvent event);
 
     /**
      * Called to process population of {@link AccessibilityEvent}s.
@@ -489,6 +491,46 @@ public class Window extends ViewGroup {
 
   public void destroy() {
 
+  }
+
+  public View getCurrentFocus() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public void restoreHierarchyState(Bundle windowState) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void makeActive() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public Bundle saveHierarchyState() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public void onConfigurationChanged(Configuration newConfig) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void addContentView(View view) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void setCloseOnTouchOutside(boolean finish) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public boolean shouldCloseOnTouch(Activity activity, MotionEvent event) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

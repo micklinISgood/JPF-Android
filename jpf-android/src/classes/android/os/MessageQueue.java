@@ -2,7 +2,6 @@ package android.os;
 
 import java.util.LinkedList;
 
-import android.app.ActivityThread;
 import android.content.Intent;
 
 /**
@@ -21,7 +20,9 @@ public class MessageQueue {
   private boolean mQuiting;
   boolean mQuitAllowed = true;
 
-  public native boolean processScriptAction();
+  int count = 0;
+
+  public native boolean processScriptAction(int count);
 
   public MessageQueue() {
     init();
@@ -40,8 +41,9 @@ public class MessageQueue {
       if ((m = nextNonBlocked()) != null) {
         return m;
       }
-
-    } while (processScriptAction());
+      count++;
+      System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + count);
+    } while (processScriptAction(count));
     // this must not happen! an ending message (with target will be
     // dispatched before this is executed)
     return new Message();

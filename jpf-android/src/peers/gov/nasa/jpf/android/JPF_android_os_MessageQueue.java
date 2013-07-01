@@ -20,6 +20,7 @@ package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.android.checkpoint.ChecklistManager;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.util.script.AndroidScriptEnvironment;
@@ -40,6 +41,8 @@ public class JPF_android_os_MessageQueue {
   static final String UIACTION = "[UIAction]";
 
   static AndroidScriptEnvironment scriptEnv;
+
+  static ChecklistManager checkpointManager;
 
   /**
    * Called from the MesaageQueue Constructor, i.e. before each application run.
@@ -63,6 +66,10 @@ public class JPF_android_os_MessageQueue {
       scriptEnv = new AndroidScriptEnvironment(scriptName);
       scriptEnv.registerListener(env.getJPF());
       scriptEnv.parseScript();
+
+      checkpointManager = new ChecklistManager();
+      checkpointManager.registerListener(env.getJPF());
+
     } catch (FileNotFoundException fnfx) {
       log.severe(TAG + ": Script file (.es) not found: " + scriptName);
     } catch (ESParserE.Exception e) {
@@ -75,7 +82,7 @@ public class JPF_android_os_MessageQueue {
    * empty. If we return false, it means there is nothing else to check and we
    * are done
    */
-  public static boolean processScriptAction(MJIEnv env, int objref) {
+  public static boolean processScriptAction(MJIEnv env, int objref, int count) {
     ThreadInfo ti = env.getThreadInfo();
 
     if (scriptEnv == null) {
@@ -85,13 +92,13 @@ public class JPF_android_os_MessageQueue {
 
     if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
       String currentWindow = JPF_android_view_WindowManager.getCurrentWindow(env);
-
+      
       UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
       if (action != null) {
-        System.out.println("*******************************");
+        System.out.println("******************************* " + count);
         log.info(TAG + ": Processing action \"" + action.action + "\" on \"" + action.target
             + "\" on Window \"" + currentWindow + "\"");
-        runAction(env, action);
+        runAction(env, action, currentWindow);
         return true;
       }
 
@@ -106,10 +113,16 @@ public class JPF_android_os_MessageQueue {
    * @param env
    * @param action
    */
-  private static void runAction(MJIEnv env, UIAction action) {
+  private static void runAction(MJIEnv env, UIAction action, String currentWindow) {
     if (!action.isNone()) {
       if (action.target == null) { // componentAction sendBroadcast() startActivity() startService() registerListener()
-        JPF_com_android_server_am_ActivityManagerService.handleComponentAction(env, action);
+        if (action.action.equals("registerChecklist")) {
+          checkpointManager.registerCheckList(action.getArguments(), action.getLine());
+        } else if (action.action.equals("unregisterChecklist")) {
+          checkpointManager.unregisterCheckList((String) action.getArguments()[0]);
+        } else {
+          JPF_com_android_server_am_ActivityManagerService.handleComponentAction(env, action);
+        }
       } else if (action.target.startsWith("$")) { // viewAction includes: $back, $homeButton.onClick(), $powerButton.onClick(), $volumeButton.onClick(), $menuButton.onClick(), $orientation.onClick()
         JPF_android_view_WindowManager.handleViewAction(env, action);
       } else if (action.target.startsWith("@")) { // references annotation in code 
@@ -119,5 +132,4 @@ public class JPF_android_os_MessageQueue {
       }
     }
   }
-
 }

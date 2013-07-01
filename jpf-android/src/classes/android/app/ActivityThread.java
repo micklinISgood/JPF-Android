@@ -43,15 +43,13 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.StrictMode;
 import android.util.Log;
-import android.util.LogPrinter;
 import android.util.Slog;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
-import com.android.server.am.ActivityManagerService;
 
 /**
  * This manages the execution of the main thread in an application process,
@@ -303,8 +301,7 @@ public final class ActivityThread {
      */
     public final void scheduleReceiver(Intent intent, ActivityInfo info, CompatibilityInfo compatInfo,
                                        int resultCode, String data, Bundle extras, boolean sync) {
-      ReceiverData r = new ReceiverData(intent, resultCode, data, extras, sync, false, mAppThread);// TODO
-                                                                                                   // .asBinder());
+      ReceiverData r = new ReceiverData(intent, resultCode, data, extras, sync, false, mAppThread);
       r.info = info;
       r.compatInfo = compatInfo;
       queueOrSendMessage(H.RECEIVER, r);
@@ -980,7 +977,7 @@ public final class ActivityThread {
     Service service = null;
     try {
       java.lang.ClassLoader cl = packageInfo.getClassLoader();
-      service = (Service) cl.loadClass(data.info.packageName + data.info.name).newInstance();
+      service = (Service) cl.loadClass(data.info.name).newInstance();
     } catch (Exception e) {
       if (!mInstrumentation.onException(service, e)) {
         throw new RuntimeException("Unable to instantiate service " + data.info.name + ": " + e.toString(), e);
@@ -1162,8 +1159,7 @@ public final class ActivityThread {
     try {
       Application app = r.packageInfo.makeApplication(false, mInstrumentation);
 
-      if (localLOGV)
-        Slog.v(TAG, "Performing launch of " + r);
+        Log.i(TAG, "Performing launch of " + r);
       // if (localLOGV)
       // Slog.v(
       // TAG,
@@ -1458,7 +1454,7 @@ public final class ActivityThread {
 
   private void handleSendResult(ResultInfo res, int ident) {
     ActivityClientRecord r = mActivities.get(ident);
-    System.out.println(r);
+    //System.out.println(r);
     if (r != null) {
       // final boolean resumed = !r.paused;
       // if (!r.activity.mFinished && r.activity.mDecor != null &&
@@ -2129,10 +2125,12 @@ public final class ActivityThread {
     mInstrumentation = new Instrumentation(); // currently we dont support
                                               // custom impl of instrumentation
 
+    System.out.println("Application creating");
     // If the app is being launched for full backup or restore, bring it up in
     // a restricted environment with the base application class.
     Application app = data.info.makeApplication(false, mInstrumentation);
     mInitialApplication = app;
+    System.out.println("Application oncreating");
 
     try {
       mInstrumentation.callApplicationOnCreate(app);
@@ -2206,22 +2204,12 @@ public final class ActivityThread {
     // Create new ActivityThread for this pplication
     ActivityThread thread = new ActivityThread();
 
-    // Setup PackageManager
-    sPackageManager = new PackageManager();
-
-    // Setup ActivityManager
-    new ActivityManagerService(sPackageManager.getPackageInfo());
-
-    // Setup WindowManager
-    WindowManager.getInstance();
+    // Create all services
+    ServiceManager.createServiceManagers(thread);
+    sPackageManager = (PackageManager) ServiceManager.getSystemService("package");
 
     try {
       thread.attach();
-
-      if (DEBUG_MESSAGES) {
-        Looper.myLooper().setMessageLogging(new LogPrinter(Log.DEBUG, TAG));
-      }
-
       Looper.loop();
 
     } catch (Exception e) {

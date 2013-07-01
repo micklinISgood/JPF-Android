@@ -10,8 +10,7 @@ import android.view.WindowManager;
  */
 
 public final class PolicyManager {
-  private static final String POLICY_IMPL_CLASS_NAME = "com.android.internal.policy.impl.Policy";
-
+  private static final String TAG = "PhonePolicy";
   // private static final IPolicy sPolicy;
 
   // static {
