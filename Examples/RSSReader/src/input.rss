@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" media="screen" href="/~d/styles/rss2full.xsl"?><?xml-stylesheet type="text/css" media="screen" href="http://feeds.feedburner.com/~d/styles/itemcontent.css"?><rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0" version="2.0">
+<channel>
+	<title>TechCrunch » Mobile</title>
+	
+	<link>http://techcrunch.com</link>
+	<description>Startup and Technology News</description>
+	<lastBuildDate>Sat, 25 May 2013 04:00:43 +0000</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+	<cloud domain="techcrunch.com" port="80" path="/?rsscloud=notify" registerProcedure="" protocol="http-post" />
+	<image>
+			<url>http://1.gravatar.com/blavatar/d9ea925a71f82f06a1e6224298f7fe80?s=96&amp;d=http%3A%2F%2Fs2.wp.com%2Fi%2Fbuttonw-com.png</url>
+			<title>TechCrunch » Mobile</title>
+			<link>http://techcrunch.com</link>
+	</image>
+	<atom:link rel="search" type="application/opensearchdescription+xml" href="http://techcrunch.com/osd.xml" title="TechCrunch" />
+	<atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="self" type="application/rss+xml" href="http://feeds.feedburner.com/Mobilecrunch" /><feedburner:info uri="mobilecrunch" /><atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="hub" href="http://pubsubhubbub.appspot.com/" /><atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="hub" href="http://techcrunch.com/?pushpress=hub" /><feedburner:browserFriendly>This is an XML content feed. It is intended to be viewed in a newsreader or syndicated to another site, subject to copyright and fair use.</feedburner:browserFriendly>
+	<item>
+		<title>50M Matches Strong, Hot Mobile Dating App Tinder Is Ready To Go Global, And Move Beyond Flirting</title>
+		<link>http://techcrunch.com/2013/05/24/50m-matches-strong-hot-mobile-dating-app-tinder-is-ready-to-go-global-and-move-beyond-flirting/</link>
+		<comments>http://techcrunch.com/2013/05/24/50m-matches-strong-hot-mobile-dating-app-tinder-is-ready-to-go-global-and-move-beyond-flirting/#comments</comments>
+		<pubDate>Sat, 25 May 2013 03:44:53 +0000</pubDate>
+		<category><![CDATA[Entertainment]]></category>
+		<category><![CDATA[Mobile]]></category>
+		<category><![CDATA[Social]]></category>
+		<category><![CDATA[Startups]]></category>
+		<category><![CDATA[TC]]></category>
+		<category><![CDATA[Tinder]]></category>
+		<category><![CDATA[dating]]></category>
+		<category><![CDATA[dating app]]></category>
+		<category><![CDATA[matchmaker]]></category>
+
+		<guid isPermaLink="false">http://techcrunch.com/?p=820700</guid>
+		<description><![CDATA[<img width="100" height="70" src="http://tctechcrunch2011.files.wordpress.com/2013/05/screen-shot-2013-05-23-at-4-34-44-pm.png?w=100&amp;h=70&amp;crop=1" class="attachment-tc-carousel-river-thumb wp-post-image" alt="Screen shot 2013-05-23 at 4.34.44 PM" style="float: left; margin: 0 10px 7px 0;" />Digital dating is nothing to scoff at; it's a big business, and it's changed a lot of lives -- mostly for the better. Yet, while dating has seen enormous progress during the Digital Era, there's still a lot garbage out there, and the space is still mostly dominated by a handful of old names. A gaggle of dating sites and apps have appeared over the past five years, but few have had real staying power, and many have gone the way of the dinosaur.
+
+		While it's still too early to make any pronouncements, it's looking more and more like <a target="_blank" href="http://www.gotinder.com/">Tinder</a> could buck the trend. Created by Hatch Labs -- an LA-based startup backed by <a target="_blank" href="http://en.wikipedia.org/wiki/IAC_(company)">IAC</a>, the same Barry Diller-led digital media giant that owns Match.com and OKCupid -- Tinder has grown like a weed since it launched in October.]]></description>
+	</item>
+	<item>
+		<title>Microsoft And Google Bury The Hatchet To Work On A Windows Phone YouTube App With Ads</title>
+		<link>http://techcrunch.com/2013/05/24/microsoft-and-google-bury-the-hatchet-to-work-on-a-windows-phone-youtube-app-with-ads/</link>
+		<comments>http://techcrunch.com/2013/05/24/microsoft-and-google-bury-the-hatchet-to-work-on-a-windows-phone-youtube-app-with-ads/#comments</comments>
+		<pubDate>Fri, 24 May 2013 20:31:42 +0000</pubDate>
+		<category><![CDATA[Apps]]></category>
+		<category><![CDATA[Mobile]]></category>
+		<category><![CDATA[TC]]></category>
+		<category><![CDATA[Microsoft]]></category>
+		<category><![CDATA[windows phone]]></category>
+		<category><![CDATA[youtube]]></category>
+
+		<guid isPermaLink="false">http://techcrunch.com/?p=822728</guid>
+		<description><![CDATA[<img width="100" height="70" src="http://tctechcrunch2011.files.wordpress.com/2013/05/youtube-wp.png?w=100&amp;h=70&amp;crop=1" class="attachment-tc-carousel-river-thumb wp-post-image" alt="youtube-wp" style="float: left; margin: 0 10px 7px 0;" />Once a upon a time, Microsoft saw fit to put together a YouTube app for Windows Phone and it was actually pretty great -- it let users download videos straight from the app and there was nary an ad to be found. To absolutely no one's surprise, Google wasn't too pleased: after all, the features that made the app so appealing didn't exactly jibe with YouTube's terms of service, and the search giant demanded the offending app be removed.
+
+		Well, after a bit of back and forth (and a conciliatory update), it seems the two companies have finally come to an agreement. Microsoft and YouTube released a statement today affirming that the two companies will work together on crafting yet another YouTube app for Windows Phone that doesn't fly in the face of Google's and YouTube's rules.]]></description>
+	</item>
+</channel>
+</rss>

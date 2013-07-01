@@ -1,0 +1,30 @@
+target= za.android.vdm.rssreader.TimelineActivity
+classpath=/Users/heila/Desktop/RSSReader/bin/classes/;${classpath}
+sourcepath=/Users/heila/Desktop/RSSReader/src;
+
+#--- which script to run
+android.script=${config_path}/TestCalculator.es
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.NullPointerException
+
+listener+=gov.nasa.jpf.android.InjectMainListener;
+
+
+# listener for coverage
+#listener+=.listener.CoverageAnalyzer;
+#coverage.include = za.android.vdm.rssreader.service.RSSFeedUpdaterService
+#coverage.show_methods = true
+
+
+
+# Turn on Logging
+log.level=info
+
+# To fond deadlocks
+#search.class = .search.heuristic.BFSHeuristic
+#listener+=gov.nasa.jpf.listener.PreciseRaceDetector;
+
+# Race detection
+report.console.property_violation=error
+
