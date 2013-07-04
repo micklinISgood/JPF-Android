@@ -1,7 +1,6 @@
 package com.example.jpf;
 
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -9,7 +8,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 /**
- * Very basic Android application containing only DeadlockActivity. The Activity starts two Async tasks. These
+ * Very basic Android application containing only this DeadlockActivity. The Activity starts two Async tasks. These
  * Async tasks will deadlock when both Friends bow waiting for the other to bow back.
  * 
  * @author Heila van der Merwe
@@ -22,9 +21,11 @@ public class DeadlockActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 
+    // create two friends
     final Friend alphonse = new Friend("Alphonse");
     final Friend gaston = new Friend("Gaston");
 
+    // button 1 starts Gastron bowing at Alphonse
     Button b1 = (Button) findViewById(R.id.button1);
     b1.setOnClickListener(new OnClickListener() {
 
@@ -35,6 +36,7 @@ public class DeadlockActivity extends Activity {
       }
     });
 
+    // button 2 starts Alphonse bowing at Gastron
     Button b2 = (Button) findViewById(R.id.button2);
     b2.setOnClickListener(new OnClickListener() {
 
@@ -58,7 +60,7 @@ public class DeadlockActivity extends Activity {
         try {
           Thread.sleep(1);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+         //we don't mind
         }
         i++;
       }
@@ -85,15 +87,6 @@ public class DeadlockActivity extends Activity {
     public synchronized void bowBack(Friend bower) {
       System.out.format("%s: %s" + " has bowed back to me!%n", this.name, bower.getName());
     }
-  }
-
-  /**
-   * The main entry point to the application
-   * 
-   * @param args
-   */
-  public static void main(String[] args) {
-    ActivityThread.main(null);
   }
 
 }
