@@ -4,13 +4,15 @@ SECTION default {
 }
 
 SECTION com.example.calculator.SimpleActivity {
-	$button[0-2].onClick()
-	$button<Plus|Minus|More|Div>.onClick()
-	$button[0-2].onClick()
-	$buttonEquals.onClick()	
+	$button0.onClick()
+	$buttonPlus.onClick()
+	$button1.onClick()
+	$buttonEquals.onClick()
+
+	
 
 }
 
 SECTION com.example.calculator.ScientificActivity  {
-	$button<Sin|Cos|Sqrt>.onClick()
+	$buttonSin.onClick()
 }

@@ -1,0 +1,25 @@
+target = com.example.calculator.SimpleActivity
+classpath=${jpf-android}/../Examples/Calculator/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/Calculator/src;
+
+#--- which script to run
+android.script=${config_path}/TestCalculator.es
+android.checklist=false
+#android.checklist = ${config_path}/Checklists.tl
+#android.active_checklists = buttonclick
+
+
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.ArithmeticException
+
+# turn off instruction trace
+report.console.property_violation=error
+
+#listener+=.listener.CoverageAnalyzer
+#coverage.include = com.example.calculator.SimpleActivity
+#coverage.show_methods = true
+
+#log.level=info
+
+#search.class = .search.heuristic.BFSHeuristic

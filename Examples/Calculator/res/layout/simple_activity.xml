@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/LinearLayout1"
+    android:id="@+id/LinearLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="right"
@@ -11,9 +11,10 @@
         android:id="@+id/editValue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
+        android:layout_gravity="center_vertical|right"
+        android:ellipsize="end"
         android:ems="10"
-        android:inputType="numberDecimal"
+        android:gravity="right"
         android:singleLine="true" >
     </EditText>
 
@@ -22,8 +23,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="16sp"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="16sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -43,25 +44,25 @@
                     android:id="@+id/button7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="7" />
+                    android:text="@string/seven" />
 
                 <Button
                     android:id="@+id/button8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8" />
+                    android:text="@string/eight" />
 
                 <Button
                     android:id="@+id/button9"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="9" />
+                    android:text="@string/nine" />
 
                 <Button
                     android:id="@+id/buttonDiv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="/" />
+                    android:text="@string/divide" />
             </LinearLayout>
 
             <LinearLayout
@@ -73,25 +74,25 @@
                     android:id="@+id/button4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="4" />
+                    android:text="@string/four" />
 
                 <Button
                     android:id="@+id/button5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="5" />
+                    android:text="@string/five" />
 
                 <Button
                     android:id="@+id/button6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="6" />
+                    android:text="@string/six" />
 
                 <Button
                     android:id="@+id/buttonMul"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="*" />
+                    android:text="@string/multiply" />
             </LinearLayout>
 
             <LinearLayout
@@ -103,25 +104,25 @@
                     android:id="@+id/button1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1" />
+                    android:text="@string/one" />
 
                 <Button
                     android:id="@+id/button2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2" />
+                    android:text="@string/two" />
 
                 <Button
                     android:id="@+id/button3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3" />
+                    android:text="@string/three" />
 
                 <Button
                     android:id="@+id/buttonMinus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="-" />
+                    android:text="@string/minus" />
             </LinearLayout>
 
             <LinearLayout
@@ -130,28 +131,28 @@
                 android:gravity="center_horizontal" >
 
                 <Button
-                    android:id="@+id/buttonDot"
+                    android:id="@+id/buttonOpenParenthesis"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="." />
+                    android:text="@string/openParenthesis" />
 
                 <Button
                     android:id="@+id/button0"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0" />
+                    android:text="@string/zero" />
 
                 <Button
-                    android:id="@+id/buttonEquals"
+                    android:id="@+id/buttonCloseParenthesis"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="=" />
+                    android:text="@string/closeParenthesis" />
 
                 <Button
                     android:id="@+id/buttonPlus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+" />
+                    android:text="@string/plus" />
             </LinearLayout>
         </LinearLayout>
 
@@ -159,20 +160,53 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="vertical" >
-
+			 <Button
+                android:id="@+id/buttonBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/back" />
+            
             <Button
                 android:id="@+id/buttonClear"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="0dip"
                 android:layout_weight="0.52"
-                android:text="C" />
+                android:text="@string/clear" />
 
             <Button
-                android:id="@+id/buttonMore"
+                android:id="@+id/buttonDot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="->" />
+                android:text="@string/dot" />
         </LinearLayout>
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/buttonEquals"
+            android:layout_width="124dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.03"
+            android:text="@string/equals" />
+
+        <Button
+            android:id="@+id/buttonMore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.03"
+            android:text="@string/scientific" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/editText1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
 
 </LinearLayout>
