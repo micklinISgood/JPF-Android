@@ -1,12 +1,23 @@
 // name : condition => verify_list
 
 [Mappings]
-onClick : "Ljava/lang/Main", "main([Ljava/lang/String;)V", threadAlias;
+toast : android.widget.Toast.show()V, main;
 
 
 [Checklists]
-buttonclick: buttonclick, calculate => updateDisplay;
-buttonclick2: buttonclick, calculate => showError;
+
+buttonEqualsClick: buttonclick, calculate => !showError, updateDisplay;
+buttonEqualsClickError: buttonclick, calculate, showError => toast, clearDisplay;
+
+buttonNextClick: buttonclick, startScientificActivity => saveState, createScientificActivity, setupGUI, restoreState;
+buttonNext2Click: buttonclick, startSimpleActivity => saveState, createSimpleActivity, setupGUI, restoreState;
+
+
+//rotate : 
+
+//home : 
+
+
 
 
   

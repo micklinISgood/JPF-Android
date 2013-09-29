@@ -13,8 +13,7 @@
     <string name="openParenthesis">(</string>
     <string name="clear">C</string>
     <string name="dot">.</string>
-    <string name="scientific">Sci</string>
-    <string name="simple">Sim</string>
+    <string name="next">=></string>
     <string name="one">1</string>
     <string name="two">2</string>
     <string name="three">3</string>

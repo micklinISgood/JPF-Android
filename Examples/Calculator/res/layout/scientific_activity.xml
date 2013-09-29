@@ -177,11 +177,11 @@
             android:text="@string/equals" />
 
         <Button
-            android:id="@+id/buttonMore"
+            android:id="@+id/buttonNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.03"
-            android:text="@string/simple" />
+            android:text="@string/next" />
     </LinearLayout>
 
 </LinearLayout>
