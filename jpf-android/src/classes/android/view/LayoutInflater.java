@@ -2,6 +2,9 @@ package android.view;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+
+import org.xml.sax.SAXException;
 
 import android.content.Context;
 import android.util.Log;
@@ -18,12 +21,21 @@ public class LayoutInflater {
 
   /** The package where Android Widgets are stored */
   private static String WIDGET_PACKAGE = "android.widget";
+  private static int TYPE = 0;
+  private static int ID = 1;
+  private static int NAME = 2;
+  private static int HASHCODE = 3;
+  private static int TEXT = 4;
 
   /** Not sure what context to store here TODO */
   Context c;
-
-  /** The name of the layout file being inflated */
-  String layout;
+  
+  /**
+   * Used to create an unique name and id field for components that are not
+   * named in the R.java file. Window
+   * has count 0.
+   */
+  private static int count = 1;
 
   public LayoutInflater(Context c) {
     this.c = c;
@@ -44,62 +56,95 @@ public class LayoutInflater {
   }
 
   /**
-   * Inflates the layout with ID resID and sets root as the root of the
-   * {@link View} hierarchy.
+   * Inflate a new view hierarchy from the specified xml resource. Throws
+   * {@link InflateException} if there is an error.
    * 
-   * @param resId
+   * @param resource
+   *          ID for an XML layout resource to load (e.g.,
+   *          <code>R.layout.main_page</code>)
    * @param root
-   * @return the {@link View} hierarchy's root
+   *          Optional view to be the parent of the generated hierarchy.
+   * @return The root View of the inflated hierarchy. If root was supplied,
+   *         this is the root View; otherwise it is the root of the inflated
+   *         XML file.
    */
-  public View inflate(int resId, View root) {
-    layout = setup(resId);
-    nextElement();
-    View v = parse();
-    print(v);
-    if (root instanceof ViewGroup)
-      ((ViewGroup) root).addView(v);
-    else
-      root = v;
-    return v;
-
-  }
-
-  private void print(View v) {
-    // System.out.println(v.toString() + '{');
-    if (v instanceof ViewGroup)
-      for (View c : ((ViewGroup) v).getChildren()) {
-        if (c != null)
-          print(c);
-      }
-
-    // System.out.println('}');
-  }
-
-  /**
-   * Recursively parses the layout file and inflates the {@link View} objects to
-   * form a {@link View} hierarchy.
-   * 
-   * @return the root of the hierarchy
-   */
-  public View parse() {
-    View root = null;
+  public View inflate(int resourceID, ViewGroup root) {
     try {
+      String filename = loadLayout(resourceID);
+      int rootNativeHash = getRootHash(resourceID);
 
-      root = inflateView(getType());
-      if (root instanceof ViewGroup) {
-        int numChildren = getNumChildren();
-        View child = null;
-        for (int i = 0; i < numChildren; i++) {
-          nextElement();
-          child = parse();
-          ((ViewGroup) root).addView(child);
-        }
-      }
+      View view = visit(rootNativeHash, resourceID);
+     // print(view, "\t");
+
+      if (root != null && view != null)
+        root.addView(view);
+      else
+        return view;
+
     } catch (Exception e) {
-      Log.e(TAG, "Error parsing layout file");
+      Log.e(TAG, "Error inflating layout file " + e.getMessage());
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
     return root;
+
+  }
+
+  private native int getRootHash(int resourceID);
+
+  private native String loadLayout(int resourceID);
+
+  public View visit(int nodeCode, int resourceID) throws SAXException {
+    if (nodeCode == -1)
+      return null;
+
+    // set the info of the view
+    String[] node = getNodeInfo(nodeCode, resourceID);
+
+    View view = null;
+    try {
+      //inflate the view
+      view = inflateView(node);
+
+      // visit the children of the view
+      int[] childrenIds = getChildren(nodeCode, resourceID);
+      View child = null;
+      if (childrenIds != null) {
+        for (int id : childrenIds) {
+          //visit the child
+          child = visit(id, resourceID);
+          //add child to parent
+          ((ViewGroup) view).addView(child);
+        }
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error inflating view " + e.getMessage());
+      throw new RuntimeException(e);
+    }
+    return view;
+  }
+
+  public native String[] getNodeInfo(int hash, int resourceID);
+
+  public native int[] getChildren(int hash, int resourceID);
+
+  private void print(View v, String space) {
+    if (v == null) {
+      System.out.println("NULL VIEW");
+      return;
+    }
+    System.out.print(v.toString() + "{");
+    if (v instanceof ViewGroup) {
+      for (View c : ((ViewGroup) v).getChildren()) {
+        if (c != null) {
+          System.out.print("\n");
+          System.out.print(space);
+          print(c, space + "\t");
+        }
+      }
+    }
+
+    System.out.print("}");
   }
 
   /**
@@ -116,42 +161,29 @@ public class LayoutInflater {
    * @throws IllegalAccessException
    * @throws InvocationTargetException
    */
-  public View inflateView(String type) throws ClassNotFoundException, NoSuchMethodException,
+  public View inflateView(String[] info) throws ClassNotFoundException, NoSuchMethodException,
       IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 
-    View result = null;
+    View view = null;
     // TODO change widget package if widget define in other file
-    Class<? extends View> cls = (Class<? extends View>) Class.forName(WIDGET_PACKAGE + "." + type);
+
+    //inflate the view
+    Class<? extends View> cls = (Class<? extends View>) Class.forName(WIDGET_PACKAGE + "." + info[TYPE]);
     Class[] intArgsClass = new Class[] { Context.class };
     Object[] intArgs = new Object[] { c };
     Constructor intArgsConstructor = cls.getConstructor(intArgsClass);
-    result = (View) intArgsConstructor.newInstance(intArgs);
+    view = (View) intArgsConstructor.newInstance(intArgs);
 
-    String name = getName();
-    int id = getID(name);
-    result.setName(name);
-    result.setId(id);
-    String text = getText();
-    if (!text.equals(""))
-      ((TextView) result).setText(text);
-    Log.v(TAG, "Inflating " + result.toString());
+    //setGenericProperties
+    view.setName(info[NAME]);
+    view.setId(Integer.parseInt(info[ID]));
+    view.setNativeHashCode(Integer.parseInt(info[HASHCODE]));
+    if (!info[TEXT].equals(""))
+      ((TextView) view).setText(info[TEXT]);
 
-    return result;
+    Log.v(TAG, "Inflated " + view.toString());
+
+    return view;
   }
 
-  native String setup(int resRef);
-
-  native String getType();
-
-  native String getName();
-
-  native String getText();
-
-  native int getID(String name);
-
-  native boolean nextElement();
-
-  native String getParent();
-
-  native int getNumChildren();
 }

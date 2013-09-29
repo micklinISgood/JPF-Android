@@ -36,6 +36,7 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -135,6 +136,8 @@ public final class ActivityThread {
 
   Instrumentation mInstrumentation;
   static Handler sMainThreadHandler; // set once in main()
+
+  Resources mResources;
 
   static final class AppBindData {
     LoadedApk info;
@@ -728,8 +731,7 @@ public final class ActivityThread {
 
   public static PackageManager getPackageManager() {
     if (sPackageManager == null) {
-      // sanity check
-      throw new RuntimeException("sPackageManager must have been set already");
+      sPackageManager = (PackageManager) ServiceManager.getSystemService("package");
     }
     return sPackageManager;
   }
@@ -807,7 +809,7 @@ public final class ActivityThread {
       if (localLOGV)
         Slog.v(TAG, "Loading code package " + aInfo.packageName + " (in "
             + (mBoundApplication != null ? mBoundApplication.processName : null) + ")");
-      packageInfo = new LoadedApk(this, aInfo, this);
+      packageInfo = new LoadedApk(this, aInfo, null, this, ClassLoader.getSystemClassLoader(), false, true);
       mPackage = packageInfo;
     }
     return packageInfo;
@@ -901,13 +903,6 @@ public final class ActivityThread {
 
   public String getProcessName() {
     return mBoundApplication.processName;
-  }
-
-  public ContextImpl getSystemContext() {
-    if (mSystemContext == null) {
-      throw new RuntimeException("Context sould have been set in LoadedApk.");
-    }
-    return mSystemContext;
   }
 
   /* ****************** Broadcast Receiver *************** */
@@ -1159,7 +1154,7 @@ public final class ActivityThread {
     try {
       Application app = r.packageInfo.makeApplication(false, mInstrumentation);
 
-        Log.i(TAG, "Performing launch of " + r);
+      Log.i(TAG, "Performing launch of " + r);
       // if (localLOGV)
       // Slog.v(
       // TAG,
@@ -2193,7 +2188,7 @@ public final class ActivityThread {
 
   public native void init0();
 
-  public static void start(String[] args) {
+  public static void main(String[] args) {
     Log.i(TAG, "Starting up...");
 
     Looper.prepareMainLooper();
@@ -2204,10 +2199,6 @@ public final class ActivityThread {
     // Create new ActivityThread for this pplication
     ActivityThread thread = new ActivityThread();
 
-    // Create all services
-    ServiceManager.createServiceManagers(thread);
-    sPackageManager = (PackageManager) ServiceManager.getSystemService("package");
-
     try {
       thread.attach();
       Looper.loop();
@@ -2215,6 +2206,12 @@ public final class ActivityThread {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public Resources getTopLevelResources(String string, LoadedApk loadedApk) {
+    if (mResources == null)
+      mResources = new Resources();
+    return mResources;
   }
 
 }

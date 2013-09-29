@@ -60,7 +60,7 @@ public class PackageManager {
 
   public PackageManager() {
     init0();
-    Log.i(TAG, "Started PackageManager");
+    Log.i(TAG, "Ready!");
   }
 
   private native void init0();

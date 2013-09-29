@@ -45,7 +45,7 @@ public class Window extends ViewGroup {
    * but we are not using
    * DecorView yet)
    */
-  private ViewGroup mContentParent;
+  private View mContentParent;
 
   /** The Activity's callback for window events */
   private Callback mCallback;

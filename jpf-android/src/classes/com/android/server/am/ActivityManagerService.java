@@ -139,14 +139,13 @@ public class ActivityManagerService {
       return filter.packageName;
     }
 
-  
   };
 
   public ActivityManagerService(PackageInfo pi) {
     init0();
     packageInfo = pi;
     ActivityManagerNative.mgr = new IActivityManager(this);
-    Log.i(TAG, "Started ActivityManager");
+    Log.i(TAG, "Ready!");
 
   }
 
@@ -837,8 +836,8 @@ public class ActivityManagerService {
    * @throws RemoteException
    */
   public synchronized Intent performRegisterReceiver(ApplicationThread caller, String callerPackage,
-                                        IIntentReceiver receiver, IntentFilter filter, String permission)
-      throws RemoteException {
+                                                     IIntentReceiver receiver, IntentFilter filter,
+                                                     String permission) throws RemoteException {
 
     if (DEBUG_BROADCAST)
       Log.i(TAG, "Registering " + receiver + " with IntentFilter [ action=" + filter.getAction(0) + "]");
@@ -942,10 +941,11 @@ public class ActivityManagerService {
    * @return
    * @throws RemoteException
    */
-  public synchronized final int performBroadcastIntent(ApplicationThread caller, Intent intent, String resolvedType,
-                                          IIntentReceiver resultTo, int resultCode, String resultData,
-                                          Bundle map, String requiredPermission, boolean ordered,
-                                          boolean sticky) throws RemoteException {
+  public synchronized final int performBroadcastIntent(Intent intent, String resolvedType,
+                                                       IIntentReceiver resultTo, int resultCode,
+                                                       String resultData, Bundle map,
+                                                       String requiredPermission, boolean ordered,
+                                                       boolean sticky) throws RemoteException {
 
     // make a copy of the intent to ensure that if it is changed we have a copy
     // of the original
@@ -1018,7 +1018,7 @@ public class ActivityManagerService {
       if (i >= N) {
         list.add(new Intent(intent));
       }
-
+      return BROADCAST_SUCCESS;
     }
 
     //////////////////////////////////////////////////////
@@ -1394,8 +1394,8 @@ public class ActivityManagerService {
       throws RemoteException {
   }
 
-  public synchronized void performFinishReceiver(IBinder who, int resultCode, String resultData, Bundle resultExtras,
-                                    boolean resultAbort) {
+  public synchronized void performFinishReceiver(IBinder who, int resultCode, String resultData,
+                                                 Bundle resultExtras, boolean resultAbort) {
     if (DEBUG_BROADCAST)
       Slog.v(TAG, "Finish receiver: " + who);
 

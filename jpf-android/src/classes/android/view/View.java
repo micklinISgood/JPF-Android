@@ -1,6 +1,7 @@
 package android.view;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -37,6 +38,7 @@ public class View {
   /**
    * Mask for use with setFlags indicating bits used for visibility. {@hide
    * 
+   * 
    * }
    */
   static final int VISIBILITY_MASK = 0x0000000C;
@@ -47,6 +49,8 @@ public class View {
    * Used to mark a View that has no ID.
    */
   public static final int NO_ID = -1;
+
+  private int nativeHash;
 
   /** ID defined in R file */
   int mID = -1;
@@ -105,8 +109,11 @@ public class View {
    */
   protected Context mContext;
 
+  private final Resources mResources;
+
   public View(Context context) {
     mContext = context;
+    mResources = context != null ? context.getResources() : null;
   }
 
   /**
@@ -783,6 +790,23 @@ public class View {
       return this;
     }
     return null;
+  }
+
+  public void setNativeHashCode(int hashcode) {
+    this.nativeHash = hashcode;
+  }
+
+  public int getNativeHash() {
+    return this.nativeHash;
+  }
+  
+  /**
+   * Returns the resources associated with this view.
+   *
+   * @return Resources object.
+   */
+  public Resources getResources() {
+      return mResources;
   }
 
 }

@@ -1,5 +1,6 @@
 package android.app;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -8,9 +9,11 @@ import android.content.Context;
 import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.res.CompatibilityInfo;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.Slog;
@@ -65,34 +68,46 @@ public final class LoadedApk {
    * NOTE: This constructor is called with ActivityThread's lock held, so MUST
    * NOT call back out to the activity manager.
    */
-  public LoadedApk(ActivityThread activityThread, ApplicationInfo aInfo, ActivityThread mainThread) {
+  public LoadedApk(ActivityThread activityThread, ApplicationInfo aInfo, CompatibilityInfo compatInfo,
+      ActivityThread mainThread, ClassLoader baseLoader, boolean securityViolation, boolean includeCode) {
     mActivityThread = activityThread;
     mApplicationInfo = aInfo;
     mPackageName = aInfo.packageName;
-    // mAppDir = aInfo.sourceDir;
-    // mResDir = aInfo.uid == Process.myUid() ? aInfo.sourceDir
-    // : aInfo.publicSourceDir;
-    // mSharedLibraries = aInfo.sharedLibraryFiles;
-    // mDataDir = aInfo.dataDir;
-    // mDataDirFile = mDataDir != null ? new File(mDataDir) : null;
-    // mLibDir = aInfo.nativeLibraryDir;
-    mBaseClassLoader = ClassLoader.getSystemClassLoader();
-    // mSecurityViolation = securityViolation;
-    // mIncludeCode = includeCode;
-    // mCompatibilityInfo.set(compatInfo);
-    //
-    // if (mAppDir == null) {
-    if (ActivityThread.mSystemContext == null) {
-      ActivityThread.mSystemContext = ContextImpl.createSystemContext(mainThread);
-      // ActivityThread.mSystemContext.getResources().updateConfiguration(mainThread.getConfiguration(),
-      // mainThread.getDisplayMetricsLocked(compatInfo, false), compatInfo);
-    }
-    mClassLoader = ClassLoader.getSystemClassLoader();
-    mResources = ActivityThread.mSystemContext.getResources();
+    //    mAppDir = aInfo.sourceDir;
+    //    mResDir = aInfo.uid == Process.myUid() ? aInfo.sourceDir : aInfo.publicSourceDir;
+    //    mSharedLibraries = aInfo.sharedLibraryFiles;
+    //    mDataDir = aInfo.dataDir;
+    //    mDataDirFile = mDataDir != null ? new File(mDataDir) : null;
+    //    mLibDir = aInfo.nativeLibraryDir;
+    mBaseClassLoader = baseLoader;
+    //    mSecurityViolation = securityViolation;
+    //    mIncludeCode = includeCode;
+    //    mCompatibilityInfo.set(compatInfo);
+  }
+
+  /** Used by system */
+  public LoadedApk(ActivityThread activityThread, String name, Context systemContext, ApplicationInfo info,
+      CompatibilityInfo compatInfo) {
+    mActivityThread = activityThread;
+    mApplicationInfo = info != null ? info : new ApplicationInfo();
+    mApplicationInfo.packageName = name;
+    mPackageName = name;
+    //    mAppDir = null;
+    //    mResDir = null;
+    //    mSharedLibraries = null;
+    //    mDataDir = null;
+    //    mDataDirFile = null;
+    //    mLibDir = null;
+    mBaseClassLoader = null;
+    //    mSecurityViolation = false;
+    //    mIncludeCode = true;
+    mClassLoader = systemContext.getClassLoader();
+    mResources = systemContext.getResources();
+    //    mCompatibilityInfo.set(compatInfo);
   }
 
   public ClassLoader getClassLoader() {
-    return mClassLoader;
+    return mBaseClassLoader;
   }
 
   public String getPackageName() {
@@ -108,7 +123,10 @@ public final class LoadedApk {
   }
 
   public Resources getResources(ActivityThread mainThread) {
-    return mResources;
+    if (mResources == null) {
+      mResources = mainThread.getTopLevelResources("", this);
+  }
+  return mResources;
   }
 
   public Application makeApplication(boolean forceDefaultAppClass, Instrumentation instrumentation) {

@@ -120,11 +120,11 @@ public class IActivityManager {
     return am.performRegisterReceiver(caller, callerPackage, receiver, filter, permission);
   }
 
-  public final int broadcastIntent(ApplicationThread caller, Intent intent, String resolvedType,
+  public final int broadcastIntent( Intent intent, String resolvedType,
                                    IIntentReceiver resultTo, int resultCode, String resultData, Bundle map,
                                    String requiredPermission, boolean serialized, boolean sticky)
       throws RemoteException {
-    return am.performBroadcastIntent(caller, intent, resolvedType, resultTo, resultCode, resultData, map,
+    return am.performBroadcastIntent( intent, resolvedType, resultTo, resultCode, resultData, map,
         requiredPermission, serialized, sticky);
   }
 

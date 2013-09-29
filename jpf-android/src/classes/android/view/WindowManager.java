@@ -11,7 +11,7 @@ public class WindowManager {
 
   public WindowManager() {
     init0();
-    Log.i(TAG, "Started WindowManager");
+    Log.i(TAG, "Ready!");
 
   }
 

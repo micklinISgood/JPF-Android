@@ -5,6 +5,8 @@ import java.io.InputStream;
 
 import javax.swing.text.AttributeSet;
 
+import android.util.Log;
+
 public class Resources {
   static final String TAG = "Resources";
   Configuration mConfiguration = new Configuration();
@@ -48,11 +50,19 @@ public class Resources {
    */
   public Resources(Configuration config) {
     mConfiguration = config;
+    init0();
+    Log.i(TAG, "Resources parsed successfully.");
   }
+  
+  
 
   public Resources() {
     // only here to be intercepted
+    init0();
+
   }
+  
+  private native void init0();
 
   /**
    * Return a global shared Resources object that provides access to only system
@@ -136,9 +146,7 @@ public class Resources {
    * @return String The string data associated with the resource, stripped of
    *         styled text information.
    */
-  public String getString(int id) throws NotFoundException {
-    return null;
-  }
+  public native String getString(int id);
 
   /**
    * Return the string value associated with a particular resource ID,

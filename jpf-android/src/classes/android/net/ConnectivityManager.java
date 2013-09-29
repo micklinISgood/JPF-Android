@@ -3,7 +3,7 @@ package android.net;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.app.ActivityThread;
+import android.content.Context;
 import android.content.Intent;
 import android.net.NetworkInfo.DetailedState;
 import android.provider.Settings;
@@ -171,30 +171,6 @@ public class ConnectivityManager {
    */
   public static final int TYPE_MOBILE_MMS = 2;
   /**
-   * A SUPL-specific Mobile data connection. This connection may be the
-   * same as {@link #TYPE_MOBILE} but it may be different. This is used
-   * by applications needing to talk to the carrier's Secure User Plane
-   * Location servers for help locating the device. It may coexist with
-   * default data connections.
-   */
-  public static final int TYPE_MOBILE_SUPL = 3;
-  /**
-   * A DUN-specific Mobile data connection. This connection may be the
-   * same as {@link #TYPE_MOBILE} but it may be different. This is used
-   * by applicaitons performing a Dial Up Networking bridge so that
-   * the carrier is aware of DUN traffic. It may coexist with default data
-   * connections.
-   */
-  public static final int TYPE_MOBILE_DUN = 4;
-  /**
-   * A High Priority Mobile data connection. This connection is typically
-   * the same as {@link #TYPE_MOBILE} but the routing setup is different.
-   * Only requesting processes will have access to the Mobile DNS servers
-   * and only IP's explicitly requested via {@link #requestRouteToHost} will
-   * route over this interface if a default route exists.
-   */
-  public static final int TYPE_MOBILE_HIPRI = 5;
-  /**
    * The Default WiMAX data connection. When active, all data traffic
    * will use this connection by default.
    */
@@ -218,21 +194,6 @@ public class ConnectivityManager {
   public static final int TYPE_ETHERNET = 9;
 
   /**
-   * Over the air Adminstration. {@hide}
-   */
-  public static final int TYPE_MOBILE_FOTA = 10;
-
-  /**
-   * IP Multimedia Subsystem {@hide}
-   */
-  public static final int TYPE_MOBILE_IMS = 11;
-
-  /**
-   * Carrier Branded Services {@hide}
-   */
-  public static final int TYPE_MOBILE_CBS = 12;
-
-  /**
    * A Wi-Fi p2p connection. Only requesting processes will have access to
    * the peers connected. {@hide}
    */
@@ -250,7 +211,6 @@ public class ConnectivityManager {
     return networkType >= 0 && networkType <= MAX_NETWORK_TYPE;
   }
 
-  /** {@hide} */
   public static String getNetworkTypeName(int type) {
     switch (type) {
     case TYPE_MOBILE:
@@ -259,12 +219,6 @@ public class ConnectivityManager {
       return "WIFI";
     case TYPE_MOBILE_MMS:
       return "MOBILE_MMS";
-    case TYPE_MOBILE_SUPL:
-      return "MOBILE_SUPL";
-    case TYPE_MOBILE_DUN:
-      return "MOBILE_DUN";
-    case TYPE_MOBILE_HIPRI:
-      return "MOBILE_HIPRI";
     case TYPE_WIMAX:
       return "WIMAX";
     case TYPE_BLUETOOTH:
@@ -273,33 +227,10 @@ public class ConnectivityManager {
       return "DUMMY";
     case TYPE_ETHERNET:
       return "ETHERNET";
-    case TYPE_MOBILE_FOTA:
-      return "MOBILE_FOTA";
-    case TYPE_MOBILE_IMS:
-      return "MOBILE_IMS";
-    case TYPE_MOBILE_CBS:
-      return "MOBILE_CBS";
     case TYPE_WIFI_P2P:
       return "WIFI_P2P";
     default:
       return Integer.toString(type);
-    }
-  }
-
-  /** {@hide} */
-  public static boolean isNetworkTypeMobile(int networkType) {
-    switch (networkType) {
-    case TYPE_MOBILE:
-    case TYPE_MOBILE_MMS:
-    case TYPE_MOBILE_SUPL:
-    case TYPE_MOBILE_DUN:
-    case TYPE_MOBILE_HIPRI:
-    case TYPE_MOBILE_FOTA:
-    case TYPE_MOBILE_IMS:
-    case TYPE_MOBILE_CBS:
-      return true;
-    default:
-      return false;
     }
   }
 
@@ -319,38 +250,47 @@ public class ConnectivityManager {
   }
 
   /**
-   * This is the map described in the Javadoc comment above. The positions
-   * of the elements of the array must correspond to the ordinal values
-   * of <code>DetailedState</code>.
+   * Stores the networkInfo on each of the networks
    */
-  private static final Map<String, Integer> typeMap = new HashMap<String, Integer>();
-
-  static {
-    typeMap.put("MOBILE", TYPE_MOBILE);
-
-    typeMap.put("WIFI", TYPE_WIFI);
-    typeMap.put("MOBILE_MMS", TYPE_MOBILE_MMS);
-    typeMap.put("MOBILE_SUPL", TYPE_MOBILE_SUPL);
-    typeMap.put("MOBILE_DUN", TYPE_MOBILE_DUN);
-    typeMap.put("MOBILE_HIPRI", TYPE_MOBILE_HIPRI);
-    typeMap.put("WIMAX", TYPE_WIMAX);
-    typeMap.put("BLUETOOTH", TYPE_BLUETOOTH);
-    typeMap.put("DUMMY", TYPE_DUMMY);
-    typeMap.put("ETHERNET", TYPE_ETHERNET);
-    typeMap.put("MOBILE_FOTA", TYPE_MOBILE_FOTA);
-    typeMap.put("MOBILE_IMS", TYPE_MOBILE_IMS);
-    typeMap.put("MOBILE_CBS", TYPE_MOBILE_CBS);
-    typeMap.put("WIFI_P2P", TYPE_WIFI_P2P);
-  }
-
   HashMap<Integer, NetworkInfo> infos = new HashMap<Integer, NetworkInfo>();
-  NetworkInfo activeInfo;
-  ActivityThread activityThread;
 
-  public ConnectivityManager(ActivityThread activityThread) {
-    Log.i(TAG, "Started ConnectivityManager");
-    this.activityThread = activityThread;
+  /**
+   * Active network's info
+   */
+  NetworkInfo activeInfo;
+
+  /**
+   * System context used to send broadcasts
+   */
+  Context context;
+
+  /**
+   * Setup default network settings
+   * 
+   * @param context
+   */
+  public ConnectivityManager(Context context) {
+    this.context = context;
+
+    // WIFI is connected by default
+    NetworkInfo netInfo = new NetworkInfo(TYPE_WIFI, 0, "WIFI", "");
+    infos.put(TYPE_WIFI, netInfo);
+    netInfo.setDetailedState(DetailedState.CONNECTED, "(unspecified)", "(none)");
+    netInfo.setIsAvailable(true);
+    activeInfo = netInfo;
+
+    // MOBILE is active but disconnected
+    netInfo = new NetworkInfo(TYPE_MOBILE, TYPE_MOBILE, "MOBILE", "HSDPA");
+    infos.put(TYPE_MOBILE, netInfo);
+    netInfo.setDetailedState(DetailedState.DISCONNECTED, "dataDisabled", "internet");
+    netInfo.setIsAvailable(true);
+
+    init0();
+    Log.i(TAG, "Ready!");
+
   }
+
+  private native void init0();
 
   public NetworkInfo getNetworkInfo(int networkType) {
     NetworkInfo info = infos.get(networkType);
@@ -361,44 +301,86 @@ public class ConnectivityManager {
     return info;
   }
 
-  public void changeNetworkState(String networkType, String state, String reason, String extraInfo) {
-    // lookup the int network type value from the networkType String
-    Integer type = typeMap.get(networkType);
-    System.out.println("Got Type " + networkType + ": " + (type != null));
-
+  public void changeNetworkState(int type, String state, String reason, String extraInfo) {
     // lookup the DetailedState Enum of the state of the network described by the String state argument.
     DetailedState detailedState = stateMap.get(state.toUpperCase());
     System.out.println("Got state " + state + ": " + (detailedState != null));
 
     // check that both was found 
-    if (detailedState != null && type != null) {
+    if (detailedState != null && isNetworkTypeValid(type)) {
 
-      // Get the networkinfo of the network. If one does not exist yet, create one.
+      // Get the networkinfo of the network.
       NetworkInfo netInfo = infos.get(type);
-      if (netInfo == null) {
-        System.out.println("Creating new netInfo");
 
-        netInfo = new NetworkInfo(type, 0, networkType, "");
-        infos.put(type, netInfo);
+      if (type == TYPE_WIFI) {
+        handleWifi(netInfo, detailedState, reason, extraInfo);
+      } else if (type == TYPE_MOBILE) {
+        handleMobile(netInfo, detailedState, reason, extraInfo);
+      } else {
+
       }
-
-      //set the state of the netinfo
-      netInfo.setDetailedState(detailedState, reason, extraInfo);
-
-      if (detailedState == DetailedState.CONNECTED) {
-        activeInfo = netInfo;
-      } else if (detailedState == DetailedState.DISCONNECTED) {
-        if (activeInfo == null) {
-          activeInfo = netInfo;
-        }
-      }
-      this.activityThread.getSystemContext()
-          .sendBroadcast(new Intent("android.net.conn.CONNECTIVITY_CHANGE"));
-
     } else if (detailedState == null) {
       Log.e(TAG, "Could not apply network state. No such network state \"" + state + "\".");
-    } else if (type == null) {
-      Log.e(TAG, "Could not apply network state. No such network type \"" + networkType + "\".");
+    } else {
+      Log.e(TAG, "Could not apply network state. No such network type \"" + type + "\".");
+    }
+
+  }
+
+  public void handleWifi(NetworkInfo netInfo, DetailedState detailedState, String reason, String extraInfo) {
+
+    if (detailedState == DetailedState.CONNECTED || detailedState == DetailedState.CONNECTING) {
+      // if it was not active before
+      if (!netInfo.isConnectedOrConnecting()) {
+        netInfo.setDetailedState(detailedState, reason, extraInfo);
+        // wifi has priority over mobile
+        activeInfo = netInfo;
+
+        NetworkInfo mobileInfo = getNetworkInfo(TYPE_MOBILE);
+        if (mobileInfo.isConnectedOrConnecting()) {
+          mobileInfo.setDetailedState(DetailedState.DISCONNECTED, "dataDisabled", "internet");
+        }
+
+        context.sendBroadcast(new Intent("android.net.conn.CONNECTIVITY_CHANGE"));
+      } else {
+        Log.w("ConnectivityManager", "State change of Wifi ignored - Wifi already connected");
+      }
+
+    } else if (detailedState == DetailedState.DISCONNECTED) {
+      if (netInfo.isConnectedOrConnecting()) {
+        netInfo.setDetailedState(detailedState, reason, extraInfo);
+        NetworkInfo mobileInfo = getNetworkInfo(TYPE_MOBILE);
+        if (mobileInfo.isConnectedOrConnecting()) {
+          activeInfo = mobileInfo;
+        }
+        context.sendBroadcast(new Intent("android.net.conn.CONNECTIVITY_CHANGE"));
+      } else {
+        Log.w("ConnectivityManager", "State change of Wifi ignored - Wifi not connected");
+      }
+    }
+  }
+
+  public void handleMobile(NetworkInfo netInfo, DetailedState detailedState, String reason, String extraInfo) {
+    if (detailedState == DetailedState.CONNECTED || detailedState == DetailedState.CONNECTING) {
+      // if it was not active before
+      if (!netInfo.isConnectedOrConnecting()
+          && (activeInfo.getType() != TYPE_WIFI || !activeInfo.isConnectedOrConnecting())) {
+        //set the state of the netinfo
+        netInfo.setDetailedState(detailedState, reason, extraInfo);
+        // wifi has priority over mobile
+        activeInfo = netInfo;
+        context.sendBroadcast(new Intent("android.net.conn.CONNECTIVITY_CHANGE"));
+      } else {
+        Log.w("ConnectivityManager", "State change of Mobile ignored - Wifi of Mobile currently connected");
+      }
+
+    } else if (detailedState == DetailedState.DISCONNECTED) {
+      if (netInfo.isConnectedOrConnecting()) {
+        netInfo.setDetailedState(detailedState, reason, extraInfo);
+        context.sendBroadcast(new Intent("android.net.conn.CONNECTIVITY_CHANGE"));
+      } else {
+        Log.w("ConnectivityManager", "State change of Mobile ignored - Mobile not connected");
+      }
     }
   }
 

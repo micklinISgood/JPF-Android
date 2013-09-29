@@ -128,7 +128,7 @@ public class ContextImpl extends MockContext {
     mOuterContext = this;
 
     if (DEBUG_CONTEXT)
-      Log.i(TAG, "Creating new Context");
+      Log.i(TAG, "Creating new Context.");
   }
 
   final void init(LoadedApk packageInfo, IBinder activityToken, ActivityThread mainThread) {
@@ -457,7 +457,6 @@ public class ContextImpl extends MockContext {
 
   }
 
-
   @Override
   public void startActivity(Intent intent) {
     if (true) { // TODO (intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) == 0
@@ -488,8 +487,8 @@ public class ContextImpl extends MockContext {
     //TODO String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent, null,
-          null, Activity.RESULT_OK, null, null, null, false, false);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, null, null, Activity.RESULT_OK, null, null,
+          null, false, false);
     } catch (RemoteException e) {
     }
   }
@@ -501,8 +500,8 @@ public class ContextImpl extends MockContext {
       Log.i(TAG, "sendBroadcast(intent=" + intent + " permission=" + receiverPermission + ")");
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent, null,
-          null, Activity.RESULT_OK, null, null, receiverPermission, false, false);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, null, null, Activity.RESULT_OK, null, null,
+          receiverPermission, false, false);
     } catch (RemoteException e) {
     }
   }
@@ -514,8 +513,8 @@ public class ContextImpl extends MockContext {
     //    String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent, null,
-          null, Activity.RESULT_OK, null, null, receiverPermission, true, false);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, null, null, Activity.RESULT_OK, null, null,
+          receiverPermission, true, false);
     } catch (RemoteException e) {
     }
   }
@@ -545,8 +544,8 @@ public class ContextImpl extends MockContext {
     String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent,
-          resolvedType, rd, initialCode, initialData, initialExtras, receiverPermission, true, false);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, resolvedType, rd, initialCode, initialData,
+          initialExtras, receiverPermission, true, false);
     } catch (RemoteException e) {
     }
   }
@@ -555,11 +554,10 @@ public class ContextImpl extends MockContext {
   public void sendStickyBroadcast(Intent intent) {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "sendStickyBroadcast(intent=" + intent + ")");
-    String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent,
-          resolvedType, null, Activity.RESULT_OK, null, null, null, false, true);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, null, null, Activity.RESULT_OK, null, null,
+          null, false, true);
     } catch (RemoteException e) {
     }
   }
@@ -589,8 +587,8 @@ public class ContextImpl extends MockContext {
     String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
     try {
       intent.setAllowFds(false);
-      ActivityManagerNative.getDefault().broadcastIntent(mMainThread.getApplicationThread(), intent,
-          resolvedType, rd, initialCode, initialData, initialExtras, null, true, true);
+      ActivityManagerNative.getDefault().broadcastIntent(intent, resolvedType, rd, initialCode, initialData,
+          initialExtras, null, true, true);
     } catch (RemoteException e) {
     }
   }
@@ -845,7 +843,7 @@ public class ContextImpl extends MockContext {
       throws PackageManager.NameNotFoundException {
     if (DEBUG_CONTEXT)
       Log.i(TAG, "createPackageContext(packageName=" + packageName + " flags=" + flags + ")");
-    
+
     LoadedApk pi = mMainThread.getPackageInfo(packageName);
     if (pi != null) {
       ContextImpl c = new ContextImpl();
@@ -860,11 +858,16 @@ public class ContextImpl extends MockContext {
     throw new PackageManager.NameNotFoundException("Application package " + packageName + " not found");
   }
 
-  public static ContextImpl createSystemContext(ActivityThread mainThread) {
-    if (DEBUG_CONTEXT)
-      Log.i(TAG, "createSystemContext()");
+  /**
+   * Creates a context for the Android OS. The main thead is the main thread of
+   * the system to schedule messages in etc.
+   * 
+   * @param mainThread
+   * @return
+   */
+  public static ContextImpl createSystemContext(ActivityThread thread) {
     ContextImpl context = new ContextImpl();
-    context.init(Resources.getSystem(), mainThread);
+    context.init(Resources.getSystem(), thread);
     return context;
   }
 

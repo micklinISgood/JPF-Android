@@ -1,32 +1,46 @@
 package android.os;
 
+import gov.nasa.jpf.annotation.FilterField;
+
 import java.util.LinkedList;
 
-import android.content.Intent;
+import android.util.Log;
 
 /**
  * Model of Android's MessageQueue. A {@link LinkedList} of messages are kept
  * instead of a pool of messages. Idlehandlers have been removed. Further
- * instead of polling for user in in the next() method when there are no current
+ * instead of polling for user in the next() method when there are no current
  * messages to process, the thread does not block and calls native method
  * processScriptAction to generate new events. The original MessageQueue Queued
  * the messages in a priorityQueue by time. The time is not currently used in
  * this message queue.
+ * 
+ * TODO Add time support - but is this helpful as our Android implementation
+ * does not use this currently
  */
 public class MessageQueue {
+  private final static String TAG = MessageQueue.class.getSimpleName();
+
+  /** Actual MessageQueue */
   private LinkedList<Message> mMessages = new LinkedList<Message>();
-  Message mMessage;
 
   private boolean mQuiting;
   boolean mQuitAllowed = true;
 
-  int count = 0;
+  //the current event being handled
+  private static int eventID = 0;
+  private static int pathID = 0;
 
-  public native boolean processScriptAction(int count);
+  @FilterField
+  private int messageCount = 0;
+
+  public native String processScriptAction(int count);
 
   public MessageQueue() {
     init();
   }
+
+  native void init();
 
   /**
    * Return the next message in the message queue. If the queue is empty new
@@ -37,17 +51,48 @@ public class MessageQueue {
    */
   final protected Message next() {
     Message m = null;
-    do {
+    String check = "";
+
+    for (;;) {
       if ((m = nextNonBlocked()) != null) {
+        // there are messages in the queue process them
+
+        pathID = m.getPathID();
+        eventID = m.getEventID();
+        Log.i(TAG, "******************************* MSG: " + messageCount + " eventID:" + eventID
+            + " pathID:" + pathID);
+        messageCount = messageCount + 1;
         return m;
+
+      } else if (processScriptAction(messageCount) == null) {
+        // there are no actions in the script
+
+        if (!isRunningThreads()) {
+          // there are no more active threads
+
+          Log.i(TAG, "STOPPING with MSG:" + messageCount);
+          return new Message();
+        }
+        // there are still running threads, wait for them to finish. When they
+        // put msg in queue they will notify the main thread, otherwise if they
+        // end, we will notify the main thread.
+        try {
+          Thread.sleep(100);
+//          System.out
+//          .println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Main thread is waiting");
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+//        System.out
+//            .println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Main thread has been awoken");
+      } else {
+        Log.i(TAG, "******************************* MSG: " + messageCount + " eventID:" + eventID
+            + " pathID:" + pathID);
       }
-      count++;
-      System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + count);
-    } while (processScriptAction(count));
-    // this must not happen! an ending message (with target will be
-    // dispatched before this is executed)
-    return new Message();
+    }
   }
+
+  private native boolean isRunningThreads();
 
   /**
    * Without blocking returns the next message in the queue or null if the queue
@@ -64,24 +109,29 @@ public class MessageQueue {
   }
 
   final synchronized boolean enqueueMessage(Message msg) {
-    return mMessages.add(msg);
+    boolean enq = mMessages.add(msg);
+    return enq;
   }
 
   final synchronized boolean enqueueMessage(Message msg, long when) {
-    // TODO when?
     if (when <= 0) {
-      mMessages.push(msg);
+      mMessages.addFirst(msg);
       return true;
     }
+
+    this.notify();
     return mMessages.add(msg);
   }
 
   final void removeMessages(Handler h, Runnable r, Object object) {
     // not necessary to implement
+    throw new UnsupportedOperationException();
   }
 
   final void removeCallbacksAndMessages(Handler h, Object object) {
     // not necessary to implement
+    throw new UnsupportedOperationException();
+
   }
 
   public int getSize() {
@@ -92,10 +142,7 @@ public class MessageQueue {
     return mMessages.get(i);
   }
 
-  native void init();
-
-  public static Intent newIntent() {
-    return new Intent();
+  public void enqueueStop() {
+    enqueueMessage(new Message());
   }
-
 }
