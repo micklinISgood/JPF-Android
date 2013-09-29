@@ -27,143 +27,162 @@ import android.util.Log;
  * status updates and insert them into the database.
  */
 public class UpdaterThread extends Thread {
-  private final String TAG = this.getClass().getSimpleName();
+	private final String TAG = this.getClass().getSimpleName();
 
-  /** Pointer to database interface */
-  private DatabaseInterface database;
-  private Context context;
-  
-  public UpdaterThread(Context context) {
-    super("RSSUpdaterThread");
-    this.context = context;
-    this.database = ((RSSReaderApplication)context.getApplicationContext()).getDatabase();
-  }
-  @Checkpoint("runUpdate")
-  @Override
-  public void run() {
-    Log.d(TAG, "Running updater thread");
+	/** Pointer to database interface */
+	private DatabaseInterface database;
+	private Context context;
 
-    SAXParser parser = null;
-    RSSfeedXMLParser theRssHandler = null;
+	public UpdaterThread(Context context) {
+		super("RSSUpdaterThread");
+		this.context = context;
+		this.database = ((RSSReaderApplication) context.getApplicationContext())
+				.getDatabase();
+	}
 
-    String link = null;
-    URL url = null;
-    InputSource is = null;
-    List<RSSItem> items = null;
-    long lastTimeInserted = 0;
-    RSSFeed feed = null;
+	@Checkpoint(value="getUpdates", threadName = "RSSUpdaterThread")
+	@Override
+	public void run() {
+		Log.i(TAG, "(((((((((((((((((((((((((((((((((((((Running updater thread");
 
-    try {
-      parser = SAXParserFactory.newInstance().newSAXParser();
-      theRssHandler = new RSSfeedXMLParser();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return;
-    }
+		SAXParser parser = null;
+		RSSfeedXMLParser theRssHandler = null;
 
-    // get cursor of feeds
-    Cursor c = database.getRSSFeeds();
+		String link = null;
+		URL url = null;
+		InputSource is = null;
+		List<RSSItem> items = null;
+		long lastTimeInserted = 0;
+		RSSFeed feed = null;
 
-    // loop through rss feeds
-    while (c != null && c.moveToNext()) {
+		try {
+			parser = SAXParserFactory.newInstance().newSAXParser();
+			theRssHandler = new RSSfeedXMLParser();
 
-      try {
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
 
-        //the String url of the rss
-        link = c.getString(c.getColumnIndex("link"));
+		// get cursor of feeds
+		Cursor c = database.getRSSFeeds();
 
-        // setup the url
-        url = new URL(link);
+		// loop through rss feeds
+		while (c != null && c.moveToNext()) {
 
-        // get our data through the url class
-        is = new InputSource(url.openStream());
+			try {
 
-        // perform the synchronous parse   
-        parser.parse(is, theRssHandler);
+				// the String url of the rss
+				link = c.getString(c.getColumnIndex("link"));
 
-        // get the results - should be a fully populated RSSFeed instance, 
-        // or null on error
-        items = theRssHandler.getFeedItems();
-        feed = theRssHandler.getFeed();
-        Log.i(TAG, "Parsed " + items.size() + " items from RSSfeed " + c.getString(c.getColumnIndex("title")));
+				// setup the url
+				url = new URL(link);
 
-        lastTimeInserted = parseRSSFeedUpdates(items, c.getInt(c.getColumnIndex(DatabaseInterface.C_ID)),
-            c.getLong(c.getColumnIndex(DatabaseInterface.C_LAST_TIME_INSERTED)));
+				// get our data through the url class
+				is = new InputSource(url.openStream());
 
-        if (lastTimeInserted > c.getLong(c.getColumnIndex(DatabaseInterface.C_LAST_TIME_INSERTED)))
-          database.updatefeed(c.getInt(c.getColumnIndex(DatabaseInterface.C_ID)), feed.getTitle(),
-              feed.getDescription(), lastTimeInserted);
+				// perform the synchronous parse
+				parser.parse(is, theRssHandler);
 
-      } catch (Exception e) {
-        Log.e(TAG, "Could not retrieve rss items from " + link);
-        e.printStackTrace();
-      }
-    }
-    c.close();
+				// get the results - should be a fully populated RSSFeed
+				// instance,
+				// or null on error
+				items = theRssHandler.getFeedItems();
+				feed = theRssHandler.getFeed();
+				Log.i(TAG, "Parsed " + items.size() + " items from RSSfeed "
+						+ c.getString(c.getColumnIndex("title")));
 
-  }
+				lastTimeInserted = parseRSSFeedUpdates(
+						items,
+						c.getInt(c.getColumnIndex(DatabaseInterface.C_ID)),
+						c.getLong(c
+								.getColumnIndex(DatabaseInterface.C_LAST_TIME_INSERTED)));
 
-  @Checkpoint("parsingFeed")
-  private long parseRSSFeedUpdates(List<RSSItem> updates, int id, long lastTimeInserted) {
-    // count the number of new posts
-    int count = 0;
+				if (lastTimeInserted > c
+						.getLong(c
+								.getColumnIndex(DatabaseInterface.C_LAST_TIME_INSERTED)))
+					database.updatefeed(
+							c.getInt(c.getColumnIndex(DatabaseInterface.C_ID)),
+							feed.getTitle(), feed.getDescription(),
+							lastTimeInserted);
 
-    // Create a Linked list containing the posts to insert in the db
-    LinkedList<ContentValues> posts = new LinkedList<ContentValues>();
-    ContentValues value;
+			} catch (Exception e) {
+				Log.e(TAG, "Could not retrieve rss items from " + link);
+				e.printStackTrace();
+			}
+		}
+		c.close();
+		((RSSFeedUpdaterService) context).finishUpdate();
+	}
 
-    for (RSSItem item : updates) {
-      value = new ContentValues();
-      value.put(DatabaseInterface.C_TITLE, item.getTitle());
-      value.put(DatabaseInterface.C_DESCRIPTION, item.getDescription());
-      value.put(DatabaseInterface.C_LINK, item.getLink());
-      value.put(DatabaseInterface.C_FEED_ID, id);
+	@Checkpoint(value ="parseFeed", threadName="RSSUpdaterThread")
+	private long parseRSSFeedUpdates(List<RSSItem> updates, int id,
+			long lastTimeInserted) {
+		// count the number of new posts
+		int count = 0;
 
-      long createdAt = item.getPubdate();
-      value.put(DatabaseInterface.C_PUB_DATE, createdAt);
+		// Create a Linked list containing the posts to insert in the db
+		LinkedList<ContentValues> posts = new LinkedList<ContentValues>();
+		ContentValues value;
 
-      // count number of new posts
-      if (createdAt > lastTimeInserted) {
-        count++;
-        posts.add(value);
-      }
+		for (RSSItem item : updates) {
+			value = new ContentValues();
+			value.put(DatabaseInterface.C_TITLE, item.getTitle());
+			value.put(DatabaseInterface.C_DESCRIPTION, item.getDescription());
+			value.put(DatabaseInterface.C_LINK, item.getLink());
+			value.put(DatabaseInterface.C_FEED_ID, id);
 
-    }
-    if (posts.size() > 0) {
-      Log.i(TAG, posts.size() + " new items in RSSFeed.");
-      lastTimeInserted = posts.getFirst().getAsLong(DatabaseInterface.C_PUB_DATE);
-      storeStatusUpdates(posts, count); // store the updates in the db
-    }
-    return lastTimeInserted;
-  }
+			long createdAt = item.getPubdate();
+			value.put(DatabaseInterface.C_PUB_DATE, createdAt);
 
-  /**
-   * Inserts the status updates passed as parameter into the database. It is
-   * synchronous to avoid more than one method
-   * trying to insert new updates into the database.
-   * 
-   * Then broadcasts intend RECEIVE_TIMELINE_NOTIFICATIONS if new message was
-   * received.
-   * 
-   * @param posts
-   * @param newposts
-   */
-  @Checkpoint("storeInDB")
-  public synchronized void storeStatusUpdates(List<ContentValues> posts, long newposts) {
-    Log.d(TAG, "Storing status updates");
+			// count number of new posts
+			if (createdAt > lastTimeInserted) {
+				count++;
+				posts.add(value);
+			}
 
-    // insert posts into db
-    for (ContentValues value : posts) {
-      database.insertFeedItems(value);
-    }
+		}
+		if (posts.size() > 0) {
+			Log.i(TAG, posts.size() + " new items in RSSFeed.");
+			lastTimeInserted = posts.getFirst().getAsLong(
+					DatabaseInterface.C_PUB_DATE);
+			storeStatusUpdates(posts, count); // store the updates in the db
+		}
+		return lastTimeInserted;
+	}
 
-    // if new posts were found, notify timeline activity
-    if (newposts > 0) {
-      Log.d(TAG, "We have a new RSSFeed updates");
-      Intent intent = new Intent(RSSFeedUpdaterService.NEW_STATUS_INTENT);
-      intent.putExtra(RSSFeedUpdaterService.NEW_STATUS_EXTRA_COUNT, newposts);
-      context.sendBroadcast(intent, RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
-    }
-    Log.d(TAG, (posts.size() > 0) ? "Got feed updates: " + posts.size() : "No new item updates");
-  }
+	/**
+	 * Inserts the status updates passed as parameter into the database. It is
+	 * synchronous to avoid more than one method trying to insert new updates
+	 * into the database.
+	 * 
+	 * Then broadcasts intend RECEIVE_TIMELINE_NOTIFICATIONS if new message was
+	 * received.
+	 * 
+	 * @param posts
+	 * @param newposts
+	 */
+	@Checkpoint(value="storeInDB", threadName="RSSUpdaterThread")
+	public synchronized void storeStatusUpdates(List<ContentValues> posts,
+			long newposts) {
+		Log.d(TAG, "Storing status updates");
+
+		// insert posts into db
+		for (ContentValues value : posts) {
+			database.insertFeedItems(value);
+		}
+
+		// if new posts were found, notify TimelineActivity
+		if (newposts > 0) {
+			Log.d(TAG, "We have a new RSSFeed updates");
+			Intent intent = new Intent(RSSFeedUpdaterService.NEW_STATUS_INTENT);
+			intent.putExtra(RSSFeedUpdaterService.NEW_STATUS_EXTRA_COUNT,
+					newposts);
+			context.sendBroadcast(intent,
+					RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
+		}
+		Log.d(TAG, (posts.size() > 0) ? "Got feed updates: " + posts.size()
+				: "No new item updates");
+	}
+
 }

@@ -2,8 +2,6 @@ package za.android.vdm.rssreader;
 
 import za.android.vdm.rssreader.provider.DatabaseInterface;
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**

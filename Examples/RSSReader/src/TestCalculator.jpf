@@ -1,6 +1,10 @@
+#--- dependencies on other JPF projects
+@using = jpf-android
+@using = jpf-shell
+
 target= za.android.vdm.rssreader.TimelineActivity
-classpath=/Users/heila/Desktop/RSSReader/bin/classes/;${classpath}
-sourcepath=/Users/heila/Desktop/RSSReader/src;
+classpath=${jpf-android}/../Examples/RSSReader/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/RSSReader/src;
 
 #--- which script to run
 android.script=${config_path}/TestCalculator.es
@@ -17,6 +21,13 @@ listener+=gov.nasa.jpf.android.InjectMainListener;
 #coverage.show_methods = true
 
 
+#--- android setup
+android.script=${config_path}/TestCalculator.es
+android.checklist_enabled = true
+android.checklist = ${config_path}/Checklists.tl
+android.active_checklists = updateInitiated, getFeedUpdates
+
+
 
 # Turn on Logging
 log.level=info
@@ -25,6 +36,7 @@ log.level=info
 #search.class = .search.heuristic.BFSHeuristic
 #listener+=gov.nasa.jpf.listener.PreciseRaceDetector;
 
-# Race detection
-report.console.property_violation=error
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
 

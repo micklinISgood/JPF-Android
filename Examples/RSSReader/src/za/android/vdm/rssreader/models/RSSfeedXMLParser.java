@@ -1,17 +1,11 @@
 package za.android.vdm.rssreader.models;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import android.util.Log;
 
 // import android.util.Log;
 
@@ -98,15 +92,15 @@ public class RSSfeedXMLParser extends DefaultHandler {
    * @return
    */
   public long convertDateToLong(String dateString) {
-    SimpleDateFormat formatter;
-    Date date = null;
-    try {
-      formatter = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z");
-      date = (Date) formatter.parse(dateString);
-    } catch (ParseException e) {
-      Log.e(TAG, "Error parsing date");
-    }
-    return date.getTime();
+   // SimpleDateFormat formatter;
+   // Date date = null;
+//    try {
+//      formatter = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z");
+//      date = (Date) formatter.parse(dateString);
+//    } catch (ParseException e) {
+//      Log.e(TAG, "Error parsing date");
+//    }
+    return 1;//date.getTime();
   }
 
   /*

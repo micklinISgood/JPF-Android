@@ -38,7 +38,7 @@ public class TimelineAdapter extends SimpleCursorAdapter {
     // Manually bind created at timestamp to its view
     long timestamp = cursor.getLong(cursor.getColumnIndex(DatabaseInterface.C_PUB_DATE));
     TextView textCreatedAt = (TextView) row.findViewById(R.id.textPubDate);
-    textCreatedAt.setText(DateUtils.getRelativeTimeSpanString(timestamp));
+   // textCreatedAt.setText(DateUtils.getRelativeTimeSpanString(timestamp));
 
     // Manually set feedname
     //		String feed = cursor.getString(cursor
