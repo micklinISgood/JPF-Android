@@ -34,6 +34,7 @@ public class ScriptParser {
         numElementsParsed++;
         outputSequence.append("#" + numElementsParsed + "[" + s +"] " );
       }
+      System.out.println("#" + numElementsParsed + " " + s);
     } while (s != null && s.length() > 0);
     
     return outputSequence.toString();
