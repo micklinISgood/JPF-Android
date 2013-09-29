@@ -4,6 +4,7 @@ import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtensionAdapter;
 import gov.nasa.jpf.util.script.AndroidScriptEnvironment;
 import gov.nasa.jpf.util.script.ScriptState;
+import gov.nasa.jpf.util.script.UIAction;
 
 public class ResultPublishListener extends PublisherExtensionAdapter {
 

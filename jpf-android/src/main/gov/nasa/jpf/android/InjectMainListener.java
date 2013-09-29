@@ -1,4 +1,4 @@
-package gov.nasa.jpf.android;
+ package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
@@ -36,7 +36,7 @@ public class InjectMainListener extends ListenerAdapter {
       MethodInfo[] methods = last.getDeclaredMethodInfos();
       boolean found = false;
       for (MethodInfo method : methods) {
-        if (method.getFullName().contains("main([Ljava/lang/String;)V")) {
+        if (method.getFullName().contains("Main.main([Ljava/lang/String;)V")) {
           found = true;
 
         }
@@ -48,7 +48,7 @@ public class InjectMainListener extends ListenerAdapter {
         logger.info("main() method injected into class: " + last.getName());
 
       }else{
-        logger.info("main() method foud in class: " + last.getName());
+        logger.info("main() method found in class: " + last.getName());
 
       }
 
@@ -66,7 +66,7 @@ public class InjectMainListener extends ListenerAdapter {
         | Modifier.STATIC);
     CodeBuilder cb = m.createCodeBuilder();
     cb.aconst_null();
-    cb.invokestatic("android/app/ActivityThread", "start", "([Ljava/lang/String;)V");
+    cb.invokestatic("android/os/ServiceManager", "main", "([Ljava/lang/String;)V");
     cb.return_();
     cb.installCode();
     return m;
