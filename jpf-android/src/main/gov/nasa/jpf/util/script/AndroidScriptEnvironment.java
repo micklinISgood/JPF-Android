@@ -2,7 +2,6 @@ package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.android.ResultPublishListener;
-import gov.nasa.jpf.android.UIAction;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.util.StateExtensionClient;
@@ -97,14 +96,18 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
    * this is our main purpose in life, but there is some policy in here
    * 
    * 
-   * @param id
-   *          "processScriptAction"
    * @param activeStates
    *          - list of section names to return events from
    * @param isReEntered
    * @return
    */
-  public UIAction getNext(String id, String activeState, MJIEnv vm) {
+  public UIAction getNext(int eventid, String activeState, MJIEnv vm) {
+    
+    // or get next battery action batteryAction
+
+    // or get next network action
+    
+    
     ScriptState state = getCur();
     if (state != null) {
       setCur(state.advance(activeState, getSection(activeState)));
@@ -126,6 +129,8 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
         }
 
       }
+      if (event != null)
+        event.setID(eventid);
       getCur().getActions().push(event);
       return event;
     }
@@ -151,6 +156,18 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
 
   public ScriptState getCur() {
     return cur;
+  }
+
+  public String getActions() {
+    ScriptState ss = getCur();
+    String out = "";
+    for (UIAction s : ss.getActions()) {
+      try {
+        out += "\n\t" + s.id + " " + s.toString();
+      } catch (Exception e) {
+      }
+    }
+    return out;
   }
 
   public void setCur(ScriptState cur) {

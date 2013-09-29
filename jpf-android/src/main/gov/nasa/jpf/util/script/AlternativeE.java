@@ -63,8 +63,9 @@ public class AlternativeE extends Alternative {
     final int prime = 31;
     int result = 1;
     result = prime * result + line;
-    result = prime * result + ((nextSibling == null) ? 0 : nextSibling.hashCode());
-    result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+    result = prime * result +  this.toString().hashCode();
+    result = prime * result + ((nextSibling == null) ? 0 : nextSibling.toString().hashCode());
+    result = prime * result + ((parent == null) ? 0 : parent.toString().hashCode());
     return result;
   }
 

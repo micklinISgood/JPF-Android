@@ -3,9 +3,7 @@ package gov.nasa.jpf.util.script;
 public class SectionState implements Cloneable {
   String sectionName; // the name of the section
   Section section; // pointer to the section object
-  SequenceInterpreter intrp; // keeps track of the current position of the
-
-  // section events
+  SequenceInterpreter intrp; // keeps track of the current position of the section events
 
   public SectionState(String sectionName, Section section, SequenceInterpreter intrp) {
     this.sectionName = sectionName;

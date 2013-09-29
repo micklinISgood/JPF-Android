@@ -1,11 +1,11 @@
 //
-// Copyright  (C) 2008 United States Government as represented by the
+// Copyright (C) 2008 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-//  (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-//  (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -27,16 +27,18 @@ import gov.nasa.jpf.util.JPFLogger;
 import java.util.List;
 
 /**
- * Author: Heila van der Merwe
+ * @author Heila van der Merwe
+ * Created date: August 2012
+ * 
+ * Updates:
+ * 3 July 2013 - Fix BFS bug
  * 
  */
 public class AndroidSequenceIntpr extends SequenceInterpreter {
   private static final JPFLogger logger = JPF.getLogger("AndroidSequenceIntpr");
   boolean DEBUG = false;
-  
+
   private MJIEnv env = null;
-
-
 
   public AndroidSequenceIntpr(ScriptElementContainer seq) {
     super(seq);
@@ -105,46 +107,33 @@ public class AndroidSequenceIntpr extends SequenceInterpreter {
     ThreadInfo ti = env.getThreadInfo();
     SystemState ss = env.getSystemState();
 
-    // top half (first execution)
-    if (!ti.isFirstStepInsn()) {
+    // get the choice generator for this script element
+    AlternativeChoiceGenerator cg = ss.getCurrentChoiceGenerator(String.valueOf(e.hashCode()),
+        AlternativeChoiceGenerator.class);
 
+    // top half (first execution of this element)
+    if (cg == null) {
       // create new ChoiceGenerator
-      AlternativeChoiceGenerator cg = createCG(e);
-      ss.setForced(true);
+      cg = createCG(e);
+      ss.setForced(true); // force new state
       ss.setNextChoiceGenerator(cg);
 
-      // reschedule this ScriptElement so that we try this again with the
-      // relevant group
+      // reschedule this ScriptElement so that we try this again 
       top.rescheduleCurrent();
       env.repeatInvocation(); // re-executes the current instruction to make
                               // sure that we set the first choice
                               // of the cg now.
       return null;
-
-      // bottom-half (re -execution)
     } else {
-
-      // get the choice generator for this script element
-      AlternativeChoiceGenerator cg = ss.getCurrentChoiceGenerator(String.valueOf(e.hashCode()),
-          AlternativeChoiceGenerator.class);
-
-      if (cg == null) {
-        pop();
-        top.rescheduleCurrent();
-        env.repeatInvocation();
-        return null;
-
-      } else {
+      // bottom-half (re -execution)
         int myChoice = cg.getNextChoice();
-        push(e.iterator(myChoice));
+        push(e.iterator(myChoice)); // push the iterator of the next GROUP in the ANY
         env.repeatInvocation();
         return null;
-      }
     }
   }
 
   private AlternativeChoiceGenerator createCG(AlternativeE e) {
-    SystemState ss = env.getSystemState();
     // push new ChoiceGenerator
     return new AlternativeChoiceGenerator((String.valueOf(e.hashCode())), e.getNumberOfChildren());
   }

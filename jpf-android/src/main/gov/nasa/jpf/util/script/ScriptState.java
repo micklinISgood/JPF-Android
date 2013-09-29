@@ -1,7 +1,5 @@
 package gov.nasa.jpf.util.script;
 
-import gov.nasa.jpf.android.UIAction;
-
 import java.util.ArrayList;
 import java.util.Stack;
 
