@@ -373,14 +373,15 @@ to attach the state information to the \texttt{Intent} that is passed to the nex
 \texttt{NullPointerException} is thrown when it tries to read the state information from the \texttt{Intent}. To detect these errors we will use the test script in Figure~\ref{fig:calc}. The scripting environment interprets the script into the
 following input sequences:
 \begin{align*}
-\text{<sequence>} &= \text{<simple\_seq>}\,|\,\text{<complex\_seq>}\\
-\text{<simple\_seq>} &= \text{number},\,\text{simple\_op},\,\text{number},\,\text{equals}\\
-\text{<complex\_seq>} &= \text{number},\,\text{complex\_op}\\
-\text{simple\_op} &= \text{``+''}\,|\,\text{``-''}\,|\,\text{``}\times\text{''}\,|\,\text{``}\div\text{''}\\
-\text{complex\_op} &= \text{``sin''}\,|\,\text{``cos''}\,|\,\text{``tan''}\\
-\text{equals} &= \text{``=''} \\
-\text{number} &= \text{``0''\,|\,``1''\,|\,``2''\,|\,``3''\,|\,``4''\,|\,``5''\,|\,``6''\,|\,``7''\,|\,``8''\,|\,``9''}
+	\text{<sequence>} &= \text{<simple\_seq>}\,|\,\text{<complex\_seq>}\\
+	\text{<simple\_seq>} &= \text{number},\,\text{simple\_op},\,\text{number},\,\text{equals}\\
+	\text{<complex\_seq>} &= \text{number},\,\text{complex\_op}\\
+	\text{simple\_op} &= \text{``+''}\,|\,\text{``-''}\,|\,\text{``}\times\text{''}\,|\,\text{``}\div\text{''}\\
+	\text{complex\_op} &= \text{``sin''}\,|\,\text{``cos''}\,|\,\text{``tan''}\\
+	\text{equals} &= \text{``=''} \\
+	\text{number} &= \text{``0''\,|\,``1''\,|\,``2''\,|\,``3''\,|\,``4''\,|\,``5''\,|\,``6''\,|\,``7''\,|\,``8''\,|\,``9''}
 \end{align*}
+
 Each of the ten number buttons are pressed followed by a simple operation and another number or a complex operation. Although it is possible
 to input numbers consisting of multiple digits including floating point numbers, for illustration purposes this was left out of the input script.
 JPF is automatically configured to detect thrown exceptions and to stop execution. When JPF-ANDROID was run on the application it firstly

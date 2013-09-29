@@ -1,9 +1,20 @@
+#--- dependencies on other JPF projects
+@using = jpf-android
+@using = jpf-shell
+
+android.checklist_enabled = true
+android.checklist = ${config_path}/Checklist.cl
+android.active_checklists =
+
+
+
 target = com.example.jpf.DeadlockActivity
 classpath=${jpf-android}/../Examples/DeadlockExample/bin/classes/;${jpf-android}/build/classes
 sourcepath=${jpf-android}/../Examples/DeadlockExample/src;
 
 # which script to run
 android.script=${config_path}/DeadlockScript.es
+android.checklists_active=false
 
 # the modeled data acquisition thread needs it
 cg.enumerate_random=true

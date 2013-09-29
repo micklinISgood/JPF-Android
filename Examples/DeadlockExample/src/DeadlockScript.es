@@ -5,6 +5,6 @@ SECTION default {
 
 SECTION com.example.jpf.DeadlockActivity {
 	$button1.onClick()
-	$button2.onClick()
+	//$button2.onClick()
 }
 

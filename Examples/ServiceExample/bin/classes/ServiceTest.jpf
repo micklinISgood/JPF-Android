@@ -1,6 +1,6 @@
 target = com.example.MainActivity
-classpath=/Users/heila/workspace/ServiceExample/bin/classes/;${classpath}
-sourcepath=/Users/heila/workspace/ServiceExample/src;
+classpath=${jpf-android}/../Examples/ServiceExample/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/ServiceExample/src;
 
 #--- which script to run
 android.script=${config_path}/ServiceScript.es
@@ -16,5 +16,5 @@ vm.halt_on_throw=java.lang.NullPointerException
 report.console.property_violation=error,snapshot
 
 
-# Windows seem to have a different default
+listener=gov.nasa.jpf.android.InjectMainListener
 log.level=info

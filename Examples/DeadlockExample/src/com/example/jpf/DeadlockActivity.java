@@ -58,7 +58,7 @@ public class DeadlockActivity extends Activity {
         friend[0].bow(friend[1]);
         System.out.println(friend[0].getName() + " i = " + i);
         try {
-          Thread.sleep(1);
+          Thread.sleep(1000);
         } catch (InterruptedException e) {
          //we don't mind
         }
