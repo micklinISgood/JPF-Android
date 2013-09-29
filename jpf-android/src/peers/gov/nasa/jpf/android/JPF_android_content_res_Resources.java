@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -39,6 +40,12 @@ import org.w3c.dom.NodeList;
 
 public class JPF_android_content_res_Resources {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
+
+  private static class ResourceInfo {
+    int id;
+    String name;
+    String value;
+  }
 
   private static String LAYOUT_HEADER = "public static final class layout {";
   private static String STRING_HEADER = "public static final class string {";
@@ -54,36 +61,36 @@ public class JPF_android_content_res_Resources {
 
   static DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-  private static HashMap<Integer, String> stringsMap = new HashMap<Integer, String>();
+  private static HashMap<Integer, ResourceInfo> stringsMap = new HashMap<Integer, ResourceInfo>();
 
   private static HashMap<Integer, String> drawableMap = new HashMap<Integer, String>();
 
   private static HashMap<Integer, String> menuMap = new HashMap<Integer, String>();
-  private static String rPath = "";
+  private static String rPath = null;
 
-//  /**
-//   * Sets up the environment for the {@link Window} class. Creates componentMap
-//   * and layoutMap.
-//   * 
-//   * @param env
-//   * @param cref
-//   */
-//  public static void $init____V(MJIEnv env, int robj) {
-//
-//    // Lookup the path to the R.java file
-//    rPath = AndroidFileUtil
-//        .getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.', '/'));
-//    if (rPath == null || rPath.length() <= 0) {
-//      log.severe("Could not find R.java file.");
-//      return;
-//    }
-//
-//    try {
-//      parseRFile(new FileInputStream(rPath));
-//    } catch (FileNotFoundException e) {
-//      log.severe("R.java file not found.");
-//    }
-//  }
+  /**
+   * Sets up the environment for the {@link Window} class. Creates componentMap
+   * and layoutMap.
+   * 
+   * @param env
+   * @param cref
+   */
+  public static void init0(MJIEnv env, int robj) {
+
+    // Lookup the path to the R.java file
+    if (rPath == null) {
+      // Lookup the path to the R.java file
+      rPath = AndroidPathManager.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.',
+          '/'));
+      if (rPath == null || rPath.length() <= 0) {
+        log.severe("Could not find R.java file.");
+        return;
+      }
+
+      parseRFile(rPath);
+    }
+
+  }
 
   /**
    * Parse the R.java file and builds the componentMap and layoutMap.
@@ -92,32 +99,61 @@ public class JPF_android_content_res_Resources {
    * @param rPath
    *          the path to the R.java file on disk
    */
-  private static void parseRFile(InputStream is) {
+  public static void parseRFile(String rPath) {
+
+    Scanner scanner = null;
     String nextLine;
-    Scanner scanner = new Scanner(is);
-    while (scanner != null && scanner.hasNextLine()) {
-      nextLine = scanner.nextLine().trim();
-      if (nextLine.equals(STRING_HEADER)) {
-        parseStrings(scanner);
+    try {
+      scanner = new Scanner(new FileInputStream(rPath));
+      while (scanner != null && scanner.hasNextLine()) {
+        nextLine = scanner.nextLine().trim();
+        if (nextLine.equals(STRING_HEADER)) {
+          parseStrings(scanner);
+        }
       }
+    } catch (FileNotFoundException e) {
+      log.severe("R.java file not found.");
+    } finally {
+      scanner.close();
     }
+
   }
 
   private static void parseStrings(Scanner scanner) {
     String next = "";
     String[] list;
-    ViewEntry c;
-    while (scanner.hasNextLine()) {
-      next = scanner.nextLine().trim();
-      if (next.equals(FOOTER))
-        break;
-      list = getFields(next);
-      c = new ViewEntry();
-      c.setId(Integer.parseInt(list[1].substring(2), 16));
-      c.setName(list[0]);
-      stringsMap.put(c.getId(), c.getName());
-    }
+    ResourceInfo c;
+    try {
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      Document doc = db.parse(AndroidPathManager.getStringsPath());
+      NodeList nodeList = doc.getElementsByTagName("string");
 
+      while (scanner.hasNextLine()) {
+        next = scanner.nextLine().trim();
+        if (next.equals(FOOTER))
+          break;
+        list = getFields(next);
+        c = new ResourceInfo();
+        c.id = Integer.parseInt(list[1].substring(2), 16);
+        c.name = list[0];
+        c.value = getNodeValueByName(nodeList, c.name);
+        stringsMap.put(c.id, c);
+      }
+    } catch (Exception e) {
+      log.severe("string.xml file could not be parsed.");
+    }    
+  }
+
+  private static String getNodeValueByName(NodeList list, String name) {
+    Node node = null;
+
+    for (int i = 0; i < list.getLength(); i++) {
+      node = list.item(i);
+      if (node.getAttributes().getNamedItem("name").toString().equals("name=\"" + name + "\"")) {
+        return node.getTextContent();
+      }
+    }
+    return null;
   }
 
   /**
@@ -135,30 +171,6 @@ public class JPF_android_content_res_Resources {
     log.fine("Parsed from R.java NAME: " + list[0] + " ID: " + list[1]);
     return list;
 
-  }
-
-  private String getNodeValue(InputStream is, String type, String name) {
-    try {
-      DocumentBuilder db = dbf.newDocumentBuilder();
-      Document doc = db.parse(is);
-      Element e = doc.getDocumentElement();
-      NodeList nodeList = doc.getElementsByTagName(type);
-
-      for (int i = 0; i < nodeList.getLength(); i++) {
-        Node node = nodeList.item(i);
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-          Element element = (Element) node;
-          NodeList nodelist = element.getElementsByTagName("firstname");
-          Element element1 = (Element) nodelist.item(0);
-          NodeList fstNm = element1.getChildNodes();
-          System.out.print("First Name : " + (fstNm.item(0)).getNodeValue());
-        }
-      }
-
-    } catch (Exception e) {
-
-    }
-    return new String();
   }
 
   // /////////////////
@@ -193,20 +205,17 @@ public class JPF_android_content_res_Resources {
    * @param id
    * @return "" if no such string entry exists
    */
-  public int getString(MJIEnv env, int objref, int id) {
-    // TODO add config
-    String filename = "";
-    if (rPath.endsWith("/"))
-      filename = rPath + "res/values/strings.xml";
-    else
-      filename = rPath + "/res/values/strings.xml";
-
-    String s = "";
-    try {
-      s = getNodeValue(new FileInputStream(filename), "String", stringsMap.get(id));
-    } catch (FileNotFoundException e) {
+  public static int getString__I__Ljava_lang_String_2(MJIEnv env, int objref, int id) {
+    return env.newString(stringsMap.get(id).value);
+  }
+  
+  public static String getString(String name){
+    for(Entry<Integer, ResourceInfo> info : stringsMap.entrySet()){
+      if(info.getValue().name.equals(name)){
+        return info.getValue().value;
+      }
     }
-    return env.newString(s);
+    return null;
   }
 
   /*

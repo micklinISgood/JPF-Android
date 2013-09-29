@@ -25,6 +25,7 @@ import gov.nasa.jpf.jvm.ElementInfo;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.MethodInfo;
 import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.util.script.UIAction;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -183,16 +184,16 @@ public class JPF_com_android_server_am_ActivityManagerService {
     if (intent != null) {
 
       if (intent.getAction().equals("android.net.conn.CONNECTION_CHANGE")) {
-        // send connection change events to the ConnectionManager
-
-        String methodName = "changeNetworkState(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V";
-
-        int[] args = { env.newString((String) intent.getExtra("type")),
-            env.newString((String) intent.getExtra("state")),
-            env.newString((String) intent.getExtra("reason")),
-            env.newString((String) intent.getExtra("info")) };
-
-        callMethod(env, JPF_android_os_ServiceManager.connectionManagerRef, methodName, args);
+//        // send connection change events to the ConnectionManager
+//
+//      String methodName = "changeNetworkState(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V";
+//
+//      int[] args = { env.newString((String) intent.getExtra("type")),
+//          env.newString((String) intent.getExtra("state")),
+//          env.newString((String) intent.getExtra("reason")),
+//          env.newString((String) intent.getExtra("info")) };
+//
+//      callMethod(env, JPF_android_os_ServiceManager.get.connectionManagerRef, methodName, args);
 
       } else if (intent.getAction().equals("android.net.conn.URL_INPUT_STREAM")) {
         // send connection change events to the ConnectionManager
@@ -424,7 +425,7 @@ public class JPF_com_android_server_am_ActivityManagerService {
       return value;
     }
 
-    public void addCategories(String mCategory) {
+    public void addCategorie(String mCategory) {
       if (this.mCategories == null) {
         this.mCategories = new HashSet<String>();
       }

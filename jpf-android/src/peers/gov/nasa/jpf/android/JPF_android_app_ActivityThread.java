@@ -45,6 +45,5 @@ public class JPF_android_app_ActivityThread {
    */
   public static void init0(MJIEnv env, int objectRef) {
     activityThreadRef = objectRef;
-    AndroidFileUtil.init(env.getConfig());
   }
 }

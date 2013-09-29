@@ -20,11 +20,17 @@ package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.ListenerAdapter;
 import gov.nasa.jpf.android.checkpoint.ChecklistManager;
+import gov.nasa.jpf.android.checkpoint.ParseException;
+import gov.nasa.jpf.jvm.DirectCallStackFrame;
+import gov.nasa.jpf.jvm.JVM;
 import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.jvm.MethodInfo;
 import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.jvm.ThreadList;
 import gov.nasa.jpf.util.script.AndroidScriptEnvironment;
-import gov.nasa.jpf.util.script.ESParserE;
+import gov.nasa.jpf.util.script.UIAction;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
@@ -38,43 +44,87 @@ import java.util.logging.Logger;
 public class JPF_android_os_MessageQueue {
   private static final String TAG = "JPF_MessageQueue";
   static Logger log = JPF.getLogger(TAG);
-  static final String UIACTION = "[UIAction]";
 
-  static AndroidScriptEnvironment scriptEnv;
+  private static final String UIACTION = "[UIAction]";
 
-  static ChecklistManager checkpointManager;
+  /** Counts the total number of script actions that has been returned */
+  private static int actionCount = 0;
+
+  private static AndroidScriptEnvironment scriptEnv;
+
+  private static int msqRef;
 
   /**
    * Called from the MesaageQueue Constructor, i.e. before each application run.
-   * It opens and parses the input script.
+   * It opens and parses the input script and parses and setups the Checklists
+   * environment.
    */
   public static void init____V(MJIEnv env, int objref) {
-    Config conf = env.getConfig();
+    //TODO make SURE this the only done for the main thread
+    msqRef = objref;
+    JPF jpf = env.getJPF();
+    try {
+      setupScriptEnv(jpf);
+      setupChecklistEnv(jpf);
+
+      jpf.addVMListener(new ThreadTerminationListener());
+
+    } catch (Exception e) {
+      log.severe(TAG + ": " + e.getMessage());
+    }
+  }
+
+  /**
+   * This method is responsible for setting up the scripting environment
+   * 
+   * @param jpf
+   *          used to register the StateExtension and Publisher listeners.
+   * @throws Exception
+   */
+  private static void setupScriptEnv(JPF jpf) throws Exception {
+    Config conf = jpf.getConfig();
 
     String scriptName = conf.getString("android.script");
+    if (scriptName == null) {
+      throw new Exception("No \"android.script\" property in JPF property file.");
+    }
     log.info(TAG + ": Running script " + scriptName);
 
-    if (scriptName == null) {
-      scriptName = conf.getString("android.script");
-
-      if (scriptName == null) {
-        log.severe(TAG + ": No \"android.script\" property in JPF property file.");
-        return;
-      }
-    }
     try {
       scriptEnv = new AndroidScriptEnvironment(scriptName);
-      scriptEnv.registerListener(env.getJPF());
+      scriptEnv.registerListener(jpf);
       scriptEnv.parseScript();
-
-      checkpointManager = new ChecklistManager();
-      checkpointManager.registerListener(env.getJPF());
-
     } catch (FileNotFoundException fnfx) {
-      log.severe(TAG + ": Script file (.es) not found: " + scriptName);
-    } catch (ESParserE.Exception e) {
-      log.severe(TAG + ": Error: " + e.toString());
+      throw new Exception("Script file (.es) not found: " + scriptName);
     }
+
+  }
+
+  /**
+   * 
+   * @param jpf
+   * @throws ParseException
+   */
+  private static void setupChecklistEnv(JPF jpf) throws ParseException {
+    Config config = jpf.getConfig();
+    String checkProperty = config.getProperty("android.checklist_enabled");
+
+    if (checkProperty.equals("true")) {
+      log.info(TAG + ": " + "Checklist verification active.");
+
+      // get checklist definition filename
+      String filename = config.getProperty("android.checklist");
+      // get active checklists to check
+      String[] active = config.getStringArray("android.active_checklists");
+
+      ChecklistManager checklistManager = new ChecklistManager(filename, active);
+      checklistManager.createReporter(scriptEnv);
+      checklistManager.registerListener(jpf);
+      JPF_android_os_Handler.checkpointManager = checklistManager;
+    } else {
+      log.info(TAG + ": " + "Checklist verification inactive.");
+    }
+
   }
 
   /**
@@ -82,29 +132,51 @@ public class JPF_android_os_MessageQueue {
    * empty. If we return false, it means there is nothing else to check and we
    * are done
    */
-  public static boolean processScriptAction(MJIEnv env, int objref, int count) {
+  public static int processScriptAction(MJIEnv env, int objref, int count) {
     ThreadInfo ti = env.getThreadInfo();
 
-    if (scriptEnv == null) {
-      log.warning("ScriptEnvironment not created, terminating");
-      return false;
-    }
+    if (!ti.hasReturnedFromDirectCall(UIACTION)) {
+      UIAction action = getNextAction(env, actionCount);
 
-    if (!ti.hasReturnedFromDirectCall(UIACTION)) { // before direct call to
-      String currentWindow = JPF_android_view_WindowManager.getCurrentWindow(env);
-      
-      UIAction action = scriptEnv.getNext("processScriptAction", currentWindow, env);
+      // execute this action
       if (action != null) {
-        System.out.println("******************************* " + count);
-        log.info(TAG + ": Processing action \"" + action.action + "\" on \"" + action.target
-            + "\" on Window \"" + currentWindow + "\"");
-        runAction(env, action, currentWindow);
-        return true;
-      }
 
-      return false;
+        // increase next action count
+        actionCount++;
+
+        //set this event as the new event
+        env.setStaticIntField("android.os.MessageQueue", "eventID", actionCount);
+        env.setStaticIntField("android.os.MessageQueue", "pathID", 0);
+
+        log.info(TAG + ": ******************************* MSQ: " + count + "  eventID:" + actionCount
+            + " pathID:" + 0);
+        // execute this action (better to add msg to queue but might be difficult in terms of runnables)     
+        executeAction(env, action);
+        return env.newString(action.toString());
+      }
+      // there was no next action to return
+      return MJIEnv.NULL;
+
     }
-    return true;
+    // does not matter what we return this is only executed when if UIAction direct call has returned.
+    return env.newString("");
+  }
+
+  private static UIAction getNextAction(MJIEnv env, int actionCount) {
+
+    //get current window
+    String window = JPF_android_view_WindowManager.getCurrentWindow(env);
+
+    //sanitycheck
+    if (scriptEnv == null) {
+      log.severe(TAG + ": ScriptEnvironment not created, terminating");
+      return null;
+    }
+
+    // get next script actions
+    UIAction action = scriptEnv.getNext(actionCount + 1, window, env);
+
+    return action;
   }
 
   /**
@@ -113,22 +185,72 @@ public class JPF_android_os_MessageQueue {
    * @param env
    * @param action
    */
-  private static void runAction(MJIEnv env, UIAction action, String currentWindow) {
+  private static void executeAction(MJIEnv env, UIAction action) {
+    //get current window
+    String currentWindow = JPF_android_view_WindowManager.getCurrentWindow(env);
+    log.info(TAG + ": Processing action \"" + action.action + "\" on \"" + action.target + "\" on Window \""
+        + currentWindow + "\"");
+
     if (!action.isNone()) {
-      if (action.target == null) { // componentAction sendBroadcast() startActivity() startService() registerListener()
-        if (action.action.equals("registerChecklist")) {
-          checkpointManager.registerCheckList(action.getArguments(), action.getLine());
-        } else if (action.action.equals("unregisterChecklist")) {
-          checkpointManager.unregisterCheckList((String) action.getArguments()[0]);
-        } else {
-          JPF_com_android_server_am_ActivityManagerService.handleComponentAction(env, action);
-        }
-      } else if (action.target.startsWith("$")) { // viewAction includes: $back, $homeButton.onClick(), $powerButton.onClick(), $volumeButton.onClick(), $menuButton.onClick(), $orientation.onClick()
+      if (action.target == null) {
+        // componentAction:  startMainActivity() startService() killApplication()
+        JPF_com_android_server_am_ActivityManagerService.handleComponentAction(env, action);
+
+      } else if (action.target.startsWith("$")) {
+        // viewAction includes: $buttonOK.click() $cbxAccept.check(), $cbxAccept.unCheck() $listView.selectItem(5) $radioList.selectItem(5), $textbox.type("Hallo"), $textbox.setText("Hallo")  
         JPF_android_view_WindowManager.handleViewAction(env, action);
-      } else if (action.target.startsWith("@")) { // references annotation in code 
-        JPF_com_android_server_am_ActivityManagerService.setIntent(env, action); //temp until we need this
-      } else {      // intent action:  intent1.setAction("Hallo")
+
+      } else if (action.target.startsWith("@")) {
+        // intent building
         JPF_com_android_server_am_ActivityManagerService.setIntent(env, action);
+
+      } else if (action.target.equals("device")) {
+        // device actions: device.pressHome(), device.pressPower(), device.pressVolume("up")
+        //                 device.pressMenu(), device.rotate("landscape"), device.setWifi("off"),
+        //                 device.setBattery("50%"), device.setGPS("on"), device.inCommingCall(intent)
+        //                 device.setCharging("USB")
+        JPF_android_os_ServiceManager.performDeviceAction(env, action);
+
+      } else {
+        log.info(TAG + ": Unknown action \"" + action.action + ".");
+      }
+    }
+  }
+
+  public static void notifyMSQ(JVM vm) {
+    ThreadInfo ti = vm.getCurrentThread();
+
+    MethodInfo mi = vm.getClassInfo(msqRef).getMethod("enqueueStop()V", true);
+
+    // Create direct call stub with identifier [UIAction]
+    MethodInfo stub = mi.createDirectCallStub("[UIACTION]");
+    DirectCallStackFrame frame = new DirectCallStackFrame(stub);
+
+    // if the method is not static the reference to the object is pushed to
+    // allow access to fields
+    if (!mi.isStatic()) {
+      frame.push(msqRef, true);
+    }
+    // frame is pushed to the execution thread
+    ti.pushFrame(frame);
+  }
+
+  public static boolean isRunningThreads(MJIEnv env, int ref) {
+    if (env.getVM().getAliveThreadCount() > 1)
+      return true;
+    else
+      return false;
+
+  }
+
+  protected static class ThreadTerminationListener extends ListenerAdapter {
+
+    @Override
+    public void threadTerminated(JVM vm) {
+      ThreadList infos = vm.getThreadList();
+      ThreadInfo mainInfo = infos.getThreadInfoForId(0);
+      if (vm.getAliveThreadCount() == 1 && mainInfo.isWaiting()) {
+        notifyMSQ(vm);
       }
     }
   }

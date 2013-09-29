@@ -57,7 +57,7 @@ public class JPF_android_content_pm_PackageManager {
                                                      // class initialization in ObjectConverter, this is not
                                                      // executed again.
       // Determine the path to the manifest file
-      String manifestPath = AndroidFileUtil.getManifestPath();
+      String manifestPath = AndroidPathManager.getManifestPath();
       if (manifestPath == null || manifestPath.length() == 0) {
         logger.severe("Could not determine the path of the AndroidManifest.xml file.");
         return;

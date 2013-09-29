@@ -45,7 +45,7 @@ public class JPF_javax_xml_parsers_SAXParser {
   public static int parse__Ljava_lang_String_2__I(MJIEnv env, int objRef, int url) throws SAXException,
       IOException {
 
-    Document doc = builder.parse(AndroidFileUtil.getProjectDir() + "/"
+    Document doc = builder.parse(AndroidPathManager.getProjectDir() + "/"
         + URLInput.get(env.getStringObject(url)));
     doc.getDocumentElement().normalize();
     root = doc.getDocumentElement();

@@ -25,6 +25,7 @@ import gov.nasa.jpf.jvm.DirectCallStackFrame;
 import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.jvm.MethodInfo;
 import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.util.script.UIAction;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -91,7 +92,7 @@ public class JPF_android_view_WindowManager {
     if (rPath == null) {
       classRef = robj;
       // Lookup the path to the R.java file
-      rPath = AndroidFileUtil.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.',
+      rPath = AndroidPathManager.getRPath(JPF_android_content_pm_PackageManager.getPackageName().replace('.',
           '/'));
       if (rPath == null || rPath.length() <= 0) {
         log.severe("Could not find R.java file.");
@@ -213,7 +214,7 @@ public class JPF_android_view_WindowManager {
   static String getLayoutFileName(int id) {
     String name = layoutMap.get(id);
     log.fine("Getting the name of Layout " + id + ": " + name);
-    return AndroidFileUtil.getLayoutPath() + name + ".xml";
+    return AndroidPathManager.getLayoutPath() + name + ".xml";
   }
 
   /**
