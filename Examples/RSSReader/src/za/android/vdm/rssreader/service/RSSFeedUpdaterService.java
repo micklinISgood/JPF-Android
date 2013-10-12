@@ -29,7 +29,7 @@ public class RSSFeedUpdaterService extends Service {
 
 	/** This service will be allowed to send timeline notifications */
 	public static final String RECEIVE_TIMELINE_NOTIFICATIONS = "com.vdm.blogger.RECEIVE_TIMELINE_NOTIFICATIONS";
-	private boolean updateRunning;
+	private boolean updateRunning = false;
 
 	private UpdaterThread updaterThread;
 
@@ -46,7 +46,7 @@ public class RSSFeedUpdaterService extends Service {
 	}
 
 	@Override
-	@Checkpoint("update")
+	@Checkpoint("startUpdate")
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
 		Log.d(TAG, "onStartCommand method");
@@ -57,24 +57,31 @@ public class RSSFeedUpdaterService extends Service {
 			notifyUserBatteryLow();
 		} else if (!WifiConnected()) {
 			notifyUserWifiOff();
-		} else
+		} else {
 			runUpdate();
-
+		}
 		return Service.START_STICKY;
 	}
 
 	@Checkpoint("runUpdate")
 	private synchronized void runUpdate() {
-		updateRunning = true;
+		setRunning();
 		this.updaterThread = new UpdaterThread(this);
+
 		this.updaterThread.start();
+	}
+
+	@Checkpoint("setRunning")
+	private void setRunning() {
+		updateRunning = true;
 	}
 
 	@Checkpoint("checkRunning")
 	private synchronized boolean isRunning() {
 		return updateRunning;
 	}
-	@Checkpoint(value="finishUpdate", threadName="RSSUpdaterThread")
+
+	@Checkpoint(value = "finishUpdate", threadName = "RSSUpdaterThread")
 	protected synchronized void finishUpdate() {
 		updateRunning = false;
 	}
@@ -82,9 +89,10 @@ public class RSSFeedUpdaterService extends Service {
 	@Checkpoint("alreadyRunning")
 	private void notifyUserAlreadyRunning() {
 		// notify user update already running
-		Toast.makeText(this, "Error updating, already updating", Toast.LENGTH_SHORT)
-				.show();
-		Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, already updating");
+		Toast.makeText(this, "Error updating, already updating",
+				Toast.LENGTH_SHORT).show();
+		Log.i(TAG,
+				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, already updating");
 
 	}
 
@@ -95,7 +103,8 @@ public class RSSFeedUpdaterService extends Service {
 
 		NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 		if (activeNetwork != null) {
-			Log.i("RSSFEED Update Service", "ActiveNetwork: " + activeNetwork.getTypeName());
+			Log.i("RSSFEED Update Service",
+					"ActiveNetwork: " + activeNetwork.getTypeName());
 			boolean isConnected = activeNetwork.isConnectedOrConnecting();
 			boolean isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
 			if (isConnected && isWiFi) {
@@ -104,23 +113,27 @@ public class RSSFeedUpdaterService extends Service {
 				return true;
 			}
 		}
-//
-//		boolean isWifiEnabled = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isAvailable();
-//		
-//		boolean is3GEnabled = !(cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.DISCONNECTED
-//		                        && cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getReason().equals("dataDisabled"));
+		//
+		// boolean isWifiEnabled =
+		// cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isAvailable();
+		//
+		// boolean is3GEnabled =
+		// !(cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() ==
+		// NetworkInfo.State.DISCONNECTED
+		// &&
+		// cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getReason().equals("dataDisabled"));
 		Log.i("RSSFEED Update Service", "Wifi: " + "not connected");
-	
+
 		return false;
-		
-		
+
 	}
 
-	@Checkpoint("WiFiDown")
+	@Checkpoint("WifiDown")
 	private void notifyUserWifiOff() {
 		Toast.makeText(this, "Error updating, Wifi down", Toast.LENGTH_SHORT)
 				.show();
-		Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, Wifi down");
+		Log.i(TAG,
+				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, Wifi down");
 
 	}
 
@@ -133,7 +146,7 @@ public class RSSFeedUpdaterService extends Service {
 		float pers = ((float) level / (float) scale) * 100.0f;
 		Log.i("RSSFEED Update Service", "Battery: " + pers);
 
-		if ( pers < 35) {
+		if (pers < 35) {
 			return true;
 		} else {
 			return false;
@@ -144,7 +157,8 @@ public class RSSFeedUpdaterService extends Service {
 	private void notifyUserBatteryLow() {
 		Toast.makeText(this, "Error updating, battery too low",
 				Toast.LENGTH_SHORT).show();
-		Log.i(TAG, "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, battery too low");
+		Log.i(TAG,
+				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, battery too low");
 
 	}
 

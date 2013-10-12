@@ -12,9 +12,6 @@ android.script=${config_path}/TestCalculator.es
 # don't obfuscate things in handlers
 vm.halt_on_throw=java.lang.NullPointerException
 
-listener+=gov.nasa.jpf.android.InjectMainListener;
-
-
 # listener for coverage
 #listener+=.listener.CoverageAnalyzer;
 #coverage.include = za.android.vdm.rssreader.service.RSSFeedUpdaterService
@@ -22,21 +19,28 @@ listener+=gov.nasa.jpf.android.InjectMainListener;
 
 
 #--- android setup
-android.script=${config_path}/TestCalculator.es
+android.script=${config_path}/TestRSS.es
 android.checklist_enabled = true
-android.checklist = ${config_path}/Checklists.tl
-android.active_checklists = updateInitiated, getFeedUpdates
-
+android.checklist = ${config_path}/Checklists.cl
+android.active_checklists =  updateAlreadyRunning, startUpdate1,startUpdate2,runUpdate, getFeedUpdates1,updateWifiDown,updateBatteryLow,
 
 
 # Turn on Logging
 log.level=info
 
 # To fond deadlocks
-#search.class = .search.heuristic.BFSHeuristic
+search.class = .search.heuristic.BFSHeuristic
 #listener+=gov.nasa.jpf.listener.PreciseRaceDetector;
 
 # turn off instruction trace
 report.console.property_violation=error,snapshot
 
 
+vm.tree_output = true 
+vm.path_output = true
+
+search.properties=\
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
+
+#--- enable jpf-shell
+#shell=.shell.basicshell.BasicShell

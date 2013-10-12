@@ -40,11 +40,9 @@ public class UpdaterThread extends Thread {
 				.getDatabase();
 	}
 
-	@Checkpoint(value="getUpdates", threadName = "RSSUpdaterThread")
+	@Checkpoint(value = "getUpdates", threadName = "RSSUpdaterThread")
 	@Override
 	public void run() {
-		Log.i(TAG, "(((((((((((((((((((((((((((((((((((((Running updater thread");
-
 		SAXParser parser = null;
 		RSSfeedXMLParser theRssHandler = null;
 
@@ -113,9 +111,10 @@ public class UpdaterThread extends Thread {
 		}
 		c.close();
 		((RSSFeedUpdaterService) context).finishUpdate();
+		System.out.println("FINSHEDSINISHEDFINISHEDFINISHED");
 	}
 
-	@Checkpoint(value ="parseFeed", threadName="RSSUpdaterThread")
+	@Checkpoint(value = "parseFeedItems", threadName = "RSSUpdaterThread")
 	private long parseRSSFeedUpdates(List<RSSItem> updates, int id,
 			long lastTimeInserted) {
 		// count the number of new posts
@@ -162,7 +161,7 @@ public class UpdaterThread extends Thread {
 	 * @param posts
 	 * @param newposts
 	 */
-	@Checkpoint(value="storeInDB", threadName="RSSUpdaterThread")
+	@Checkpoint(value = "storeInDB", threadName = "RSSUpdaterThread")
 	public synchronized void storeStatusUpdates(List<ContentValues> posts,
 			long newposts) {
 		Log.d(TAG, "Storing status updates");
@@ -173,14 +172,11 @@ public class UpdaterThread extends Thread {
 		}
 
 		// if new posts were found, notify TimelineActivity
-		if (newposts > 0) {
-			Log.d(TAG, "We have a new RSSFeed updates");
-			Intent intent = new Intent(RSSFeedUpdaterService.NEW_STATUS_INTENT);
-			intent.putExtra(RSSFeedUpdaterService.NEW_STATUS_EXTRA_COUNT,
-					newposts);
-			context.sendBroadcast(intent,
-					RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
-		}
+		Log.d(TAG, "We have a new RSSFeed updates");
+		Intent intent = new Intent(RSSFeedUpdaterService.NEW_STATUS_INTENT);
+		intent.putExtra(RSSFeedUpdaterService.NEW_STATUS_EXTRA_COUNT, newposts);
+		context.sendBroadcast(intent,
+				RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
 		Log.d(TAG, (posts.size() > 0) ? "Got feed updates: " + posts.size()
 				: "No new item updates");
 	}

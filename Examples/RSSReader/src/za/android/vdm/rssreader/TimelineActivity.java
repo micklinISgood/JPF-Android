@@ -5,6 +5,7 @@ import gov.nasa.jpf.annotation.Checkpoint;
 import java.util.ArrayList;
 
 import za.android.vdm.rssreader.provider.DatabaseInterface;
+import za.android.vdm.rssreader.service.RSSFeedUpdaterService;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -39,6 +40,7 @@ public class TimelineActivity extends Activity {
 	BroadcastReceiver receiver;
 
 	IntentFilter filter = null;
+	Button refreshButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -72,15 +74,16 @@ public class TimelineActivity extends Activity {
 			}
 		});
 
-		Button refresh = (Button) findViewById(R.id.buttonReload);
-		refresh.setOnClickListener(new OnClickListener() {
+		refreshButton = (Button) findViewById(R.id.buttonReload);
+		refreshButton.setOnClickListener(new OnClickListener() {
 
-			@Checkpoint("clickOnReload")
+			@Checkpoint("updateButtonPressed")
 			@Override
 			public void onClick(View v) {
 				startService(new Intent(
 						TimelineActivity.this,
 						za.android.vdm.rssreader.service.RSSFeedUpdaterService.class));
+				updateButtonText();
 			}
 		});
 
@@ -93,8 +96,13 @@ public class TimelineActivity extends Activity {
 		Log.i(TAG, "Registered TimelineReceiver");
 		registerReceiver(receiver, filter, SEND_TIMELINE_NOTIFICATIONS, null);
 
-		updateListView();
+		updateListView(loadRSSItemsFromDB());
 
+	}
+
+	@Checkpoint("updateButtonText")
+	public void updateButtonText() {
+		refreshButton.setText("Updating");
 	}
 
 	@Override
@@ -133,18 +141,20 @@ public class TimelineActivity extends Activity {
 
 	class TimelineReceiver extends BroadcastReceiver {
 
+		@Checkpoint("notifyTimelineActivity")
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Log.i("TimelineReceiver",
 					"received broadcast for new status updates");
-			updateListView();
+			Cursor c = loadRSSItemsFromDB();
+			updateListView(c);
+
 		}
 
 	}
 
 	@Checkpoint("updateListView")
-	public void updateListView() {
-		Cursor c = loadRSSItemsFromDB();
+	public void updateListView(Cursor c) {
 		if (c != null) {
 			if (adapter == null) {
 				Log.i("TimelineReceiver", "Creating new Adapter");
@@ -168,8 +178,9 @@ public class TimelineActivity extends Activity {
 
 		}
 	}
+
 	@Checkpoint("loadFromDB")
-	public Cursor loadRSSItemsFromDB(){
+	public Cursor loadRSSItemsFromDB() {
 		Cursor c = database.getRSSFeedUpdates();
 		Log.i("TimelineReceiver",
 				"Got cursor" + c + " with items " + c.getCount());
