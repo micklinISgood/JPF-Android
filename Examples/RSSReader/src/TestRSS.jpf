@@ -36,9 +36,6 @@ search.class = .search.heuristic.BFSHeuristic
 report.console.property_violation=error,snapshot
 
 
-vm.tree_output = true 
-vm.path_output = true
-
 search.properties=\
 gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
 
