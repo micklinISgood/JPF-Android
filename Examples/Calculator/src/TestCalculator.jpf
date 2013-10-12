@@ -22,7 +22,7 @@ android.active_checklists = buttonEqualsClick, buttonEqualsClickError,buttonNext
 
 
 #--- search class
-#search.class = .search.heuristic.BFSHeuristic
+search.class = .search.heuristic.BFSHeuristic
 
 
 #--- reporting
