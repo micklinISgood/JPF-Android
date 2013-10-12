@@ -2,22 +2,25 @@ package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.android.ResultPublishListener;
-import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.util.StateExtensionClient;
 import gov.nasa.jpf.util.StateExtensionListener;
 import gov.nasa.jpf.util.script.ScriptEnvironment.ActiveSnapshot;
+import gov.nasa.jpf.vm.MJIEnv;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Represents the script an its current state
  */
 public class AndroidScriptEnvironment implements StateExtensionClient<ScriptState> {
+  public static final String TAG = "ScriptEnvironment";
+  private static Logger logger = JPF.getLogger(TAG);
 
   static final String DEFAULT = "default";
 
@@ -31,6 +34,7 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
 
   public AndroidScriptEnvironment(String fname) throws FileNotFoundException {
     this(fname, new FileReader(fname));
+    logger.info("ScriptEnvironment: Ready!");
   }
 
   public AndroidScriptEnvironment(String name, Reader r) {
@@ -102,12 +106,11 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
    * @return
    */
   public UIAction getNext(int eventid, String activeState, MJIEnv vm) {
-    
+
     // or get next battery action batteryAction
 
     // or get next network action
-    
-    
+
     ScriptState state = getCur();
     if (state != null) {
       setCur(state.advance(activeState, getSection(activeState)));
@@ -129,9 +132,10 @@ public class AndroidScriptEnvironment implements StateExtensionClient<ScriptStat
         }
 
       }
-      if (event != null)
+      if (event != null) {
         event.setID(eventid);
-      getCur().getActions().push(event);
+        getCur().getActions().push(event);
+      }
       return event;
     }
     return null;

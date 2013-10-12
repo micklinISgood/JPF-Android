@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * 
  */
 public class ChecklistManager implements ChecklistReporter, CheckpointProcessor, ChecklistStateManager {
-  private static final String TAG = ChecklistManager.class.getSimpleName();
+  public static final String TAG = ChecklistManager.class.getSimpleName();
   private static Logger logger = JPF.getLogger(TAG);
 
   /** Publishes checklist violations */
@@ -38,30 +38,46 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
   private List<Checklist> checklists;
 
   /** Running ChecklistInstances */
-  private Map<Path, List<ChecklistInstance>> checklistInstances;
+  private Map<Integer, List<ChecklistInstance>> checklistInstances;
 
   /** Mappings */
   private Map<String, Checkpoint> mappings;
 
-  public ChecklistManager(String filename, String[] activeChecklists) throws ParseException {
-    logger.info("ChecklistManager constrcutor");
+  private ChecklistDefinitions def;
+
+  public ChecklistManager(String filename) throws ParseException {
     if (checklistInstances == null) {
 
       // parse checklists definition file
       ChecklistParser parser = new ChecklistParser(filename);
 
       // parse and store active checklists in checklistList
-      ChecklistDefinitions def = parser.parse();
-      checklists = new LinkedList<Checklist>();
-      mappings = def.getMappings();
+      def = parser.parse();
 
-      if (activeChecklists != null)
-        for (String c : activeChecklists) {
-          registerChecklist(def.getChecklists().get(c.trim()));
-        }
+      checklists = new LinkedList<Checklist>();
 
       // create new list of running checklists
-      checklistInstances = new HashMap<Path, List<ChecklistInstance>>();
+      checklistInstances = new HashMap<Integer, List<ChecklistInstance>>();
+
+      mappings = def.getMappings();
+    }
+    logger.info("ChecklistManager: Ready!");
+  }
+
+  public void activateChecklists(String[] activeChecklists) throws ChecklistException {
+    if (activeChecklists != null) {
+      for (String c : activeChecklists) {
+        Checklist list = def.getChecklists().get(c.trim());
+        if (list != null) {
+          registerChecklist(list);
+        } else {
+          throw new ChecklistException("Activated checklist " + c
+              + " not defined in Checklist definition file.");
+        }
+      }
+    } else {
+      logger.warning(TAG + ": no active Checklists defined in config.");
+      ;
     }
   }
 
@@ -69,44 +85,12 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
    * Registers a new {@link Checklist}.
    * 
    */
-  protected void registerChecklist(Checklist checklist) {
+  private void registerChecklist(Checklist checklist) {
     logger.fine(TAG + ": Registering  checklist " + checklist.toString());
 
     // add new checklist to checklists list
     if (checklist != null)
       this.checklists.add(checklist);
-  }
-
-  public void splitPath(Path oldPath, Path newPath) {
-    logger.info(TAG + ": Splitting path " + oldPath.toString() + " --> " + newPath.toString());
-
-    // get all checklists for old path
-    List<ChecklistInstance> oldChecklists = checklistInstances.get(oldPath);
-    List<ChecklistInstance> newChecklists = null;
-
-    ChecklistInstance newList = null;
-
-    
-    // for each path clone for new path
-    if(oldChecklists != null){
-      for (ChecklistInstance instance : oldChecklists) {
-
-      // new list instance
-      newList = (ChecklistInstance) instance.clone();
-      newList.changePath(newPath);
-
-      //get checklists for new path
-      newChecklists = checklistInstances.get(newPath);
-
-      if (newChecklists == null) {
-        newChecklists = new LinkedList<ChecklistInstance>();
-        checklistInstances.put(newPath, newChecklists);
-      }
-      // add this new checklist to the new path
-        newChecklists.add(newList);
-    }
-    }
-
   }
 
   @Override
@@ -120,14 +104,14 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
       if (c.startsWith(point.toCheckpoint())) {
 
         //create new ChecklistInstance
-        newList = new ChecklistInstance(c, point.path);
+        newList = new ChecklistInstance(c, point.getEventID(), point.getPathID());
 
         //add to ChecklistInstances for this path
-        instances = checklistInstances.get(point.path);
+        instances = checklistInstances.get(point.getEventID());
 
         if (instances == null) {
           instances = new LinkedList<ChecklistInstance>();
-          checklistInstances.put(point.path, instances);
+          checklistInstances.put(point.getEventID(), instances);
         }
 
         instances.add(newList);
@@ -135,31 +119,45 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
       }
     }
 
-    //match with checklistInstances
-    instances = checklistInstances.get(point.path);
-    if (instances != null) {
-      List<ChecklistInstance> failList = new LinkedList<ChecklistInstance>();
+    //get all checklists for this event
+    instances = checklistInstances.get(point.getEventID());
+
+    if (instances != null) { // if none has been fired yet
+
+      // stores finished and violated checklist instances
       List<ChecklistInstance> removeList = new LinkedList<ChecklistInstance>();
 
       for (ChecklistInstance list : instances) {
-        if (!list.match(point)) {
-          if (list.conditionMatched()) {
-            checkListPublisher.addViolatingChecklist(list, 1);
-            failList.add(list);
-          } else if (!list.conditionMatched()) {
+
+        if (point.getPathID().startsWith(list.getPath().getPathID())) {
+          // if this checkpoint was on a child path of the checklist's path
+
+          boolean match = list.match(point);
+          if (!match) {
+            // this point violated the checklist
+
+            if (list.conditionMatched()) {
+              // this list is a violation
+
+              checkListPublisher.addViolatingChecklist(list, 1);
+              removeList.add(list);
+
+            } else if (!list.conditionMatched()) {
+              //this is ignored as condition was not met
+
+              removeList.add(list);
+            }
+          } else if (match && list.isCompleted()) {
+            checkListPublisher.addCompletedChecklist(list);
             removeList.add(list);
+
           }
-        } else if (list.isCompleted()) {
-          removeList.add(list);
         }
       }
-      for (ChecklistInstance list : failList) {
+
+      for (ChecklistInstance list : removeList) {
         instances.remove(list);
       }
-
-//      for (ChecklistInstance list : removeList) {
-//        instances.remove(list);
-//      }
     }
   }
 
@@ -168,12 +166,25 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
     // stores checklists that fail
     List<ChecklistInstance> failedChecklists = new LinkedList<ChecklistInstance>();
 
-    for (Entry<Path, List<ChecklistInstance>> entryset : checklistInstances.entrySet()) {
+    for (Entry<Integer, List<ChecklistInstance>> entryset : checklistInstances.entrySet()) {
       for (ChecklistInstance list : entryset.getValue()) {
         if (list.conditionMatched() && !list.isCompleted()) {
-          
 
-          failedChecklists.add(list);
+          boolean failed = false;
+          int index = list.getIndex();
+          for (int i = index + 1; i < list.getChecklist().size(); i++) {
+            if (!list.getChecklist().getCheckpoint(i).isNegative()) {
+              failed = true;
+              break;
+            } else {
+              if (list.checkpointsMatched[i] != null) {
+                failed = true;
+                break;
+              }
+            }
+          }
+          if (failed)
+            failedChecklists.add(list);
         }
       }
     }
@@ -183,14 +194,14 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
   @Override
   public List<ChecklistInstance> getCompletedChecklists() {
     // stores checklists that fail
-    List<ChecklistInstance> failedChecklists = new LinkedList<ChecklistInstance>();
+    List<ChecklistInstance> completedChecklists = new LinkedList<ChecklistInstance>();
 
-    for (Entry<Path, List<ChecklistInstance>> entryset : checklistInstances.entrySet()) {
+    for (Entry<Integer, List<ChecklistInstance>> entryset : checklistInstances.entrySet()) {
       for (ChecklistInstance list : entryset.getValue()) {
-        failedChecklists.add(list);
+        completedChecklists.add(list);
       }
     }
-    return failedChecklists;
+    return completedChecklists;
   }
 
   @Override
@@ -198,7 +209,7 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
     ChecklistsState state = new ChecklistsState();
 
     //clone instances map
-    Map<Path, List<ChecklistInstance>> newChecklistInstances = new HashMap<Path, List<ChecklistInstance>>();
+    Map<Integer, List<ChecklistInstance>> newChecklistInstances = new HashMap<Integer, List<ChecklistInstance>>();
 
     ChecklistInstance instance = null;
     List<ChecklistInstance> instancelist = null;
@@ -208,17 +219,23 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
       for (ChecklistInstance c : values) {
 
         instance = (ChecklistInstance) c.clone();
-        instancelist = newChecklistInstances.get(instance.getPath());
+        instancelist = newChecklistInstances.get(instance.getPath().getEventID());
 
         if (instancelist == null) {
           instancelist = new LinkedList<ChecklistInstance>();
-          newChecklistInstances.put(instance.getPath(), instancelist);
+          newChecklistInstances.put(instance.getPath().getEventID(), instancelist);
         }
         instancelist.add(instance);
       }
     }
 
     state.setRunnningChecklists(newChecklistInstances);
+
+    Map<Integer, Path> threadMap = new HashMap<Integer, Path>();
+    for (Entry<Integer, Path> path : ThreadListener.threadToPathMapping.entrySet()) {
+      threadMap.put(path.getKey(), (Path) path.getValue().clone());
+    }
+    state.setThreadMap(threadMap);
 
     return state;
 
@@ -228,28 +245,36 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
   public void restore(ChecklistsState stateExtension) {
 
     //clone instances map
-    Map<Path, List<ChecklistInstance>> newChecklistInstances = new HashMap<Path, List<ChecklistInstance>>();
+    Map<Integer, List<ChecklistInstance>> newChecklistInstances = new HashMap<Integer, List<ChecklistInstance>>();
+    Map<Integer, Path> threadMap = new HashMap<Integer, Path>();
 
     ChecklistInstance instance = null;
     List<ChecklistInstance> instancelist = null;
 
     if (stateExtension != null) {
+
       for (List<ChecklistInstance> values : stateExtension.checklistInstances.values()) {
 
         for (ChecklistInstance c : values) {
 
           instance = (ChecklistInstance) c.clone();
-          instancelist = newChecklistInstances.get(instance.getPath());
+          instancelist = newChecklistInstances.get(instance.getPath().getEventID());
 
           if (instancelist == null) {
             instancelist = new LinkedList<ChecklistInstance>();
-            newChecklistInstances.put(instance.getPath(), instancelist);
+            newChecklistInstances.put(instance.getPath().getEventID(), instancelist);
           }
           instancelist.add(instance);
         }
       }
+
+      for (Entry<Integer, Path> path : stateExtension.getThreadMap().entrySet()) {
+        threadMap.put(path.getKey(), (Path) path.getValue().clone());
+      }
+
     }
     this.checklistInstances = newChecklistInstances;
+    ThreadListener.threadToPathMapping = threadMap;
 
   }
 
@@ -269,20 +294,29 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
     jpf.addPublisherExtension(ConsolePublisher.class, checkListPublisher);
     jpf.addSearchListener(checkListPublisher);
 
-    ThreadManagerListener mgr = new ThreadManagerListener(this);
-    mgr.registerListener(jpf);
+    ThreadListener mgr = new ThreadListener();
+    jpf.addListener(mgr);
 
   }
 
   public static class ChecklistsState {
 
-    Map<Path, List<ChecklistInstance>> checklistInstances;
+    Map<Integer, List<ChecklistInstance>> checklistInstances;
+    Map<Integer, Path> threadMap;
 
-    public Map<Path, List<ChecklistInstance>> getChecklistInstances() {
+    public Map<Integer, Path> getThreadMap() {
+      return threadMap;
+    }
+
+    public void setThreadMap(Map<Integer, Path> threadMap) {
+      this.threadMap = threadMap;
+    }
+
+    public Map<Integer, List<ChecklistInstance>> getChecklistInstances() {
       return checklistInstances;
     }
 
-    public void setRunnningChecklists(Map<Path, List<ChecklistInstance>> checklistInstances) {
+    public void setRunnningChecklists(Map<Integer, List<ChecklistInstance>> checklistInstances) {
       this.checklistInstances = checklistInstances;
 
     }

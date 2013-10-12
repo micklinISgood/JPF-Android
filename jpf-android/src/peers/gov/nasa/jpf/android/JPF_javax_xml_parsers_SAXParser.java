@@ -1,7 +1,9 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,15 +20,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class JPF_javax_xml_parsers_SAXParser {
+public class JPF_javax_xml_parsers_SAXParser  extends NativePeer {
   public final static String TAG = JPF_javax_xml_parsers_SAXParser.class.getSimpleName();
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-  private final int namespaceURI = 0;
-  private final int localname = 1;
-  private final int qname = 2;
-  private final int attributes = 3;
-  private final int content = 4;
+//  private final int namespaceURI = 0;
+//  private final int localname = 1;
+//  private final int qname = 2;
+//  private final int attributes = 3;
+//  private final int content = 4;
 
   private static DocumentBuilder builder;
   private static Map<Integer, Node> nodeMap = new HashMap<Integer, Node>();
@@ -34,7 +36,8 @@ public class JPF_javax_xml_parsers_SAXParser {
 
   protected static Map<String, String> URLInput = new HashMap<String, String>();
 
-  public static void $init(MJIEnv env, int robj) {
+  @MJI
+  public void $init(MJIEnv env, int robj) {
     DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
     try {
       builder = f.newDocumentBuilder();
@@ -42,8 +45,8 @@ public class JPF_javax_xml_parsers_SAXParser {
     }
   }
 
-  public static int parse__Ljava_lang_String_2__I(MJIEnv env, int objRef, int url) throws SAXException,
-      IOException {
+  @MJI
+  public int parse__Ljava_lang_String_2__I(MJIEnv env, int objRef, int url) throws SAXException, IOException {
 
     Document doc = builder.parse(AndroidPathManager.getProjectDir() + "/"
         + URLInput.get(env.getStringObject(url)));
@@ -56,7 +59,8 @@ public class JPF_javax_xml_parsers_SAXParser {
     return root.hashCode();
   }
 
-  public static int getNodeInfo(MJIEnv env, int objRef, int hashcode) {
+  @MJI
+  public int getNodeInfo(MJIEnv env, int objRef, int hashcode) {
     if (hashcode == -1) {
       log.warning(TAG + ": No XML node with hashcode -1");
       return MJIEnv.NULL;
@@ -75,7 +79,8 @@ public class JPF_javax_xml_parsers_SAXParser {
 
   }
 
-  public static int getChildren(MJIEnv env, int objref, int hashcode) {
+  @MJI
+  public int getChildren(MJIEnv env, int objref, int hashcode) {
 
     if (hashcode == -1) {
       log.warning(TAG + ": No XML node with hashcode -1");

@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import javax.swing.text.AttributeSet;
 
+import android.os.Bundle;
 import android.util.Log;
 
 public class Resources {

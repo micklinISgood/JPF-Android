@@ -1,7 +1,9 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,7 +31,7 @@ import org.xml.sax.SAXException;
  * @author "Heila van der Merwe"
  * 
  */
-public class JPF_android_view_LayoutInflater {
+public class JPF_android_view_LayoutInflater  extends NativePeer {
   public final static String TAG = JPF_android_view_LayoutInflater.class.getSimpleName();
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
@@ -43,15 +45,13 @@ public class JPF_android_view_LayoutInflater {
     }
   }
 
-
-
   /** Stores a Map of View items for each layout file id */
   private static Map<Integer, LayoutInfo> layoutMap = new HashMap<Integer, LayoutInfo>();
 
-  public static int loadLayout(MJIEnv env, int objref, int resourceID) {
+  @MJI
+  public int loadLayout(MJIEnv env, int objref, int resourceID) {
     // retrieve the file name of the layout resource
     String filename = JPF_android_view_WindowManager.getLayoutFileName(resourceID);
-
 
     // check if the layout file has been parsed before
     LayoutInfo layoutInfo = layoutMap.get(resourceID);
@@ -72,13 +72,14 @@ public class JPF_android_view_LayoutInflater {
     return env.newString(filename);
   }
 
-  public static int getRootHash(MJIEnv env, int objref, int resourceID) {
+  @MJI
+  public int getRootHash(MJIEnv env, int objref, int resourceID) {
     // retrieve the file name of the layout resource
     return layoutMap.get(resourceID).root.hashCode();
   }
 
-  private static LayoutInfo load(int resourceID, String filename) throws ParserConfigurationException, SAXException,
-      IOException {
+  private static LayoutInfo load(int resourceID, String filename) throws ParserConfigurationException,
+      SAXException, IOException {
     //parse the document
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     InputStream is = new FileInputStream(filename);
@@ -125,7 +126,8 @@ public class JPF_android_view_LayoutInflater {
     }
   }
 
-  public static int getNodeInfo(MJIEnv env, int objref, int hashcode, int resourceID) {
+  @MJI
+  public int getNodeInfo(MJIEnv env, int objref, int hashcode, int resourceID) {
     if (hashcode == -1) {
       log.warning(TAG + ": No view node with hashcode -1");
       return MJIEnv.NULL;
@@ -145,7 +147,8 @@ public class JPF_android_view_LayoutInflater {
 
   }
 
-  public static int getChildren(MJIEnv env, int objref, int hashcode, int resourceID) {
+  @MJI
+  public int getChildren(MJIEnv env, int objref, int hashcode, int resourceID) {
 
     if (hashcode == -1) {
       log.warning(TAG + ": No view node with hashcode -1");
@@ -209,7 +212,7 @@ public class JPF_android_view_LayoutInflater {
     Node n = list.getNamedItem("android:text");
     if (n != null) {
       name = n.getNodeValue();
-      if(name.startsWith("@string/")){
+      if (name.startsWith("@string/")) {
         name = JPF_android_content_res_Resources.getString(name.substring(8));
       }
     }

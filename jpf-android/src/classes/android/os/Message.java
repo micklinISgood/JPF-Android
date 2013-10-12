@@ -11,14 +11,14 @@ public final class Message {
   public int arg1;
   public int arg2;
 
-  private int pathID;
+  private String pathID;
   private int eventID;
 
-  public int getPathID() {
+  public String getPathID() {
     return pathID;
   }
 
-  public void setPathID(int pathID) {
+  public void setPathID(String pathID) {
     this.pathID = pathID;
   }
 

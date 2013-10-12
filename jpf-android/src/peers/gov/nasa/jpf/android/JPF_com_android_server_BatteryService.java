@@ -1,21 +1,25 @@
 package gov.nasa.jpf.android;
 
+import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.util.script.UIAction;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.DirectCallStackFrame;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.NativePeer;
+import gov.nasa.jpf.vm.ThreadInfo;
+
 import java.util.logging.Logger;
 
-import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.DirectCallStackFrame;
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.util.script.UIAction;
-
-public class JPF_com_android_server_BatteryService {
+public class JPF_com_android_server_BatteryService extends NativePeer {
   private static final String TAG = "JPF_MessageQueue";
   static Logger log = JPF.getLogger(TAG);
 
   static int classRef = -1;
 
-  public static void init0(MJIEnv env, int robj) {
+  @MJI
+  public void init0(MJIEnv env, int robj) {
     classRef = robj;
   }
 
@@ -93,42 +97,38 @@ public class JPF_com_android_server_BatteryService {
 
   }
 
-  private static void printError(String error) {
-    log.warning("BatteryService: Could not execute action. " + error);
-  }
-
-  /**
-   * Uses a direct call to call a method on the BatteryService
-   * 
-   * @param env
-   * @param methodName
-   *          the method signature of the method to call directly
-   * @param args
-   *          the arguments of the method
-   */
-  private static void callMethod(MJIEnv env, int classRef, String methodName, int[] argsRefs) {
+  static boolean callMethod(MJIEnv env, int classRef, String methodName, int[] argsRefs) {
 
     ThreadInfo ti = env.getThreadInfo();
-    MethodInfo mi = env.getClassInfo(classRef).getMethod(methodName, true);
+    ClassInfo info = env.getClassInfo(classRef);
+    MethodInfo mi = info.getMethod(methodName, true);
+
+    if (mi == null)
+      return false;
 
     // Create direct call stub with identifier [UIAction]
-    MethodInfo stub = mi.createDirectCallStub("[UIACTION]");
-    DirectCallStackFrame frame = new DirectCallStackFrame(stub);
+    DirectCallStackFrame stub = mi.createDirectCallStackFrame(ti, argsRefs.length);
 
     // if the method is not static the reference to the object is pushed to
     // allow access to fields
     if (!mi.isStatic()) {
-      frame.push(classRef, true);
+      stub.push(classRef, true);
     }
 
     // arguments for the method is pushed on the frame
     if (argsRefs != null) {
       for (int i = 0; i < argsRefs.length; i++) {
-        frame.push(argsRefs[i], true);
+        stub.push(argsRefs[i], true);
       }
     }
     // frame is pushed to the execution thread
-    ti.pushFrame(frame);
+    ti.pushFrame(stub);
+
+    return true;
+  }
+
+  private static void printError(String error) {
+    log.warning("BatteryService: Could not execute action. " + error);
   }
 
 }

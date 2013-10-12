@@ -1,6 +1,5 @@
 package android.app;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -13,7 +12,6 @@ import android.content.res.CompatibilityInfo;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.Slog;

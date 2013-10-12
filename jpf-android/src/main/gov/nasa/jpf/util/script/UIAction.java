@@ -19,9 +19,8 @@
 
 package gov.nasa.jpf.util.script;
 
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.MethodLocator;
-import gov.nasa.jpf.util.script.Event;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.MethodLocator;
 
 /**
  * this models a single user interaction, which maps to a (reflection) call of a

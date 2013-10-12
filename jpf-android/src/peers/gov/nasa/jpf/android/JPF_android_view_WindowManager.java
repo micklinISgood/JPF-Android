@@ -20,12 +20,11 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.DirectCallStackFrame;
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.script.UIAction;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,6 +33,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import android.view.View;
 import android.view.Window;
 
 /**
@@ -52,9 +52,8 @@ import android.view.Window;
  * actual View -objects in memory.
  * 
  */
-public class JPF_android_view_WindowManager {
+public class JPF_android_view_WindowManager  extends NativePeer {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
-  static final String UIACTION = "[UIAction]";
 
   private static String ID_HEADER = "public static final class id {";
   private static String LAYOUT_HEADER = "public static final class layout {";
@@ -88,7 +87,8 @@ public class JPF_android_view_WindowManager {
    * @param env
    * @param robj
    */
-  public static void init0(MJIEnv env, int robj) {
+  @MJI
+  public void init0(MJIEnv env, int robj) {
     if (rPath == null) {
       classRef = robj;
       // Lookup the path to the R.java file
@@ -252,29 +252,15 @@ public class JPF_android_view_WindowManager {
         env.setReferenceArrayElement(aref, i, env.newString(arguments[i].toString()));
       }
     }
-    env.getElementInfo(classRef);
-
-    ClassInfo ei = env.getReferredClassInfo(classRef);
-
+    ClassInfo classInfo = env.getReferredClassInfo(classRef);
     // Ok, now we make the (direct) call
-    MethodInfo mi = ei.getMethod(
-        "handleViewAction(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V", false);
+    String methodName = "handleViewAction(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V";
 
-    if (mi != null) {
-      MethodInfo stub = mi.createDirectCallStub(UIACTION);
-      DirectCallStackFrame frame = new DirectCallStackFrame(stub);
-
-      frame.push(classRef, false);
-      frame.push(env.newString(target), true);
-      frame.push(env.newString(action), true);
-      frame.push(aref, true);
-
-      ThreadInfo ti = env.getThreadInfo();
-      ti.pushFrame(frame);
-
-    } else {
+    if (!AndroidUtil.callMethod(env, classInfo, methodName,
+        new int[] { env.newString(target), env.newString(action), aref })) {
       log.log(Level.SEVERE, "Error calling handleViewAction for " + target + "." + action);
     }
+
   }
 
   /**

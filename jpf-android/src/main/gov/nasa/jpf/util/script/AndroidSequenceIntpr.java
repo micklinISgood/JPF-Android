@@ -19,10 +19,10 @@
 package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
 import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.SystemState;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 import java.util.List;
 

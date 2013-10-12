@@ -1,15 +1,13 @@
 package gov.nasa.jpf.test.mc.basic;
 
 import gov.nasa.jpf.ListenerAdapter;
-import gov.nasa.jpf.jvm.JVM;
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
 import gov.nasa.jpf.util.test.TestJPF;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.VM;
 
 import java.util.ArrayList;
-
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,22 +27,20 @@ public class AndroidScriptIntrTest extends TestJPF {
 
     static ArrayList<String> sequence;
 
-    public void instructionExecuted(JVM vm) {
-      ThreadInfo ti = vm.getLastThreadInfo();
-      Instruction insn = vm.getLastInstruction();
-      if (insn instanceof gov.nasa.jpf.jvm.bytecode.ARETURN) {
-        MethodInfo mi = insn.getMethodInfo();
-
-        if (mi.getUniqueName().equals("parseScript()Ljava/lang/String;")) {
-          String a = ti.getStringReturnValue();
-
-          if (!a.equals("")) {
-            sequenceCount++;
-            sequence.add("Sequence " + sequenceCount + ": ");
-            sequence.add(a);
-          }
-        }
-      }
+    public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction, Instruction executedInstruction) {
+//      if (executedInstruction instanceof gov.nasa.jpf.jvm.bytecode.ARETURN) {
+//        MethodInfo mi = executedInstruction.getMethodInfo();
+//
+//        if (mi.getUniqueName().equals("parseScript()Ljava/lang/String;")) {
+//          String a =currentThread.getStringReturnValue();
+//
+//          if (!a.equals("")) {
+//            sequenceCount++;
+//            sequence.add("Sequence " + sequenceCount + ": ");
+//            sequence.add(a);
+//          }
+//        }
+//      }
     }
   }
 

@@ -1,21 +1,19 @@
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.util.FileUtils;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JPF_java_net_URL {
+public class JPF_java_net_URL  extends NativePeer {
 
   private static Map<String, URL> urls = new HashMap<String, URL>();
 
+  @MJI
   public static void init__V(MJIEnv env, int objref, int urlRef) {
     try {
       String urlString = env.getStringObject(urlRef);
@@ -27,7 +25,8 @@ public class JPF_java_net_URL {
 
   }
 
-  private static byte[] getDataFromURL(String surl) {
+  @MJI
+  private byte[] getDataFromURL(String surl) {
     byte[] data = null;
 
     //    try {

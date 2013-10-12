@@ -1,6 +1,5 @@
 package gov.nasa.jpf.android.checkpoint;
 
-
 /**
  * 
  * @author Heila van der Merwe
@@ -13,31 +12,27 @@ public class ChecklistInstance {
 
   /** Checklist this instance in running */
   private final Checklist checklist;
-  
+
   public CheckpointInstance[] checkpointsMatched;
 
-  /** Identifies the current trace of the Checklist is following */
+  /** Identifies the current path the Checklist is following */
   private Path path;
 
   /**
    * Maps thread name to id to make sure mutiple threads in the same path can be
    * distinguished
    */
- // private HashMap<String, Integer> threadIds;
+  // private HashMap<String, Integer> threadIds;
 
   /** Current position in the Checklist */
   private int index = -1;
 
-  public ChecklistInstance(Checklist checklist, Path path) {
+  public ChecklistInstance(Checklist checklist, int eventID, String pathID) {
     this.checklist = checklist;
-  //  this.threadIds = new HashMap<String, Integer>();
-    this.path = path;
+    //  this.threadIds = new HashMap<String, Integer>();
+    this.path = new Path(eventID, pathID);
     this.id = count++;
-    checkpointsMatched = new CheckpointInstance[this.checklist.size()];
-  }
-
-  protected void changePath(Path path) {
-    this.path = path;
+    this.checkpointsMatched = new CheckpointInstance[this.checklist.size()];
   }
 
   public boolean conditionMatched() {
@@ -46,7 +41,7 @@ public class ChecklistInstance {
       if (!checklist.getCheckpoint(i).isNegative()) {
         matched = false;
         break;
-      } else if(checklist.getCheckpoint(i).isNegative() && this.checkpointsMatched[i] !=null){
+      } else if (checklist.getCheckpoint(i).isNegative() && this.checkpointsMatched[i] != null) {
         matched = false;
         break;
       }
@@ -62,18 +57,23 @@ public class ChecklistInstance {
    */
   public boolean isCompleted() {
     // if no more reachable states further in list
-    boolean finished = true;
-    for (int i = index + 1; i < checklist.size(); i++) {
-      if (!checklist.getCheckpoint(i).isNegative()) {
-        finished = false;
-        break;
-      }
-    }
-    return finished;
+   
+    if (index == checklist.size() - 1)
+      return true;
+    else
+      return false;
   }
 
   public Path getPath() {
     return path;
+  }
+
+  public int getEventID() {
+    return path.getEventID();
+  }
+
+  public String getPathID() {
+    return path.getPathID();
   }
 
   /**
@@ -83,7 +83,7 @@ public class ChecklistInstance {
    * @return
    */
   public boolean match(CheckpointInstance newPoint) {
-    assert (newPoint.path.equals(this.path));
+    assert (newPoint.getPath().equals(this.getPath()));
 
     // if we are already at the last state - ignore the checkPoint
     if (index == checklist.size() - 1)
@@ -94,18 +94,23 @@ public class ChecklistInstance {
     for (int i = index + 1; i < checklist.size(); i++) {
       point = checklist.getCheckpoint(i);
 
-      if (point.equals(newPoint.toCheckpoint())) {
+      if (point.getName().equals(newPoint.getName())) {
         // we have reached this new checkpoint
 
         if (point.isNegative()) {
+
           // we have found a !checkpoint equal to this checkpoint
           checkpointsMatched[i] = newPoint;
+          //index = i;
+          return false;
 
-          return false;
-        } else if (!newPoint.threadName.equals(newPoint.threadAlias)) {
+        } else if (newPoint.getThreadAlias() != null
+            && !newPoint.getThreadName().equals(newPoint.getThreadAlias())) {
+          // this point was matched with the wrong thead
           checkpointsMatched[i] = newPoint;
-          index = i;
+          //index = i;
           return false;
+
         } else {
           checkpointsMatched[i] = newPoint;
           index = i;
@@ -113,7 +118,7 @@ public class ChecklistInstance {
         }
       } else if (!point.isNegative()) {
         //we do not match the next point which is fine, we just ignore this point
-        checkpointsMatched[i] = newPoint;
+        // checkpointsMatched[i] = newPoint;
         break;
       }
     }
@@ -128,7 +133,7 @@ public class ChecklistInstance {
 
   @Override
   public Object clone() {
-    ChecklistInstance state = new ChecklistInstance(this.checklist, (Path) this.path.clone());
+    ChecklistInstance state = new ChecklistInstance(this.checklist, this.getEventID(), this.getPathID());
     state.id = this.id;
     state.checkpointsMatched = this.checkpointsMatched.clone();
     state.index = this.index;

@@ -109,7 +109,7 @@ public final class ActivityThread {
   private static final int LOG_ON_PAUSE_CALLED = 30021;
   private static final int LOG_ON_RESUME_CALLED = 30022;
 
-  final Looper mLooper = Looper.myLooper();
+  final Looper mLooper = Looper.getMainLooper();
   final H mH = new H();
 
   // stores a map of all activities that have been started and not destroyed
@@ -2120,12 +2120,10 @@ public final class ActivityThread {
     mInstrumentation = new Instrumentation(); // currently we dont support
                                               // custom impl of instrumentation
 
-    System.out.println("Application creating");
     // If the app is being launched for full backup or restore, bring it up in
     // a restricted environment with the base application class.
     Application app = data.info.makeApplication(false, mInstrumentation);
     mInitialApplication = app;
-    System.out.println("Application oncreating");
 
     try {
       mInstrumentation.callApplicationOnCreate(app);
@@ -2181,12 +2179,9 @@ public final class ActivityThread {
   }
 
   public ActivityThread() {
-    Log.i(TAG, "Creating new ActivityThread");
-
-    init0();
+    Log.i("ActivityThread", "Ready!");
   }
 
-  public native void init0();
 
   public static void main(String[] args) {
     Log.i(TAG, "Starting up...");

@@ -1,7 +1,9 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.util.logging.Logger;
 
@@ -14,10 +16,11 @@ import android.util.Log;
  * @author "Heila van der Merwe"
  * 
  */
-public class JPF_android_util_Log {
+public class JPF_android_util_Log  extends NativePeer {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-  public static int println_native(MJIEnv env, int clsObjRef, int v0, int type, int stag, int smsg) {
+  @MJI
+  public int println_native(MJIEnv env, int clsObjRef, int v0, int type, int stag, int smsg) {
 
     String msg = env.getStringObject(smsg);
     String tag = env.getStringObject(stag);
@@ -48,7 +51,8 @@ public class JPF_android_util_Log {
     return msg.length();
   }
 
-  public static boolean isLoggable(MJIEnv env, int clsObjRef, int rString0, int v1) {
+  @MJI
+  public boolean isLoggable(MJIEnv env, int clsObjRef, int rString0, int v1) {
     boolean v = true;
     return v;
   }

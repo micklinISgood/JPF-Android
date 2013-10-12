@@ -1,13 +1,16 @@
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.script.UIAction;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
-public class JPF_android_os_ServiceManager {
+public class JPF_android_os_ServiceManager  extends NativePeer {
 
   static int classRef;
 
-  public static void init0(MJIEnv env, int classRef) {
+  @MJI
+  public void init0(MJIEnv env, int classRef) {
     AndroidPathManager.init(env.getConfig());
   }
 

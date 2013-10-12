@@ -19,11 +19,13 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.JPFLogger;
+import gov.nasa.jpf.util.ObjectConverter;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
+import gov.nasa.jpf.vm.ThreadInfo;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import android.content.IntentFilter;
@@ -38,7 +40,7 @@ import android.content.pm.PackageInfo;
  * 
  * @author Heila van der Merwe
  */
-public class JPF_android_content_pm_PackageManager {
+public class JPF_android_content_pm_PackageManager extends NativePeer {
   private static final JPFLogger logger = JPF.getLogger("JPF_android_content_pm_PackageManager");
 
   private static AndroidManifestParser parser;
@@ -50,72 +52,74 @@ public class JPF_android_content_pm_PackageManager {
    * @param env
    * @param robj
    */
-  public static void init0(MJIEnv env, int robj) {
-    ThreadInfo ti = env.getThreadInfo();
+  @MJI
+  public void init0(MJIEnv env, int robj) {
+	  ThreadInfo ti = env.getThreadInfo();
 
-    if (!ti.hasReturnedFromDirectCall("[clinit]")) { // Make sure that when we repeat the code during static
-                                                     // class initialization in ObjectConverter, this is not
-                                                     // executed again.
-      // Determine the path to the manifest file
-      String manifestPath = AndroidPathManager.getManifestPath();
-      if (manifestPath == null || manifestPath.length() == 0) {
-        logger.severe("Could not determine the path of the AndroidManifest.xml file.");
-        return;
-      }
+	    if (!ti.hasReturnedFromDirectCall("[<clinit>]")) { // Make sure that when we repeat the code during static
+	                                                     // class initialization in ObjectConverter, this is not
+	                                                     // executed again.
+	      // Determine the path to the manifest file
+	      String manifestPath = AndroidPathManager.getManifestPath();
+	      if (manifestPath == null || manifestPath.length() == 0) {
+	        logger.severe("Could not determine the path of the AndroidManifest.xml file.");
+	        return;
+	      }
 
-      // Parse the AndroidManifest.xml file
-      parser = AndroidManifestParser.getInstance();
-      try {
-        parser.parseFile(manifestPath);
-        packageInfo = parser.getPackageInfo();
-      } catch (Exception e) {
-        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
-        packageInfo = null;
-      }
-    }
-    // If we have reached this point the package has been parsed and we need to populate the PackageManager
-    // model object
-    if (packageInfo != null) {
-      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
-      if (packageInfo != null && AndroidObjectConverter.finished) {
-        env.setReferenceField(robj, "packageInfo", packageRef);
-      }
-    }
+	      // Parse the AndroidManifest.xml file
+	      parser = AndroidManifestParser.getInstance();
+	      try {
+	        parser.parseFile(manifestPath);
+	        packageInfo = parser.getPackageInfo();
+	      } catch (Exception e) {
+	        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
+	        packageInfo = null;
+	      }
+	    }
+	    // If we have reached this point the package has been parsed and we need to populate the PackageManager
+	    // model object
+	    if (packageInfo != null) {
+	      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
+	      if (packageInfo != null && AndroidObjectConverter.finished) {
+	        env.setReferenceField(robj, "packageInfo", packageRef);
+	      }
+	    }
 
-  }
+	  }
 
-  /**
-   * Intercept constructor used during testing. The constructor is provided with
-   * an XML string that contains
-   * the contents of the AndroidManifestFile.
-   * 
-   * @param env
-   * @param robj
-   * @param ref
-   *          a String containing the AndroidManifest contents as a XML string.
-   * @throws Exception
-   */
-  public static void $init__Ljava_lang_String_2__V(MJIEnv env, int robj, int ref) {
-    ThreadInfo ti = env.getThreadInfo();
-    if (!ti.hasReturnedFromDirectCall("[clinit]")) {
-      parser = AndroidManifestParser.getInstance();
-      try {
-        parser.parseStream(new ByteArrayInputStream(env.getStringObject(ref).getBytes("UTF-8")));
-        packageInfo = parser.getPackageInfo();
-      } catch (Exception e) {
-        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
-        packageInfo = null;
-      }
-    }
-    // If we have reached this point the package has been parsed and we need to populate the PackagManager on
-    // the JPF side
-    if (packageInfo != null) {
-      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
-      if (packageInfo != null && AndroidObjectConverter.finished) {
-        env.setReferenceField(robj, "packageInfo", packageRef);
-      }
-    }
-  }
+
+  //  /**
+  //   * Intercept constructor used during testing. The constructor is provided with
+  //   * an XML string that contains
+  //   * the contents of the AndroidManifestFile.
+  //   * 
+  //   * @param env
+  //   * @param robj
+  //   * @param ref
+  //   *          a String containing the AndroidManifest contents as a XML string.
+  //   * @throws Exception
+  //   */
+  //  public static void $init__Ljava_lang_String_2__V(MJIEnv env, int robj, int ref) {
+  //    ThreadInfo ti = env.getThreadInfo();
+  //    if (!ti.hasReturnedFromDirectCall("[clinit]")) {
+  //      parser = AndroidManifestParser.getInstance();
+  //      try {
+  //        parser.parseStream(new ByteArrayInputStream(env.getStringObject(ref).getBytes("UTF-8")));
+  //        packageInfo = parser.getPackageInfo();
+  //      } catch (Exception e) {
+  //        logger.severe("Could not parse AndroidManifest.xml file:" + e.getMessage());
+  //        packageInfo = null;
+  //      }
+  //    }
+  //    // If we have reached this point the package has been parsed and we need to populate the PackagManager on
+  //    // the JPF side
+  //    if (packageInfo != null) {
+  //      int packageRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, packageInfo);
+  //      if (packageInfo != null && AndroidObjectConverter.finished) {
+  //        env.setReferenceField(robj, "packageInfo", packageRef);
+  //      }
+  //    }
+  //  }
 
   public static String getPackageName() {
     return packageInfo.packageName;
@@ -129,7 +133,8 @@ public class JPF_android_content_pm_PackageManager {
    *          The string name of the component
    * @return the array of IntentFilters.
    */
-  public static int getFilters(MJIEnv env, int objRef, int componentNameRef) {
+  @MJI
+  public int getFilters(MJIEnv env, int objRef, int componentNameRef) {
     ThreadInfo ti = env.getThreadInfo();
 
     int filtersRef = -1;
@@ -141,7 +146,7 @@ public class JPF_android_content_pm_PackageManager {
     if (filters == null)
       return -1;
 
-    filtersRef = AndroidObjectConverter.JPFObjectFromJavaObject(env, filters);
+    filtersRef = ObjectConverter.JPFObjectFromJavaObject(env, filters);
 
     return filtersRef;
 

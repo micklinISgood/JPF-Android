@@ -71,6 +71,7 @@ public class BatteryService {
     mLastPlugType = BatteryManager.BATTERY_PLUGGED_AC;
     mPlugType = BATTERY_PLUGGED_NONE;
     init0();
+    sendIntent(); 
     Log.i(TAG, "Ready!");
 
   }

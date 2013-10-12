@@ -1,7 +1,6 @@
 package gov.nasa.jpf.test.mc.basic;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.jvm.MJIEnv;
 import gov.nasa.jpf.util.JPFLogger;
 import gov.nasa.jpf.util.StateExtensionClient;
 import gov.nasa.jpf.util.StateExtensionListener;
@@ -9,6 +8,7 @@ import gov.nasa.jpf.util.script.AndroidSequenceIntpr;
 import gov.nasa.jpf.util.script.ESParserE;
 import gov.nasa.jpf.util.script.Script;
 import gov.nasa.jpf.util.script.ScriptElement;
+import gov.nasa.jpf.vm.MJIEnv;
 
 import java.io.StringReader;
 

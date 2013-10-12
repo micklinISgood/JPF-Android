@@ -1,6 +1,8 @@
 package gov.nasa.jpf.android;
 
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.StringReader;
 import java.util.HashMap;
@@ -13,14 +15,15 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.select.Select;
 
-public class JPF_android_database_sqlite_SQLiteDatabase {
+public class JPF_android_database_sqlite_SQLiteDatabase  extends NativePeer {
 
   private static Map<String, List<ColumnDefinition>> tables = new HashMap<String, List<ColumnDefinition>>();
 
   private static CCJSqlParserManager pm = new CCJSqlParserManager();
   private static net.sf.jsqlparser.statement.Statement statement = null;
 
-  public static int parseSQL(MJIEnv env,int objectRef, int SQL) {
+  @MJI
+  public int parseSQL(MJIEnv env,int objectRef, int SQL) {
 
     try {
       statement = pm.parse(new StringReader(env.getStringObject(SQL)));
@@ -55,7 +58,8 @@ public class JPF_android_database_sqlite_SQLiteDatabase {
     return (statement instanceof Select) ? 1 : 2;
   }
 
-  public static int getColumns(MJIEnv env, int objectRef, int tablename) {
+  @MJI
+  public int getColumns(MJIEnv env, int objectRef, int tablename) {
     String tableName = env.getStringObject(tablename);
     List<ColumnDefinition> columns = tables.get(tableName);
     String[] arrColumns = new String[columns.size()];

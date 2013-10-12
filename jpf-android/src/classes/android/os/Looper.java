@@ -15,7 +15,7 @@ public class Looper {
   private static final boolean DEBUG_LOOPER = false;
 
   // sThreadLocal.get() will return null unless you've called prepare().
-  static final ThreadLocal<Looper> sThreadLocal = new ThreadLocal<Looper>();
+ // static final ThreadLocal<Looper> sThreadLocal = new ThreadLocal<Looper>();
 
   //List<Handler> handlers; Keep reference to all handlers
   final MessageQueue mQueue;
@@ -31,12 +31,12 @@ public class Looper {
    * the loop. Be sure to call {@link #loop()} after calling this method, and
    * end it by calling {@link #quit()}.
    */
-  public static void prepare() {
-    if (sThreadLocal.get() != null) {
-      throw new RuntimeException("Only one Looper may be created per thread");
-    }
-    sThreadLocal.set(new Looper());
-  }
+//  public static void prepare() {
+//    //if (sThreadLocal.get() == null) {
+//      sThreadLocal.set();
+//    //}
+//
+//  }
 
   /**
    * Initialize the current thread as a looper, marking it as an application's
@@ -46,9 +46,9 @@ public class Looper {
    */
   public static void prepareMainLooper() {
     Log.i(TAG, "Preparing Looper");
-    prepare();
-    setMainLooper(myLooper());
-    myLooper().mQueue.mQuitAllowed = false;
+   // prepare();
+    setMainLooper(new Looper());
+    mMainLooper.mQueue.mQuitAllowed = false;
   }
 
   private synchronized static void setMainLooper(Looper looper) {
@@ -70,7 +70,7 @@ public class Looper {
   public static void loop() {
     Log.i(TAG, "Starting Looper");
 
-    Looper me = myLooper();
+    Looper me = mMainLooper;
     if (me == null) {
       throw new RuntimeException("No Looper; Looper.prepare() wasn't called on this thread.");
     }
@@ -115,9 +115,9 @@ public class Looper {
    * Return the Looper object associated with the current thread. Returns null
    * if the calling thread is not associated with a Looper.
    */
-  public static Looper myLooper() {
-    return sThreadLocal.get();
-  }
+//  public static Looper myLooper() {
+//    return m.get();
+//  }
 
   /**
    * Control logging of messages as they are processed by this Looper. If
@@ -139,14 +139,14 @@ public class Looper {
    * NullPointerException will be thrown.
    */
   public static MessageQueue myQueue() {
-    return myLooper().mQueue;
+    return mMainLooper.mQueue;
   }
 
   private Looper() {
     mQueue = new MessageQueue();
     mRun = true;
     mThread = Thread.currentThread();
-    
+
     if (DEBUG_LOOPER)
       mLogging = new LogPrinter(Log.DEBUG, TAG);
 

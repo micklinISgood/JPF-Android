@@ -1,7 +1,5 @@
 package android.widget;
 
-import java.util.Arrays;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;

@@ -1,9 +1,8 @@
 package android.os;
 
-import gov.nasa.jpf.annotation.FilterField;
-
 import java.util.LinkedList;
 
+import android.app.ActivityManagerNative;
 import android.util.Log;
 
 /**
@@ -27,20 +26,17 @@ public class MessageQueue {
   private boolean mQuiting;
   boolean mQuitAllowed = true;
 
-  //the current event being handled
-  private static int eventID = 0;
-  private static int pathID = 0;
+  private static int messageCount = 0;
 
-  @FilterField
-  private int messageCount = 0;
-
-  public native String processScriptAction(int count);
+  //the current event & path being handled
+  protected static int currentEvent = 0;
+  protected static String currentPath = "0";
 
   public MessageQueue() {
-    init();
+    init0();
   }
 
-  native void init();
+  private native void init0();
 
   /**
    * Return the next message in the message queue. If the queue is empty new
@@ -51,48 +47,67 @@ public class MessageQueue {
    */
   final protected Message next() {
     Message m = null;
-    String check = "";
 
     for (;;) {
-      if ((m = nextNonBlocked()) != null) {
-        // there are messages in the queue process them
 
-        pathID = m.getPathID();
-        eventID = m.getEventID();
-        Log.i(TAG, "******************************* MSG: " + messageCount + " eventID:" + eventID
-            + " pathID:" + pathID);
-        messageCount = messageCount + 1;
+      if ((m = nextNonBlocked()) != null) {
+        // if there is a message in the queue return it
         return m;
 
-      } else if (processScriptAction(messageCount) == null) {
-        // there are no actions in the script
-
-        if (!isRunningThreads()) {
-          // there are no more active threads
-
-          Log.i(TAG, "STOPPING with MSG:" + messageCount);
-          return new Message();
-        }
-        // there are still running threads, wait for them to finish. When they
-        // put msg in queue they will notify the main thread, otherwise if they
-        // end, we will notify the main thread.
-        try {
-          Thread.sleep(100);
-//          System.out
-//          .println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Main thread is waiting");
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-//        System.out
-//            .println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Main thread has been awoken");
       } else {
-        Log.i(TAG, "******************************* MSG: " + messageCount + " eventID:" + eventID
-            + " pathID:" + pathID);
+        // if there is a script action, process it.
+        String action = getNextScriptAction(messageCount);
+        processAction(action);
       }
     }
   }
 
-  private native boolean isRunningThreads();
+  public native String getNextScriptAction(int count);
+
+  public void processAction(String action) {
+
+    if (action == null) {
+      // there are no actions in the script
+
+      if (!hasOtherRunningThreads()) {
+        // there are no more running threads
+
+        Log.i(TAG, "Enqueing stop Message. MSG #:" + messageCount);
+        enqueueStopMessage();
+
+      } else {
+
+        // there are still other running threads, wait for them to finish. When they
+        // put msg in queue they will notify the main thread, otherwise when they 
+        // terminate the main thread will be waked.
+
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
+
+      }// end, we will notify the main thread.
+
+    } else {
+      // get ready a msg will be processed now
+
+      //      // event will be rescheduled
+      //      currentEvent = m.getEventID();
+      //      currentPath = m.getPathID();
+
+      messageCount = messageCount + 1;
+
+    }
+
+  }
+
+  private void enqueueStopMessage() {
+    ActivityManagerNative.getDefault().stopApplication();
+    mQuiting = true;
+    enqueueMessage(new Message());
+  }
+
+  private native boolean hasOtherRunningThreads();
 
   /**
    * Without blocking returns the next message in the queue or null if the queue
@@ -104,23 +119,43 @@ public class MessageQueue {
     if (mMessages.isEmpty()) {
       return null;
     } else {
-      return mMessages.removeFirst();
+
+      Message m = mMessages.removeFirst();
+      currentEvent = m.getEventID();
+      currentPath = m.getPathID();
+
+      Log.i(TAG, "*************** MSG #: " + messageCount + " eventID:" + currentEvent + " pathID:"
+          + currentPath);
+
+      messageCount++;
+      return m;
     }
   }
 
   final synchronized boolean enqueueMessage(Message msg) {
+    String path = getCurrentPath(Thread.currentThread());
+    int event = getCurrentEvent(Thread.currentThread());
+
+    msg.setEventID(event);
+    msg.setPathID(path);
+
     boolean enq = mMessages.add(msg);
     return enq;
   }
 
-  final synchronized boolean enqueueMessage(Message msg, long when) {
-    if (when <= 0) {
-      mMessages.addFirst(msg);
-      return true;
-    }
+  private native String getCurrentPath(Thread thread);
 
-    this.notify();
-    return mMessages.add(msg);
+  private native int getCurrentEvent(Thread thread);
+
+  final synchronized boolean enqueueMessage(Message msg, long when) {
+    String path = getCurrentPath(Thread.currentThread());
+    int event = getCurrentEvent(Thread.currentThread());
+
+    msg.setEventID(event);
+    msg.setPathID(path);
+
+    boolean enq = mMessages.add(msg);
+    return enq;
   }
 
   final void removeMessages(Handler h, Runnable r, Object object) {

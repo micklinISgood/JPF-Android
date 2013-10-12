@@ -28,43 +28,43 @@ public class ApplicationInfo extends PackageItemInfo {
    * Default task affinity of all activities in this application. See {@link ActivityInfo#taskAffinity} for
    * more information. This comes from the "taskAffinity" attribute.
    */
-  public String taskAffinity;
+  public String taskAffinity = "";
 
   /**
    * Optional name of a permission required to be able to access this application's components. From the
    * "permission" attribute.
    */
-  public String permission;
+  public String permission = "";
 
   /**
    * The name of the process this application should run in. From the "process" attribute or, if not set, the
    * same as <var>packageName</var>.
    */
-  public String processName;
+  public String processName ="";
 
   /**
    * Class implementing the Application object. From the "class" attribute.
    */
-  public String className;
+  public String className = "";
 
   /**
    * A style resource identifier (in the package's resources) of the description of an application. From the
    * "description" attribute or, if not set, 0.
    */
-  public int descriptionRes;
+  public int descriptionRes =0;
 
   /**
    * A style resource identifier (in the package's resources) of the default visual theme of the application.
    * From the "theme" attribute or, if not set, 0.
    */
-  public int theme;
+  public int theme = 0;
 
   /**
    * Class implementing the Application's manage space functionality. From the "manageSpaceActivity"
    * attribute. This is an optional attribute and will be null if applications don't specify it in their
    * manifest
    */
-  public String manageSpaceActivityName;
+  public String manageSpaceActivityName = "";
 
   /**
    * Class implementing the Application's backup functionality. From the "backupAgent" attribute. This is an
@@ -73,7 +73,7 @@ public class ApplicationInfo extends PackageItemInfo {
    * <p>
    * If android:allowBackup is set to false, this attribute is ignored.
    */
-  public String backupAgentName;
+  public String backupAgentName = "";
 
   /**
    * The default extra UI options for activities in this application. Set from the
@@ -107,13 +107,13 @@ public class ApplicationInfo extends PackageItemInfo {
   /**
    * Full path to the location of this package.
    */
-  public String sourceDir;
+  public String sourceDir = "";
 
   /**
    * Full path to the location of the publicly available parts of this package (i.e. the primary resource
    * package and manifest). For non-forward-locked apps this will be the same as {@link #sourceDir).
    */
-  public String publicSourceDir;
+  public String publicSourceDir = "";
 
   /**
    * Full paths to the locations of extra resource packages this application uses. This field is only used if
@@ -121,30 +121,30 @@ public class ApplicationInfo extends PackageItemInfo {
    * 
    * {@hide}
    */
-  public String[] resourceDirs;
+  public String[] resourceDirs =new String[0];
 
   /**
    * Paths to all shared libraries this application is linked against. This field is only set if the
    * {@link PackageManager#GET_SHARED_LIBRARY_FILES PackageManager.GET_SHARED_LIBRARY_FILES} flag was used
    * when retrieving the structure.
    */
-  public String[] sharedLibraryFiles;
+  public String[] sharedLibraryFiles=new String[0];
 
   /**
    * Full path to a directory assigned to the package for its persistent data.
    */
-  public String dataDir;
+  public String dataDir ="";
 
   /**
    * Full path to the directory where native JNI libraries are stored.
    */
-  public String nativeLibraryDir;
+  public String nativeLibraryDir = "";
 
   /**
    * The kernel user-ID that has been assigned to this application; currently this is not a unique ID
    * (multiple applications can have the same uid).
    */
-  public int uid;
+  public int uid = 0;
 
   /**
    * The minimum SDK version this application targets. It may run on earlier versions, but it knows how to
@@ -153,7 +153,7 @@ public class ApplicationInfo extends PackageItemInfo {
    * targeting that. You should compare that this number is >= the SDK version number at which your behavior
    * was introduced.
    */
-  public int targetSdkVersion;
+  public int targetSdkVersion =0;
 
   /**
    * When false, indicates that all components within this application are considered disabled, regardless of

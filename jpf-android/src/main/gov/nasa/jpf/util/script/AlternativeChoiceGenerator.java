@@ -19,8 +19,8 @@
 
 package gov.nasa.jpf.util.script;
 
-import gov.nasa.jpf.jvm.ChoiceGeneratorBase;
-import gov.nasa.jpf.jvm.IntChoiceGenerator;
+import gov.nasa.jpf.vm.ChoiceGeneratorBase;
+import gov.nasa.jpf.vm.IntChoiceGenerator;
 
 /**
  * Choice Generator that enumerates an interval of int values. Pretty simplistic implementation for now, but

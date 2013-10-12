@@ -3,8 +3,6 @@ package gov.nasa.jpf.android.checkpoint;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.media.j3d.Link;
-
 /**
  * Represents a list of checkpoints that has to be reached/may not be reached in
  * the application.

@@ -37,8 +37,11 @@ public class ServiceManager {
 
   private Context mSystemContext;
 
+  static int count = 0;
+
   public ServiceManager() {
-    Log.i(TAG, "Starting up the Android ServiceManager...");
+    Log.i(TAG, "Starting up the Android ServiceManager..." + count);
+    count++;
     init0();
 
     SYSTEM_SERVICE_MAP = new HashMap<String, Object>();
@@ -65,7 +68,7 @@ public class ServiceManager {
     batteryService = new BatteryService(mSystemContext, null);
   }
 
-  public static void main(String[] args) {
+  public static void start() {
     ServiceManager s = new ServiceManager();
     ActivityThread.main(null);
   }
@@ -79,8 +82,7 @@ public class ServiceManager {
   public Context createSystemContext() {
     if (mSystemContext == null) {
       ContextImpl context = ContextImpl.createSystemContext(null);
-      LoadedApk info = new LoadedApk(null, "android", context, null,
-          null);
+      LoadedApk info = new LoadedApk(null, "android", context, null, null);
       //      context.init(info, null, null);
       //      context.getResources().updateConfiguration(getConfiguration(),
       //          getDisplayMetricsLocked(CompatibilityInfo.DEFAULT_COMPATIBILITY_INFO, false));

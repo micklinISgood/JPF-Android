@@ -19,12 +19,12 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.android.JPF_android_view_WindowManager.ViewEntry;
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.annotation.MJI;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -34,11 +34,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class JPF_android_content_res_Resources {
+public class JPF_android_content_res_Resources  extends NativePeer {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
   private static class ResourceInfo {
@@ -75,7 +74,8 @@ public class JPF_android_content_res_Resources {
    * @param env
    * @param cref
    */
-  public static void init0(MJIEnv env, int robj) {
+  @MJI
+  public void init0(MJIEnv env, int robj) {
 
     // Lookup the path to the R.java file
     if (rPath == null) {
@@ -205,7 +205,8 @@ public class JPF_android_content_res_Resources {
    * @param id
    * @return "" if no such string entry exists
    */
-  public static int getString__I__Ljava_lang_String_2(MJIEnv env, int objref, int id) {
+  @MJI
+  public int getString__I__Ljava_lang_String_2(MJIEnv env, int objref, int id) {
     return env.newString(stringsMap.get(id).value);
   }
   

@@ -1,11 +1,11 @@
 //
 // Copyright (C) 2006 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
+// (NASA). All Rights Reserved.
 //
 // This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
+// (NOSA), version 1.3. The NOSA has been approved by the Open Source
+// Initiative. See the file NOSA-1.3-JPF at the top of the distribution
 // directory tree for the complete NOSA document.
 //
 // THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
@@ -20,22 +20,24 @@
 package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.JPFException;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.FieldInfo;
-import gov.nasa.jpf.jvm.Fields;
-import gov.nasa.jpf.jvm.MJIEnv;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ClinitRequired;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.Fields;
+import gov.nasa.jpf.vm.MJIEnv;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
 /**
  * Object transformer from Java objects to JPF objects
- *
+ * 
  * @author Ivan Mushketik
- *
- * Modified for Android on March 2013. We added callbacks to make sure static fields in a object is initiated.
- * @author Heila van der Merwe 
+ * 
+ *         Modified for Android on March 2013. We added callbacks to make sure
+ *         static fields in a object is initiated.
+ * @author Heila van der Merwe
  */
 public class AndroidObjectConverter {
   public static boolean finished = true;
@@ -50,52 +52,55 @@ public class AndroidObjectConverter {
    * @return reference to new JPF object
    */
   public static int JPFObjectFromJavaObject(MJIEnv env, Object javaObject) {
+    Class<?> javaClass = javaObject.getClass();
+    String typeName = javaClass.getName();
+    ClassInfo ci = null;
     try {
-      Class<?> javaClass = javaObject.getClass();
-      String typeName = javaClass.getName();
-      ClassInfo ci = ClassInfo.getResolvedClassInfo(typeName);
-      if (env.requiresClinitExecution(ci)) {
-        env.repeatInvocation();
-        finished = false;
-        return -1;
-      } else {
-        finished = true;
-        int newObjRef = env.newObject(ci);
-        ElementInfo newObjEI = env.getElementInfo(newObjRef);
-
-        while (ci != null) {
-          for (FieldInfo fi : ci.getDeclaredInstanceFields()) {
-            if (!fi.isReference()) {
-              setJPFPrimitive(newObjEI, fi, javaObject);
-            } else {
-              Field arrField = getField(fi.getName(), javaClass);
-              arrField.setAccessible(true);
-              Object fieldJavaObj = arrField.get(javaObject);
-              if (fieldJavaObj != null) {
-                int fieldJPFObjRef;
-                if (isArrayField(fi)) {
-                  fieldJPFObjRef = getJPFArrayRef(env, fieldJavaObj);
-                } else {
-                  fieldJPFObjRef = JPFObjectFromJavaObject(env, fieldJavaObj);
-                }
-
-                newObjEI.setReferenceField(fi, fieldJPFObjRef);
-              }
-            }
-          }
-
-          ci = ci.getSuperClass();
-        }
-
-        return newObjRef;
-      }
-    } catch (Exception ex) {
-      throw new JPFException(ex);
+      ci = ClassInfo.getInitializedClassInfo(typeName, env.getThreadInfo());
+    } catch (ClinitRequired e) {
+      env.repeatInvocation();
+      finished = false;
+      return -1;
     }
-  }
 
-  private Object createObject(String className) {
-    return null;
+    finished = true;
+    int newObjRef = env.newObject(ci);
+    ElementInfo newObjEI = env.getModifiableElementInfo(newObjRef);
+
+    while (ci != null) {
+      for (FieldInfo fi : ci.getDeclaredInstanceFields()) {
+        if (!fi.isReference()) {
+          setJPFPrimitive(newObjEI, fi, javaObject);
+        } else {
+          try {
+            Field arrField = getField(fi.getName(), javaClass);
+            arrField.setAccessible(true);
+            Object fieldJavaObj = arrField.get(javaObject);
+
+            int fieldJPFObjRef;
+            if (fieldJavaObj == null) {
+              fieldJPFObjRef = -1;
+            } else if (isArrayField(fi)) {
+              fieldJPFObjRef = getJPFArrayRef(env, fieldJavaObj);
+            } else {
+              fieldJPFObjRef = JPFObjectFromJavaObject(env, fieldJavaObj);
+            }
+
+            newObjEI.setReferenceField(fi, fieldJPFObjRef);
+
+          } catch (NoSuchFieldException nsfx) {
+            throw new JPFException("JPF object creation failed, no such field: " + fi.getFullName(), nsfx);
+          } catch (IllegalAccessException iax) {
+            throw new JPFException("JPF object creation failed, illegal access: " + fi.getFullName(), iax);
+          }
+        }
+      }
+
+      ci = ci.getSuperClass();
+    }
+
+    return newObjRef;
+
   }
 
   private static void setJPFPrimitive(ElementInfo newObjEI, FieldInfo fi, Object javaObject) {
@@ -209,34 +214,35 @@ public class AndroidObjectConverter {
         doubleArr[i] = Array.getDouble(javaArr, i);
       }
     } else {
-      ClassInfo ci = ClassInfo.getResolvedClassInfo(arrayElementClass.getCanonicalName());
-      if (env.requiresClinitExecution(ci)) {
+      ClassInfo ci = null;
+      try {
+        ci = ClassInfo.getInitializedClassInfo(arrayElementClass.getCanonicalName(), env.getThreadInfo());
+      } catch (ClinitRequired e) {
         env.repeatInvocation();
         finished = false;
         return -1;
-      } else {
-        finished = true;
-        arrRef = env.newObjectArray(arrayElementClass.getCanonicalName(), javaArrLength);
-        ElementInfo arrayEI = env.getElementInfo(arrRef);
+      }
+      finished = true;
+      arrRef = env.newObjectArray(arrayElementClass.getCanonicalName(), javaArrLength);
+      ElementInfo arrayEI = env.getElementInfo(arrRef);
 
-        Fields fields = arrayEI.getFields();
+      Fields fields = arrayEI.getFields();
 
-        for (int i = 0; i < javaArrLength; i++) {
-          int newArrElRef;
-          Object javaArrEl = Array.get(javaArr, i);
+      for (int i = 0; i < javaArrLength; i++) {
+        int newArrElRef;
+        Object javaArrEl = Array.get(javaArr, i);
 
-          if (javaArrEl != null) {
-            if (javaArrEl.getClass().isArray()) {
-              newArrElRef = getJPFArrayRef(env, javaArrEl);
-            } else {
-              newArrElRef = JPFObjectFromJavaObject(env, javaArrEl);
-            }
+        if (javaArrEl != null) {
+          if (javaArrEl.getClass().isArray()) {
+            newArrElRef = getJPFArrayRef(env, javaArrEl);
           } else {
-            newArrElRef = MJIEnv.NULL;
+            newArrElRef = JPFObjectFromJavaObject(env, javaArrEl);
           }
-
-          fields.setReferenceValue(i, newArrElRef);
+        } else {
+          newArrElRef = MJIEnv.NULL;
         }
+
+        fields.setReferenceValue(i, newArrElRef);
       }
     }
     return arrRef;

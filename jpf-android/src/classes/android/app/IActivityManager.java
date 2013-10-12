@@ -152,4 +152,9 @@ public class IActivityManager {
     return null;
   }
 
+  public void stopApplication() {
+    am.performStopApplication();
+    
+  }
+
 }

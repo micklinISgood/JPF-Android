@@ -246,30 +246,34 @@ public class ActivityManagerService {
    * @param resultData
    */
   public void performFinishActivity(IBinder token, int resultCode, Intent resultData) {
+
     ActivityRecord current = null;
     if (!activityStack.isEmpty()) {
       current = activityStack.pop();
       Log.i(TAG, "Scheduling finish of Activity \"" + current.stringName + "\"");
 
-      if (current != null && token != null && current != token) {
+      if (current == null || token == null || current != token) {
         throw new UnsupportedOperationException(
             "jpf-android does not support the finishing of a actvity that is not currently the active activity");
       }
-    }
 
-    thread.schedulePauseActivity(token, true, true, 0);
-    if (current.requestCode != -1) {
-      ResultInfo res = new ResultInfo(current.stringName, current.requestCode, resultCode, resultData);
-      ArrayList<ResultInfo> resultInfos = new ArrayList<ResultInfo>(1);
-      resultInfos.add(res);
-      thread.scheduleSendResult(activityStack.peek(), resultInfos);
+      thread.schedulePauseActivity(token, true, true, 0);
+
+      if (current.requestCode != -1) {
+        ResultInfo res = new ResultInfo(current.stringName, current.requestCode, resultCode, resultData);
+        ArrayList<ResultInfo> resultInfos = new ArrayList<ResultInfo>(1);
+        resultInfos.add(res);
+        thread.scheduleSendResult(activityStack.peek(), resultInfos);
+      }
+      if (activityStack.size() != 0) {
+        thread.scheduleWindowVisibility(activityStack.peek(), true); // restarts
+        // activity
+        thread.scheduleResumeActivity(activityStack.peek(), true); // resumes activity
+      } else
+
+        thread.scheduleDestroyActivity(token, true, 0);
+      // TODO stop all binds to services
     }
-    thread.scheduleWindowVisibility(activityStack.peek(), true); // restarts
-    // activity
-    thread.scheduleResumeActivity(activityStack.peek(), true); // resumes
-    // activity
-    thread.scheduleDestroyActivity(token, true, 0);
-    // TODO stop all binds to services
 
   }
 
@@ -1490,6 +1494,15 @@ public class ActivityManagerService {
     int N = rl.size();
     for (int i = 0; i < N; i++) {
       mReceiverResolver.removeFilter(rl.get(i));
+    }
+  }
+
+  public void performStopApplication() {
+    ActivityRecord current = null;
+    while (!activityStack.isEmpty()) {
+      current = activityStack.peek();
+      performFinishActivity((IBinder) current, -1, null);
+
     }
   }
 }

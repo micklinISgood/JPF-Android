@@ -1,10 +1,10 @@
 package gov.nasa.jpf.test.android.checkpoint;
 
-import java.util.ArrayList;
-
 import gov.nasa.jpf.android.checkpoint.Checklist;
 import gov.nasa.jpf.android.checkpoint.Checkpoint;
 import gov.nasa.jpf.util.test.TestJPF;
+
+import java.util.ArrayList;
 
 import org.junit.Test;
 

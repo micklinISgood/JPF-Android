@@ -1,23 +1,37 @@
 package gov.nasa.jpf.android.checkpoint;
 
-
 public class Path {
-  protected int pathID;
+  protected String pathID;
   protected int eventID;
-  public Path(int pathID, int eventID) {
+
+  public Path(int eventID,String pathID) {
     this.pathID = pathID;
     this.eventID = eventID;
   }
-  
+ 
+
+  @Override
+  public Object clone() {
+    return new Path(eventID,new String(pathID));
+  }
+
+  @Override
+  public String toString() {
+    return "Path [ eventID=" + eventID +", pathID=" + pathID + "]";
+  }
+
+ 
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + eventID;
-    result = prime * result + pathID;
+    result = prime * result + ((pathID == null) ? 0 : pathID.hashCode());
     return result;
   }
-  
+
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj)
@@ -29,28 +43,24 @@ public class Path {
     Path other = (Path) obj;
     if (eventID != other.eventID)
       return false;
-    if (pathID != other.pathID)
+    if (pathID == null) {
+      if (other.pathID != null)
+        return false;
+    } else if (!pathID.equals(other.pathID))
       return false;
     return true;
   }
-  
-  @Override
-  public Object clone() {
-    return new Path(pathID, eventID);
-  }
 
-  @Override
-  public String toString() {
-    return "Path [pathID=" + pathID + ", eventID=" + eventID + "]";
-  }
 
-  public int getPathID() {
+  public String getPathID() {
     return pathID;
   }
 
-  public void setPathID(int pathID) {
+
+  public void setPathID(String pathID) {
     this.pathID = pathID;
   }
+
 
   public int getEventID() {
     return eventID;
@@ -59,6 +69,5 @@ public class Path {
   public void setEventID(int eventID) {
     this.eventID = eventID;
   }
-  
-  
+
 }

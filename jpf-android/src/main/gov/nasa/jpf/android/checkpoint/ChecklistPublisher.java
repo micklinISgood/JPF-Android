@@ -2,12 +2,12 @@ package gov.nasa.jpf.android.checkpoint;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.ListenerAdapter;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.ThreadList;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.search.Search;
 import gov.nasa.jpf.util.script.AndroidScriptEnvironment;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.ThreadList;
 
 import java.io.PrintWriter;
 import java.util.LinkedList;
@@ -78,9 +78,9 @@ public class ChecklistPublisher extends ListenerAdapter implements PublisherExte
     ChecklistInstance cli = violation.checklist;
     CheckpointInstance ins = cli.checkpointsMatched[cli.getIndex()];
     Checkpoint cp = cl.getCheckpoint(cli.getIndex());
-    s.append("\nFailed because checkpoint reached (" + ins.name + ", tn=" + ins.threadAlias
+    s.append("\nFailed because checkpoint reached (" + ins.getName() + ", tn=" + ins.getThreadAlias()
         + ") did not match checkpoint (" + ((cp.isNegative()) ? "!" : "") + cp.getName() + ", tn="
-        + ins.threadName + ")");
+        + ins.getThreadName() + ")");
     return s.toString();
   }
 
@@ -209,7 +209,7 @@ public class ChecklistPublisher extends ListenerAdapter implements PublisherExte
     public String getChecklist() {
       
       for (int i = checklist.getIndex() + 1; i < checklist.getChecklist().size(); i++) {
-        if (!checklist.getChecklist().getCheckpoint(i).isNegative()) {
+        if (checklist.getChecklist().getCheckpoint(i).isNegative()&&checklist.checkpointsMatched[i]!=null) {
           checklist.setIndex(i);
           break;
         }
@@ -225,7 +225,7 @@ public class ChecklistPublisher extends ListenerAdapter implements PublisherExte
         }
 
         sb.append(" (" + ((c.isNegative()) ? "!" : "") + c.getName() + ", tn= "
-            + ((matched[i] != null) ? matched[i].threadName : "?") + ")");
+            + ((matched[i] != null) ? matched[i].getThreadName() : "?") + ")");
         if (this.checklist.getChecklist().getConditionIndex() == i) {
           sb.append("=>");
         } else {
@@ -266,7 +266,7 @@ public class ChecklistPublisher extends ListenerAdapter implements PublisherExte
         }
 
         sb.append(" (" + ((c.isNegative()) ? "!" : "") + c.getName() + ", tn= "
-            + ((matched[i] != null) ? matched[i].threadName : "?") + ")");
+            + ((matched[i] != null) ? matched[i].getThreadName() : "?") + ")");
         if (this.checklist.getChecklist().getConditionIndex() == i) {
           sb.append("=>");
         } else {

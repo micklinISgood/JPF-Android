@@ -2,18 +2,18 @@ package gov.nasa.jpf.android.checkpoint;
 
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.ListenerAdapter;
-import gov.nasa.jpf.jvm.AnnotationInfo;
-import gov.nasa.jpf.jvm.JVM;
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.StaticElementInfo;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.android.checkpoint.CheckpointProcessor;
+import gov.nasa.jpf.vm.AnnotationInfo;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ClassLoaderInfo;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.VM;
 
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * When a method is methodExited we check if it is a Checkpoint. If
+ * When a method is methodEntered we check if it is a Checkpoint. If
  * it is, we notify the CheckpointManager that checks if this is a valid method
  * call according to the registered CheckLists.
  * 
@@ -36,8 +36,7 @@ public class CheckpointListener extends ListenerAdapter {
   }
 
   @Override
-  public void methodEntered(JVM vm) {
-    MethodInfo methodInfo = vm.getCurrentThread().getMethod();
+  public void methodEntered(VM vm, ThreadInfo currentThread, MethodInfo methodInfo) {
 
     // check to see if this method has an annotation "Checkpoint"
     AnnotationInfo info = methodInfo.getAnnotation("gov.nasa.jpf.annotation.Checkpoint");
@@ -78,34 +77,44 @@ public class CheckpointListener extends ListenerAdapter {
 
   }
 
-  private CheckpointInstance getCheckpointInstance(JVM vm, String name, String threadAlias) {
+  private CheckpointInstance getCheckpointInstance(VM vm, String name, String threadAlias) {
     ThreadInfo ti = vm.getCurrentThread();
-   
+
     //2. get the actual alias of this thread
     String threadName = ti.getName();
 
     //3. the thread id
     int threadID = ti.getId();
 
-    //4. get the eventID
+    //4. get the eventID & pathID
     int eventID = -1;
-    int pathID = -1;
+    String pathID = null;
 
-    if (ti.getName().equals("main")) {
-      // if this thread is the main thread
-      // get the current event being executed
-      StaticElementInfo mq = vm.getClassReference("android.os.MessageQueue");
-      eventID = mq.getIntField("eventID");
-      pathID = mq.getIntField("pathID");
+    if (threadName.equals("main")) {
+      // if this thread was started by the main thread we must
+      //adopt the main thead's event id from message queue 
+
+      // get current values of this path
+      ClassInfo ci = ClassLoaderInfo.getCurrentResolvedClassInfo("android.os.MessageQueue");
+      eventID = ci.getStaticElementInfo().getIntField("currentEvent");
+      pathID = ci.getStaticElementInfo().getStringField("currentPath");
 
     } else {
-      Path p = ThreadManagerListener.getPathInfo(ti.getId());
-      eventID = p.eventID;
-      pathID = p.pathID;
+      // if this thread was started by other thread
+      // we must adopt the previous thread's eventID
+
+      //get parent thread's Path
+      Path path = ThreadListener.threadToPathMapping.get(threadID);
+
+      // get new pathID
+      pathID = path.getPathID();
+      eventID = path.getEventID();
     }
-    logger.info("CheckPointListener: " + "Checkpoint reached \"" + name + "\" for path(e_ID:" +eventID + " p_id:" + pathID + ")");
-    CheckpointInstance point = new CheckpointInstance(name, threadName, threadAlias, threadID, pathID,
-        eventID);
+
+    logger.info("CheckPointListener: " + "Checkpoint reached \"" + name + "\" for path(e_ID:" + eventID
+        + " p_id:" + pathID + " threadname " + threadName + ")");
+    CheckpointInstance point = new CheckpointInstance(name, threadName, threadAlias, threadID, eventID,
+        pathID);
     return point;
   }
 
