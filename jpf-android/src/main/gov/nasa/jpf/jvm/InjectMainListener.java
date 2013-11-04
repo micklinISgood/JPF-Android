@@ -43,7 +43,6 @@ public class InjectMainListener extends ListenerAdapter {
       }
 
       if (!found) {
-//
         MethodInfo m = generateMethodInfo(loadedClass);
         loadedClass.putDeclaredMethod(m);
         logger.info("main() method injected into class: " + loadedClass.getName());
@@ -63,15 +62,8 @@ public class InjectMainListener extends ListenerAdapter {
    * @return
    */
   protected MethodInfo generateMethodInfo(ClassInfo ci) {
-    MethodInfo m = new MethodInfo(ci,"main", "([Ljava/lang/String;)V",  Modifier.PUBLIC
-        | Modifier.STATIC,1,0);  
-//    JVMCodeBuilder cb = ((JVMClassInfo)ci).getSystemCodeBuilder(null, m);
-//    cb.aconst_null();
-//    cb.invokestatic("android/os/ServiceManager", "main", "([Ljava/lang/String;)V");
-//    cb.return_();
-//    cb.installCode();
-    
-//    
+    MethodInfo m = new MethodInfo(ci, "main", "([Ljava/lang/String;)V", Modifier.PUBLIC | Modifier.STATIC, 1,
+        0);
     Instruction[] i = new Instruction[2];
 
     JVMInstructionFactory insnFactory = JVMInstructionFactory.getFactory();
@@ -80,4 +72,5 @@ public class InjectMainListener extends ListenerAdapter {
     m.setCode(i);
     return m;
   }
+
 }
