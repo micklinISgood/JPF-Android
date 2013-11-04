@@ -4,7 +4,7 @@
 //update succeeds
 startUpdate1: updateButtonPressed, !alreadyRunning, !WifiDown, !batteryLow =>  runUpdate;
 startUpdate2: updateButtonPressed => updateButtonText;
-runUpdate:    runUpdate => setRunning, getUpdates, finishUpdate;
+runUpdate:    runUpdate => setRunning, getUpdate, finishUpdate;
 
 //update does not succeed
 updateWifiDown: updateButtonPressed,checkWifi, WifiDown => !runUpdate;

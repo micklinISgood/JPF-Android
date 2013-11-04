@@ -6,8 +6,11 @@ target= za.android.vdm.rssreader.TimelineActivity
 classpath=${jpf-android}/../Examples/RSSReader/bin/classes/;${classpath}
 sourcepath=${jpf-android}/../Examples/RSSReader/src;
 
-#--- which script to run
-android.script=${config_path}/TestCalculator.es
+#--- android setup
+android.script=${config_path}/TestRSS.es
+android.checklist_enabled = true
+android.checklist = ${config_path}/Checklists.cl
+android.active_checklists =  updateAlreadyRunning, startUpdate1,startUpdate2,runUpdate, getFeedUpdates1,updateWifiDown,updateBatteryLow,
 
 # don't obfuscate things in handlers
 vm.halt_on_throw=java.lang.NullPointerException
@@ -16,13 +19,6 @@ vm.halt_on_throw=java.lang.NullPointerException
 #listener+=.listener.CoverageAnalyzer;
 #coverage.include = za.android.vdm.rssreader.service.RSSFeedUpdaterService
 #coverage.show_methods = true
-
-
-#--- android setup
-android.script=${config_path}/TestRSS.es
-android.checklist_enabled = true
-android.checklist = ${config_path}/Checklists.cl
-android.active_checklists =  updateAlreadyRunning, startUpdate1,startUpdate2,runUpdate, getFeedUpdates1,updateWifiDown,updateBatteryLow,
 
 
 # Turn on Logging
