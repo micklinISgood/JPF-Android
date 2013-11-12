@@ -138,8 +138,8 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
 
             if (list.conditionMatched()) {
               // this list is a violation
-
               checkListPublisher.addViolatingChecklist(list, 1);
+              
               removeList.add(list);
 
             } else if (!list.conditionMatched()) {
@@ -148,7 +148,6 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
               removeList.add(list);
             }
           } else if (match && list.isCompleted()) {
-            checkListPublisher.addCompletedChecklist(list);
             removeList.add(list);
 
           }
@@ -291,8 +290,8 @@ public class ChecklistManager implements ChecklistReporter, CheckpointProcessor,
     CheckpointListener checkPointListener = new CheckpointListener((CheckpointProcessor) this);
     jpf.addListener(checkPointListener);
 
-    jpf.addPublisherExtension(ConsolePublisher.class, checkListPublisher);
-    jpf.addSearchListener(checkListPublisher);
+    jpf.addPropertyListener(checkListPublisher);
+    jpf.addPublisherExtension(ConsolePublisher.class,checkListPublisher);
 
     ThreadListener mgr = new ThreadListener();
     jpf.addListener(mgr);
