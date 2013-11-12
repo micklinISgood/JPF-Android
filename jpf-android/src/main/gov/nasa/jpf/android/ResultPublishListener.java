@@ -8,37 +8,41 @@ import gov.nasa.jpf.util.script.UIAction;
 
 public class ResultPublishListener extends PublisherExtensionAdapter {
 
-	AndroidScriptEnvironment cli;
-	int choices = 0;
-	String out = "";
+  AndroidScriptEnvironment cli;
+  int choices = 0;
+  String out = "";
 
-	public ResultPublishListener(AndroidScriptEnvironment cli) {
-		this.cli = cli;
-	}
+  public ResultPublishListener(AndroidScriptEnvironment cli) {
+    this.cli = cli;
+  }
 
-	public void getActions() {
-		ScriptState ss = cli.getCur();
-		for (UIAction s : ss.getActions()) {
-			try {
-				out += "\n" + s.toString();
-			} catch (Exception e) {
-			}
-		}
-	}
+  public void getActions() {
+    ScriptState ss = cli.getCur();
+    if (ss != null)
+      for (UIAction s : ss.getActions()) {
+        try {
+          out += "\n" + s.toString();
+        } catch (Exception e) {
+        }
+      }
+  }
 
-	@Override
-	public void publishPropertyViolation(Publisher publisher) {
-		getActions();
-		publisher.getOut().println(
-				"====================================================== error input sequence\n"
-						+ out);
-	}
+  @Override
+  public void publishPropertyViolation(Publisher publisher) {
+    getActions();
 
-	@Override
-	public void publishConstraintHit(Publisher publisher) {
-		getActions();
-		publisher.getOut().println(
-				"====================================================== error input sequence\n"
-						+ out);
-	}
+    if (out != "") {
+      publisher.getOut().println(
+          "====================================================== error input sequence\n" + out);
+    }
+  }
+
+  @Override
+  public void publishConstraintHit(Publisher publisher) {
+    getActions();
+    if (out != "") {
+      publisher.getOut().println(
+          "====================================================== error input sequence\n" + out);
+    }
+  }
 }
