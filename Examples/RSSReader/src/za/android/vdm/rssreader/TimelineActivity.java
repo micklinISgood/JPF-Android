@@ -5,7 +5,6 @@ import gov.nasa.jpf.annotation.Checkpoint;
 import java.util.ArrayList;
 
 import za.android.vdm.rssreader.provider.DatabaseInterface;
-import za.android.vdm.rssreader.service.RSSFeedUpdaterService;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -34,12 +33,14 @@ public class TimelineActivity extends Activity {
 	/** The list view displayed in the GUI */
 	ListView listTimeline;
 
-	/** Manages the data displayed in the listview */
+	/** Manages the data displayed in the Listview */
 	TimelineAdapter adapter;
 
+	/** Listens for update notifications */
 	BroadcastReceiver receiver;
-
 	IntentFilter filter = null;
+
+	/** Refresh feed items */
 	Button refreshButton;
 
 	@Override
@@ -53,37 +54,16 @@ public class TimelineActivity extends Activity {
 	protected void onStart() {
 		super.onStart();
 
-		// Find your views
+		// find views
 		listTimeline = (ListView) findViewById(R.id.list_timeline);
-		listTimeline.setOnItemClickListener(new OnItemClickListener() {
 
-			@SuppressLint("NewApi")
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				Cursor c = ((TimelineAdapter) parent.getAdapter()).getCursor();
-				String URL = c.getString(c.getColumnIndex("link"));
-				ArrayList<View> list = new ArrayList<View>();
-				view.findViewsWithText(list, "The Mini HTC One Will Be Calle",
-						View.FIND_VIEWS_WITH_TEXT);
-				System.out.println(list);
-				Intent i = new Intent(getApplicationContext(), RSSWebView.class);
-				i.putExtra("url", URL);
-				startActivity(i);
-
-			}
-		});
-
-		refreshButton = (Button) findViewById(R.id.buttonReload);
+		refreshButton = (Button) findViewById(R.id.buttonRefresh);
 		refreshButton.setOnClickListener(new OnClickListener() {
 
-			@Checkpoint("updateButtonPressed")
+			@Checkpoint("update")
 			@Override
 			public void onClick(View v) {
-				startService(new Intent(
-						TimelineActivity.this,
-						za.android.vdm.rssreader.service.RSSFeedUpdaterService.class));
-				updateButtonText();
+				startService(new Intent( TimelineActivity.this, za.android.vdm.rssreader.service.RSSFeedUpdaterService.class));
 			}
 		});
 
@@ -100,10 +80,6 @@ public class TimelineActivity extends Activity {
 
 	}
 
-	@Checkpoint("updateButtonText")
-	public void updateButtonText() {
-		refreshButton.setText("Updating");
-	}
 
 	@Override
 	protected void onResume() {
@@ -123,6 +99,7 @@ public class TimelineActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 		Log.i(TAG, "onStop");
+		
 		// Unregister the receiver
 		unregisterReceiver(receiver);
 		stopUpdatingService();
@@ -141,11 +118,9 @@ public class TimelineActivity extends Activity {
 
 	class TimelineReceiver extends BroadcastReceiver {
 
-		@Checkpoint("notifyTimelineActivity")
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Log.i("TimelineReceiver",
-					"received broadcast for new status updates");
+			Log.i("TimelineReceiver", "received broadcast for new status updates");
 			Cursor c = loadRSSItemsFromDB();
 			updateListView(c);
 

@@ -111,10 +111,9 @@ public class UpdaterThread extends Thread {
 		}
 		c.close();
 		((RSSFeedUpdaterService) context).finishUpdate();
-		System.out.println("FINSHEDSINISHEDFINISHEDFINISHED");
 	}
 
-	@Checkpoint(value = "parseFeedItems", threadName = "RSSUpdaterThread")
+	@Checkpoint(value = "parseFeed", threadName = "RSSUpdaterThread")
 	private long parseRSSFeedUpdates(List<RSSItem> updates, int id,
 			long lastTimeInserted) {
 		// count the number of new posts
@@ -143,10 +142,12 @@ public class UpdaterThread extends Thread {
 		}
 		if (posts.size() > 0) {
 			Log.i(TAG, posts.size() + " new items in RSSFeed.");
-			lastTimeInserted = posts.getFirst().getAsLong(
-					DatabaseInterface.C_PUB_DATE);
+			lastTimeInserted = posts.getFirst().getAsLong(DatabaseInterface.C_PUB_DATE);
 			storeStatusUpdates(posts, count); // store the updates in the db
 		}
+		
+		notifyTimelineActivity(posts, 0);
+		
 		return lastTimeInserted;
 	}
 
@@ -173,10 +174,15 @@ public class UpdaterThread extends Thread {
 
 		// if new posts were found, notify TimelineActivity
 		Log.d(TAG, "We have a new RSSFeed updates");
+	}
+
+	@Checkpoint(value = "notifyTimelineActivity", threadName = "RSSUpdaterThread")
+	public void notifyTimelineActivity(List<ContentValues> posts, long newposts) {
 		Intent intent = new Intent(RSSFeedUpdaterService.NEW_STATUS_INTENT);
 		intent.putExtra(RSSFeedUpdaterService.NEW_STATUS_EXTRA_COUNT, newposts);
-		context.sendBroadcast(intent,
-				RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
+		
+		context.sendBroadcast(intent, RSSFeedUpdaterService.RECEIVE_TIMELINE_NOTIFICATIONS);
+		
 		Log.d(TAG, (posts.size() > 0) ? "Got feed updates: " + posts.size()
 				: "No new item updates");
 	}

@@ -1,6 +1,5 @@
 #--- dependencies on other JPF projects
 @using = jpf-android
-@using = jpf-shell
 
 target= za.android.vdm.rssreader.TimelineActivity
 classpath=${jpf-android}/../Examples/RSSReader/bin/classes/;${classpath}
@@ -8,32 +7,17 @@ sourcepath=${jpf-android}/../Examples/RSSReader/src;
 
 #--- android setup
 android.script=${config_path}/TestRSS.es
+
 android.checklist_enabled = true
 android.checklist = ${config_path}/Checklists.cl
-android.active_checklists =  updateAlreadyRunning, startUpdate1,startUpdate2,runUpdate, getFeedUpdates1,updateWifiDown,updateBatteryLow,
-
-# don't obfuscate things in handlers
-vm.halt_on_throw=java.lang.NullPointerException
-
-# listener for coverage
-#listener+=.listener.CoverageAnalyzer;
-#coverage.include = za.android.vdm.rssreader.service.RSSFeedUpdaterService
-#coverage.show_methods = true
+android.active_checklists = updateSuccess, updateWifiDown, updateBatteryLow
 
 
 # Turn on Logging
 log.level=info
 
-# To fond deadlocks
-search.class = .search.heuristic.BFSHeuristic
-#listener+=gov.nasa.jpf.listener.PreciseRaceDetector;
-
 # turn off instruction trace
 report.console.property_violation=error,snapshot
 
-
 search.properties=\
 gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
-
-#--- enable jpf-shell
-#shell=.shell.basicshell.BasicShell

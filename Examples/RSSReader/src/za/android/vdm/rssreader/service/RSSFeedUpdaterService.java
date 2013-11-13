@@ -13,7 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 /**
- * Service that runs in the back ground and fetches feed updates.
+ * Service that runs in the background and fetches feed updates.
  * 
  * @author Heila van der Merwe
  * @date 24 May 2013
@@ -33,10 +33,6 @@ public class RSSFeedUpdaterService extends Service {
 
 	private UpdaterThread updaterThread;
 
-	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
-	}
 
 	@Override
 	public void onCreate() {
@@ -63,11 +59,12 @@ public class RSSFeedUpdaterService extends Service {
 		return Service.START_STICKY;
 	}
 
-	@Checkpoint("runUpdate")
+ @Checkpoint("runUpdate")
 	private synchronized void runUpdate() {
 		setRunning();
+		
+		//create and start new update thread
 		this.updaterThread = new UpdaterThread(this);
-
 		this.updaterThread.start();
 	}
 
@@ -89,10 +86,8 @@ public class RSSFeedUpdaterService extends Service {
 	@Checkpoint("alreadyRunning")
 	private void notifyUserAlreadyRunning() {
 		// notify user update already running
-		Toast.makeText(this, "Error updating, already updating",
-				Toast.LENGTH_SHORT).show();
-		Log.i(TAG,
-				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, already updating");
+		notifyUser("Error updating, already updating");
+		Log.i(TAG, "Error updating, already updating");
 
 	}
 
@@ -113,15 +108,6 @@ public class RSSFeedUpdaterService extends Service {
 				return true;
 			}
 		}
-		//
-		// boolean isWifiEnabled =
-		// cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isAvailable();
-		//
-		// boolean is3GEnabled =
-		// !(cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() ==
-		// NetworkInfo.State.DISCONNECTED
-		// &&
-		// cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getReason().equals("dataDisabled"));
 		Log.i("RSSFEED Update Service", "Wifi: " + "not connected");
 
 		return false;
@@ -130,23 +116,24 @@ public class RSSFeedUpdaterService extends Service {
 
 	@Checkpoint("WifiDown")
 	private void notifyUserWifiOff() {
-		Toast.makeText(this, "Error updating, Wifi down", Toast.LENGTH_SHORT)
-				.show();
-		Log.i(TAG,
-				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, Wifi down");
+	    runUpdate();
+		notifyUser("Error updating, Wifi down");
+		Log.i(TAG, "Error updating, Wifi down");
 
 	}
 
 	@Checkpoint("checkBattery")
 	private boolean batteryLow() {
-		Intent batteryIntent = registerReceiver(null, new IntentFilter(
-				Intent.ACTION_BATTERY_CHANGED));
+		Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		
 		int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 		int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+		
 		float pers = ((float) level / (float) scale) * 100.0f;
+		
 		Log.i("RSSFEED Update Service", "Battery: " + pers);
 
-		if (pers < 35) {
+		if (pers < 10) {
 			return true;
 		} else {
 			return false;
@@ -155,15 +142,14 @@ public class RSSFeedUpdaterService extends Service {
 
 	@Checkpoint("batteryLow")
 	private void notifyUserBatteryLow() {
-		Toast.makeText(this, "Error updating, battery too low",
-				Toast.LENGTH_SHORT).show();
-		Log.i(TAG,
-				"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Error updating, battery too low");
+		notifyUser("Error updating, battery too low");
+		Log.i(TAG,"Error updating, battery too low");
 
 	}
-
-	private void startAutoUpdating() {
-
+	
+	@Checkpoint("notifyUser")
+	private void notifyUser(String notification) {
+		Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -176,6 +162,16 @@ public class RSSFeedUpdaterService extends Service {
 		stopAutoUpdating();
 	}
 
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
+	}
+	
+	private void startAutoUpdating() {
+
+	}
+	
 	private void stopUpdate() {
 
 	}

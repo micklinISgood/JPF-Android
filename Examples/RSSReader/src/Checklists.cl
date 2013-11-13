@@ -1,19 +1,24 @@
-// name : condition => verify_list
-
 [Checklists]
+
 //update succeeds
-startUpdate1: updateButtonPressed, !alreadyRunning, !WifiDown, !batteryLow =>  runUpdate;
-startUpdate2: updateButtonPressed => updateButtonText;
-runUpdate:    runUpdate => setRunning, getUpdate, finishUpdate;
+updateSuccess:  update, checkRunning, !alreadyRunning, 
+	 checkBattery, !batteryLow, checkWifi, !WifiDown 
+	=> runUpdate, finishUpdate;
 
 //update does not succeed
-updateWifiDown: updateButtonPressed,checkWifi, WifiDown => !runUpdate;
-updateBatteryLow: updateButtonPressed, checkBattery, batteryLow => !runUpdate;
-updateAlreadyRunning: updateButtonPressed, alreadyRunning =>!runUpdate;
+updateWifiDown: update, checkWifi, WifiDown => !runUpdate, notifyUser;
 
-//updating list view
-getFeedUpdates1 : parseFeedItems, storeInDB  => notifyTimelineActivity, loadFromDB, updateListView;
-getFeedUpdates2 : parseFeedItems, !storeInDB  => !notifyTimelineActivity;
+updateBatteryLow: update, checkBattery, batteryLow => !runUpdate, notifyUser;
 
-wifiUpBroadcast: receiveNetworkUpdate, networkConnected => setTimer, triggerTimer;
-timer: triggerTimer => update, setNextTimer;
+updateAlreadyRunning: update, checkRunning, alreadyRunning => !runUpdate, notifyUser;
+
+//updates 
+getFeedUpdates : parseFeed  => storeInDB, notifyTimelineActivity, loadFromDB, updateListView;
+
+
+
+
+
+
+
+
