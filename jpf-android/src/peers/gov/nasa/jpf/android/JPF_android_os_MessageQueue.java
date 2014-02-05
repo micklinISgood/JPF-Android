@@ -56,6 +56,8 @@ public class JPF_android_os_MessageQueue extends NativePeer {
   private static int actionCount = 0;
 
   private static AndroidScriptEnvironment scriptEnv;
+  
+  private static ChecklistManager checklistManager;
 
   /**
    * The MesaageQueue Constructor, i.e. before each application run.
@@ -137,7 +139,7 @@ public class JPF_android_os_MessageQueue extends NativePeer {
         // get active checklists to check
         String[] activeChecklists = config.getStringArray("android.active_checklists");
 
-        ChecklistManager checklistManager = new ChecklistManager(filename);
+        checklistManager = new ChecklistManager(filename);
         checklistManager.activateChecklists(activeChecklists);
         checklistManager.createReporter(scriptEnv);
         checklistManager.registerListener(jpf);
@@ -288,11 +290,22 @@ public class JPF_android_os_MessageQueue extends NativePeer {
     if (ti.getName().equals("main")) {
 
       ClassInfo ci = ClassLoaderInfo.getCurrentResolvedClassInfo("android.os.MessageQueue");
-      int path = ci.getStaticElementInfo().getReferenceField("currentPath");
-      return path;
+      
+      int pathRef = ci.getStaticElementInfo().getReferenceField("currentPath");
+      String path =  env.getStringObject(pathRef);
+      int event = ci.getStaticElementInfo().getIntField("currentEvent");
+      
+//      checklistManager.splitChecklists(new Path(event,path));
+    
+      ci.getModifiableStaticElementInfo().setReferenceField("currentPath",env.newString(path + "0"));
+      
+      return env.newString(path+ "1");
     } else {
       //else lookup info of this thread
       Path path = ThreadListener.getPath(ti.getGlobalId());
+      
+//      checklistManager.splitChecklists(path);
+      
       String newPath = path.getPathID() + "1";
       path.setPathID(path.getPathID() + "0");
       return env.newString(newPath);
