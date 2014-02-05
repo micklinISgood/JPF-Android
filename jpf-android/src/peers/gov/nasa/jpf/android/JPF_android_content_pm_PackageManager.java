@@ -137,14 +137,14 @@ public class JPF_android_content_pm_PackageManager extends NativePeer {
   public int getFilters(MJIEnv env, int objRef, int componentNameRef) {
     ThreadInfo ti = env.getThreadInfo();
 
-    int filtersRef = -1;
+    int filtersRef =  MJIEnv.NULL;
 
     List<IntentFilter> filters = null;
 
     String componentName = env.getStringObject(componentNameRef);
     filters = parser.getFilters().get(componentName);
     if (filters == null)
-      return -1;
+      return MJIEnv.NULL;
 
     filtersRef = ObjectConverter.JPFObjectFromJavaObject(env, filters);
 
