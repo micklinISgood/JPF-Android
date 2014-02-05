@@ -29,7 +29,7 @@ public class JPF_android_database_sqlite_SQLiteDatabase  extends NativePeer {
       statement = pm.parse(new StringReader(env.getStringObject(SQL)));
     } catch (JSQLParserException e) {
       System.out.println(e.getMessage());
-      return -1;
+      return  MJIEnv.NULL;
     }
     /*
      * now you should use a class that implements StatementVisitor to decide
