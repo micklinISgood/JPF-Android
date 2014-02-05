@@ -40,7 +40,7 @@ import org.w3c.dom.NodeList;
 public class JPF_android_content_res_Resources  extends NativePeer {
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
-  private static class ResourceInfo {
+  protected static class ResourceInfo {
     int id;
     String name;
     String value;
