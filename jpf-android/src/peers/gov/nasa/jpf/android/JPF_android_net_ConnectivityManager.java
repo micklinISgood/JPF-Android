@@ -12,7 +12,7 @@ import android.net.ConnectivityManager;
 
 public class JPF_android_net_ConnectivityManager extends NativePeer {
 
-  private static int classRef = -1;
+  private static int classRef = MJIEnv.NULL;
 
   @MJI
   public void init0(MJIEnv env, int ref) {
