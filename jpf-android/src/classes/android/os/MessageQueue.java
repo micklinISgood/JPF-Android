@@ -133,8 +133,8 @@ public class MessageQueue {
   }
 
   final synchronized boolean enqueueMessage(Message msg) {
-    String path = getCurrentPath(Thread.currentThread());
     int event = getCurrentEvent(Thread.currentThread());
+    String path = getCurrentPath(Thread.currentThread());
 
     msg.setEventID(event);
     msg.setPathID(path);
@@ -150,7 +150,7 @@ public class MessageQueue {
   final synchronized boolean enqueueMessage(Message msg, long when) {
     String path = getCurrentPath(Thread.currentThread());
     int event = getCurrentEvent(Thread.currentThread());
-
+    
     msg.setEventID(event);
     msg.setPathID(path);
 
