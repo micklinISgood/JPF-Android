@@ -228,7 +228,7 @@ public class JPF_android_view_WindowManager  extends NativePeer {
   static int getID(String name) {
     ViewEntry c = JPF_android_view_WindowManager.componentMap.get(name);
     if (c == null)
-      return -1;
+      return  MJIEnv.NULL;
     else
       return c.getId();
   }
@@ -245,7 +245,7 @@ public class JPF_android_view_WindowManager  extends NativePeer {
     String action = uiAction.getAction();
     String target = uiAction.getTarget();
     Object[] arguments = uiAction.getArguments();
-    int aref = -1;
+    int aref = MJIEnv.NULL;
     if (arguments != null && arguments.length > 0) {
       aref = env.newObjectArray("java.lang.String", arguments.length);
       for (int i = 0; i < arguments.length; i++) {

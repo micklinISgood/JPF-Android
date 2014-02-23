@@ -137,7 +137,7 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
     Node n = info.viewMap.get(hashcode);
     if (n == null) {
       log.warning(TAG + ": Could not find XML node with hashcode " + hashcode);
-      return -1;
+      return  MJIEnv.NULL;
     }
 
     // we have found the node 

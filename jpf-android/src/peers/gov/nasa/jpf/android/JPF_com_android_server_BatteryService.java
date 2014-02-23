@@ -16,7 +16,7 @@ public class JPF_com_android_server_BatteryService extends NativePeer {
   private static final String TAG = "JPF_MessageQueue";
   static Logger log = JPF.getLogger(TAG);
 
-  static int classRef = -1;
+  static int classRef = MJIEnv.NULL;
 
   @MJI
   public void init0(MJIEnv env, int robj) {

@@ -4,70 +4,53 @@ import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.vm.MJIEnv;
 import gov.nasa.jpf.vm.NativePeer;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JPF_java_net_URL  extends NativePeer {
+public class JPF_java_net_URL extends NativePeer {
 
-  private static Map<String, URL> urls = new HashMap<String, URL>();
+  private static Map<String, String> urls = new HashMap<String, String>();
+
+  String urlString;
 
   @MJI
-  public static void init__V(MJIEnv env, int objref, int urlRef) {
+  public void $init__Ljava_lang_String_2(MJIEnv env, int objref, int urlRef) {
     try {
-      String urlString = env.getStringObject(urlRef);
+      urlString = env.getStringObject(urlRef);
       URL url = new URL(urlString);
     } catch (MalformedURLException e) {
-      e.printStackTrace();
-      //TODO
+      env.throwException("java.net.MalformedURLException", e.getMessage());
     }
-
   }
 
   @MJI
-  private byte[] getDataFromURL(String surl) {
-    byte[] data = null;
+  public int getURLInput(MJIEnv env, int objRef) {
+    byte[] data = new byte[1];
+    String filename = urls.get(urlString);
+    if (filename == null) {
+      env.throwException("java.io.IOException", "No file exists for URL " + urlString);
+      return env.newByteArray(data);
+    }
+    try {
+      String projectDir = AndroidPathManager.getProjectDir();
+      Path path = Paths.get(((projectDir != null) ? projectDir + "/" : "") + filename);
+      data = Files.readAllBytes(path);
+      return env.newByteArray(data);
+    } catch (IOException e) {
+      env.throwException("java.io.IOException", "Could not read file " + filename);
 
-    //    try {
-    //      AndroidPathManager.getProjectDir() + "/"  + URLInput.get(env.getStringObject(url));
-    //          
-    //      InputStream is = url.openStream();
-    //
-    //      if (is != null) {
-    //        ByteArrayOutputStream os = new ByteArrayOutputStream(is.available());
-    //        byte[] buf = new byte[1024];
-    //
-    //        for (int n = is.read(buf); n >= 0; n = is.read(buf)) {
-    //          os.write(buf, 0, n);
-    //        }
-    //        is.close();
-    //
-    //        data = os.toByteArray();
-    //        dataCache.put(surl, data);
-    //
-    //        logger.info("reading contents of ", surl, " from server");
-    //
-    //        if (cacheDir != null) {
-    //          String cacheFileName = getCacheFileName(surl);
-    //          File cacheFile = new File(cacheDir, cacheFileName);
-    //          try {
-    //            FileUtils.setContents(cacheFile, data);
-    //            logger.info("storing contents of ", surl, " to file ", cacheFile.getPath());
-    //          } catch (IOException iox) {
-    //            logger.warning("can't store to cache directory ", cacheFile.getPath());
-    //          }
-    //        }
-    //
-    //        return data;
-    //      }
-    //    } catch (MalformedURLException mux) {
-    //      logger.warning("mallformed URL ", surl);
-    //    } catch (IOException ex) {
-    //      logger.warning("reading URL data ", surl, " failed with ", ex.getMessage());
-    //    }
-    //
-    //    return data;
-    return null;
+    }
+    return env.newByteArray(data);
   }
+
+  public static void mapURLToFile(String url, String filename) {
+    urls.put(url, filename);
+  }
+
 }

@@ -155,19 +155,28 @@ public class JPF_com_android_server_am_ActivityManagerService extends NativePeer
     log.fine("Handling component action: " + action.toString());
 
     if (action.action.equals("startActivity")) {
+     
       String intentName = (String) action.arguments[0];
       int intentref = createJPFIntent(env, intentName);
       startActivityNative(env, intentref, -1);
+    
     } else if (action.action.equals("changeLayout")) {
+     
       String layout = (String) action.arguments[0]; // TODO layout is not used
       changeLayout(env, 1);
+    
     } else if (action.action.equals("homeButton")) {
+      
       homeButton(env);
+    
     } else if (action.action.equals("sendBroadcast")) {
+      
       String intentName = (String) action.arguments[0];
       sendBroadcast(env, intentName);
+   
     } else if (action.action.equals("killActivity")) {
       // TODO
+   
     } else if (action.action.equals("killService")) {
       // TODO
     }
@@ -204,7 +213,7 @@ public class JPF_com_android_server_am_ActivityManagerService extends NativePeer
         String url = (String) intent.getExtra("url");
         String input = (String) intent.getExtra("file");
 
-        JPF_javax_xml_parsers_SAXParser.URLInput.put(url, input);
+        JPF_java_net_URL.mapURLToFile(url, input);
       } else {
         // TODO send Broadcast to system
         log.severe(TAG + ": Could not send broadcast, undefined action " + intentName);
