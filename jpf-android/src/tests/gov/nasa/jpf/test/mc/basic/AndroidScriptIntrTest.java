@@ -1,7 +1,9 @@
 package gov.nasa.jpf.test.mc.basic;
 
 import gov.nasa.jpf.ListenerAdapter;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.test.TestJPF;
+import gov.nasa.jpf.vm.ElementInfo;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.ThreadInfo;
@@ -10,6 +12,7 @@ import gov.nasa.jpf.vm.VM;
 import java.util.ArrayList;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,19 +31,19 @@ public class AndroidScriptIntrTest extends TestJPF {
     static ArrayList<String> sequence;
 
     public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction, Instruction executedInstruction) {
-//      if (executedInstruction instanceof gov.nasa.jpf.jvm.bytecode.ARETURN) {
-//        MethodInfo mi = executedInstruction.getMethodInfo();
-//
-//        if (mi.getUniqueName().equals("parseScript()Ljava/lang/String;")) {
-//          String a =currentThread.getStringReturnValue();
-//
-//          if (!a.equals("")) {
-//            sequenceCount++;
-//            sequence.add("Sequence " + sequenceCount + ": ");
-//            sequence.add(a);
-//          }
-//        }
-//      }
+      if (executedInstruction instanceof gov.nasa.jpf.jvm.bytecode.ARETURN) {
+        MethodInfo mi = executedInstruction.getMethodInfo();
+
+        if (mi.getUniqueName().equals("parseScript()Ljava/lang/String;")) {
+          @SuppressWarnings("unused")
+          String a = new String(((ElementInfo)((gov.nasa.jpf.jvm.bytecode.ARETURN)executedInstruction).getReturnValue(currentThread)).getStringChars());
+          if (!a.equals("")) {
+            sequenceCount++;
+            sequence.add("Sequence " + sequenceCount + ": ");
+            sequence.add(a);
+          }
+        }
+      }
     }
   }
 
@@ -87,8 +90,7 @@ public class AndroidScriptIntrTest extends TestJPF {
   @Test
   public void testAnyAnyANYBFS() {
     if (!isJPFRun()) {
-      String[] e = { "Sequence 1: ", "#1[a] #2[c] ", "Sequence 2: ", "#1[a] #2[d] ", "Sequence 3: ",
-          "#1[b] #2[c] ", "Sequence 4: ", "#1[b] #2[d] " };
+      String[] e = { "Sequence 1: " , "#1[a] #2[z0] #3[a] ", "Sequence 2: ", "#1[a] #2[z0] #3[b] ", "Sequence 3: ", "#1[a] #2[z1] #3[a] ", "Sequence 4: ", "#1[a] #2[z1] #3[b] " };
       expected = e;
     }
     if (verifyNoPropertyViolation("+listener=gov.nasa.jpf.test.mc.basic.AndroidScriptIntrTest$Sequencer", "+search.class=gov.nasa.jpf.search.heuristic.BFSHeuristic")) {
@@ -130,7 +132,7 @@ public class AndroidScriptIntrTest extends TestJPF {
       expected = e;
     }
     if (verifyNoPropertyViolation("+listener=gov.nasa.jpf.test.mc.basic.AndroidScriptIntrTest$Sequencer")) {
-      String script = "SECTION default {a[1-3],<a|b>}";
+      String script = "SECTION default {a[1-3],<b1|b2|b3>}";
       ScriptParser s = new ScriptParser(script);
       script = s.parseScript();
     }
@@ -226,12 +228,12 @@ public class AndroidScriptIntrTest extends TestJPF {
   @After
   public void takeDown() {
     if (!isJPFRun()) {
-    //  Assert.assertEquals(expected.length, Sequencer.sequence.size());
+      Assert.assertEquals(expected.length, Sequencer.sequence.size());
 
       int i = 0;
       for (String s : Sequencer.sequence) {
-        //Assert.assertEquals("given: \"" + s + "\", expected: " + expected[i], expected[i], s);
-         System.out.println("\"" + s + "\", ");
+        Assert.assertEquals("given: \"" + s + "\", expected: " + expected[i], expected[i], s);
+//         System.out.println("\"" + s + "\", ");
         i++;
       }
     }

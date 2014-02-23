@@ -1,6 +1,7 @@
 package gov.nasa.jpf.test.mc.basic;
 
 import gov.nasa.jpf.JPF;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.JPFLogger;
 import gov.nasa.jpf.util.StateExtensionClient;
 import gov.nasa.jpf.util.StateExtensionListener;
@@ -9,16 +10,17 @@ import gov.nasa.jpf.util.script.ESParserE;
 import gov.nasa.jpf.util.script.Script;
 import gov.nasa.jpf.util.script.ScriptElement;
 import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
 
 import java.io.StringReader;
 
 /**
- * Native Counterpart of the
+ * Native Counterpart of the ScriptParser
  * 
  * @author heila
  * 
  */
-public class JPF_gov_nasa_jpf_test_mc_basic_ScriptParser {
+public class JPF_gov_nasa_jpf_test_mc_basic_ScriptParser extends NativePeer {
   private static final JPFLogger logger = JPF.getLogger("JPF_gov_nasa_jpf_test_mc_basic_ScriptParser");
 
   /**
@@ -64,6 +66,7 @@ public class JPF_gov_nasa_jpf_test_mc_basic_ScriptParser {
    * @param objectRef
    * @return
    */
+  @MJI
   public static int getNextScriptElement(MJIEnv env, int objectRef) {
     ScriptElement e = si.getNext(env);
     if (e == null) {
@@ -71,7 +74,7 @@ public class JPF_gov_nasa_jpf_test_mc_basic_ScriptParser {
     } else
       return env.newString(e.toString());
   }
-
+  @MJI
   public static void $init__Ljava_lang_String_2__V(MJIEnv env, int robj, int scriptRef) {
 
     // convert the scriptRef to a JVM string
