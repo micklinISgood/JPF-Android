@@ -1,10 +1,17 @@
 package android.database.sqlite;
 
+import android.database.CharArrayBuffer;
+import android.database.ContentObserver;
+import android.database.Cursor;
+import android.database.DataSetObserver;
+import android.net.Uri;
+import android.os.Bundle;
+
 import java.util.Iterator;
 import java.util.List;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.test.mock.MockCursor;
 
 /**
  * Models a cursor over records in a table
@@ -12,7 +19,7 @@ import android.test.mock.MockCursor;
  * @author Heila van der Merwe
  * 
  */
-public class AndroidCursor extends MockCursor {
+public class AndroidCursor implements Cursor {
 
   /** List of values in the table */
   List<ContentValues> values;
@@ -111,6 +118,150 @@ public class AndroidCursor extends MockCursor {
   public String getString(int columnIndex) {
     return (String) current.get(getColumnName(columnIndex));
 
+  }
+
+  @Override
+  public int getPosition() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public boolean move(int offset) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean moveToPosition(int position) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean moveToFirst() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean moveToLast() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean moveToPrevious() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean isFirst() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean isLast() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean isBeforeFirst() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean isAfterLast() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public byte[] getBlob(int columnIndex) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public int getType(int columnIndex) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public boolean isNull(int columnIndex) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void deactivate() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean requery() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void registerContentObserver(ContentObserver observer) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void unregisterContentObserver(ContentObserver observer) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void registerDataSetObserver(DataSetObserver observer) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void unregisterDataSetObserver(DataSetObserver observer) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void setNotificationUri(ContentResolver cr, Uri uri) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean getWantsAllOnMoveCalls() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Bundle getExtras() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Bundle respond(Bundle extras) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }
