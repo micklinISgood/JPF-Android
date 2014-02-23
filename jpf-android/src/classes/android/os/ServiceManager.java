@@ -65,7 +65,7 @@ public class ServiceManager {
     SYSTEM_SERVICE_MAP.put(Context.CONNECTIVITY_SERVICE, connectionManager);
 
     // Setup BatteryManager
-    batteryService = new BatteryService(mSystemContext, null);
+    batteryService = new BatteryService(mSystemContext);
   }
 
   public static void start() {
