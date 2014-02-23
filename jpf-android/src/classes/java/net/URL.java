@@ -1,23 +1,29 @@
 package java.net;
 
+import gov.nasa.jpf.vm.Verify;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 
-public class URL {
-
+public final class URL implements Serializable {
+  
   public URL(String spec) throws MalformedURLException {
     // to be intercepted
   }
 
   public InputStream openStream() throws IOException {
-    //TODO if no network connection 
-    //throw new IOException("Could not open Url");
-    byte[] arr = new byte[4];
-    return new ByteArrayInputStream(arr);
+    boolean b = Verify.getBoolean();
+
+    if (b) {
+      throw new IOException("Could not open Url");
+    } else {
+      return new ByteArrayInputStream(getURLInput());
+    }
 
   }
 
-  private native byte[] getURLInput();
+  protected native byte[] getURLInput();
 
 }
