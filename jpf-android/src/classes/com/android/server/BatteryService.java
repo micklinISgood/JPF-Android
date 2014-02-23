@@ -12,7 +12,7 @@ public class BatteryService {
   private static final boolean LOCAL_LOGV = false;
 
   static final int BATTERY_SCALE = 100;    // battery capacity is a percentage
-  
+
   // Used locally for determining when to make a last ditch effort to log
   // discharge stats before the device dies.
   private int mCriticalBatteryLevel = 1;
@@ -35,7 +35,7 @@ public class BatteryService {
   private int mInvalidCharger;
 
   private int mLowBatteryWarningLevel = 5;
-  private int mLowBatteryCloseWarningLevel =3;
+  private int mLowBatteryCloseWarningLevel = 3;
 
   private int mLastPlugType;
   private int mPlugType;
@@ -45,7 +45,7 @@ public class BatteryService {
 
   private boolean mSentLowBatteryBroadcast = false;
 
-  public BatteryService(Context context, LightsService lights) {
+  public BatteryService(Context context) {
     mContext = context;
 
     // set initial status
@@ -57,7 +57,7 @@ public class BatteryService {
     // status when charger not attached is BATTERY_STATUS_DISCHARGING
     mBatteryStatus = BatteryManager.BATTERY_STATUS_DISCHARGING;
     mBatteryHealth = BatteryManager.BATTERY_HEALTH_GOOD;
-    
+
     // battery is present
     mBatteryPresent = true;
     mBatteryLevel = 100;
@@ -71,7 +71,7 @@ public class BatteryService {
     mLastPlugType = BatteryManager.BATTERY_PLUGGED_AC;
     mPlugType = BATTERY_PLUGGED_NONE;
     init0();
-    sendIntent(); 
+    sendIntent();
     Log.i(TAG, "Ready!");
 
   }
@@ -79,6 +79,7 @@ public class BatteryService {
   private native void init0();
 
   private void processValues() {
+    System.out.println("Got Battery state:" + mBatteryLevel);
 
     // check if we are at critical level
     mBatteryLevelCritical = mBatteryLevel <= mCriticalBatteryLevel;
@@ -95,8 +96,10 @@ public class BatteryService {
 
     /*
      * The ACTION_BATTERY_LOW broadcast is sent in these situations:
-     * - is just un-plugged (previously was plugged) and battery level is less than or equal to WARNING, or
-     * - is not plugged and battery level falls to WARNING boundary (becomes <= mLowBatteryWarningLevel).
+     * - is just un-plugged (previously was plugged) and battery level is less
+     * than or equal to WARNING, or
+     * - is not plugged and battery level falls to WARNING boundary (becomes <=
+     * mLowBatteryWarningLevel).
      */
     final boolean sendBatteryLow = !plugged && mBatteryStatus != BatteryManager.BATTERY_STATUS_UNKNOWN
         && mBatteryLevel <= mLowBatteryWarningLevel;
