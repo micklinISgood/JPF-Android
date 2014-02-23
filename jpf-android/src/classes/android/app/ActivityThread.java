@@ -1113,9 +1113,7 @@ public final class ActivityThread {
   }
 
   /*
-   * ****************************** Activity Methods
-   * ***********************************
-   */
+   * ****************************** Activity Methods **********************************/
   private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
     // System.out.println("##### [" + System.currentTimeMillis() +
     // "] ActivityThread.performLaunchActivity(" +
@@ -1139,6 +1137,8 @@ public final class ActivityThread {
     Activity activity = null;
     try {
       java.lang.ClassLoader cl = r.packageInfo.getClassLoader();
+      String s = r.activityInfo.targetActivity;
+      System.out.println("TESTING" + s);
       activity = mInstrumentation.newActivity(cl, component.getClassName(), r.intent);
       StrictMode.incrementExpectedActivityCount(activity.getClass());
       r.intent.setExtrasClassLoader(cl);
