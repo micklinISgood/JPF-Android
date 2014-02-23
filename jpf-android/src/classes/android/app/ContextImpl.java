@@ -53,7 +53,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.test.mock.MockContext;
 import android.util.AndroidRuntimeException;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -92,7 +91,7 @@ class ReceiverRestrictedContext extends ContextWrapper {
  * for Activity and other
  * application components.
  */
-public class ContextImpl extends MockContext {
+public class ContextImpl extends Context {
   private final static String TAG = "Context";
   private final static boolean DEBUG_CONTEXT = true;
 
@@ -869,6 +868,12 @@ public class ContextImpl extends MockContext {
     ContextImpl context = new ContextImpl();
     context.init(Resources.getSystem(), thread);
     return context;
+  }
+
+  @Override
+  public void clearWallpaper() throws IOException {
+    // TODO Auto-generated method stub
+    
   }
 
 }
