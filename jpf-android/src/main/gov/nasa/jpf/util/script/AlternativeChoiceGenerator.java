@@ -23,10 +23,8 @@ import gov.nasa.jpf.vm.ChoiceGeneratorBase;
 import gov.nasa.jpf.vm.IntChoiceGenerator;
 
 /**
- * Choice Generator that enumerates an interval of int values. Pretty simplistic implementation for now, but
- * at least it can count up and down
+ * AlternativeChoiceGenerator enumerates an interval of int choices.
  * 
- * randomizing is handled through RandomOrderIntCG
  */
 public class AlternativeChoiceGenerator extends ChoiceGeneratorBase<Integer> implements IntChoiceGenerator {
 
