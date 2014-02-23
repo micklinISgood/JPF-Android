@@ -52,15 +52,19 @@ public class AndroidObjectConverter {
    * @return reference to new JPF object
    */
   public static int JPFObjectFromJavaObject(MJIEnv env, Object javaObject) {
+    //get the java class object 
     Class<?> javaClass = javaObject.getClass();
+    
+    //get the name of the class
     String typeName = javaClass.getName();
+   
     ClassInfo ci = null;
     try {
       ci = ClassInfo.getInitializedClassInfo(typeName, env.getThreadInfo());
     } catch (ClinitRequired e) {
       env.repeatInvocation();
       finished = false;
-      return -1;
+      return MJIEnv.NULL;
     }
 
     finished = true;
@@ -79,7 +83,7 @@ public class AndroidObjectConverter {
 
             int fieldJPFObjRef;
             if (fieldJavaObj == null) {
-              fieldJPFObjRef = -1;
+              fieldJPFObjRef = MJIEnv.NULL;
             } else if (isArrayField(fi)) {
               fieldJPFObjRef = getJPFArrayRef(env, fieldJavaObj);
             } else {
@@ -220,7 +224,7 @@ public class AndroidObjectConverter {
       } catch (ClinitRequired e) {
         env.repeatInvocation();
         finished = false;
-        return -1;
+        return MJIEnv.NULL;
       }
       finished = true;
       arrRef = env.newObjectArray(arrayElementClass.getCanonicalName(), javaArrLength);
