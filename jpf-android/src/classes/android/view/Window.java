@@ -204,7 +204,10 @@ public class Window extends ViewGroup {
       // invoke the action on this view object
       try {
         Class<? extends View> viewClass = (Class<? extends View>) view.getClass(); // get the class
+        Log.i(TAG, "Trying::: " + view.name + "." + arguments);
         Method m = viewClass.getMethod(action, new Class[] {});
+ 
+
         m.invoke(view, (Object[]) arguments);
 
       } catch (NoSuchMethodException e) {
