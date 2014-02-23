@@ -7,8 +7,8 @@
 	<classpathentry kind="src" output="build/classes" path="src/classes"/>
 	<classpathentry kind="src" output="build/tests" path="src/tests"/>
 	<classpathentry kind="lib" path="lib/junit-4.10.jar"/>
-	<classpathentry kind="lib" path="lib/android.jar" sourcepath="/Users/heila/Android/android-sdk-macosx/sources/android-15"/>
 	<classpathentry kind="lib" path="lib/jsqlparser.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jpf-core"/>
+	<classpathentry kind="lib" path="lib/android.jar" sourcepath="/Users/heila/Android/android-sdk-macosx/sources/android-15"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
