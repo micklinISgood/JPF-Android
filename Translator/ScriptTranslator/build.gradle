@@ -1,0 +1,62 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'findbugs'
+apply plugin: 'application'
+
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+version = '0.1'
+
+mainClassName = 'za.vdm.translator.Main'
+
+configurations {
+  doclet
+}
+
+repositories {
+  mavenCentral()
+
+  // for pegdown doclet
+  maven {
+    url 'https://oss.sonatype.org/content/repositories/snapshots/'
+  }
+}
+
+dependencies {
+  doclet 'ch.raffael.pegdown-doclet:pegdown-doclet:1.1'
+}
+
+javadoc {
+  options.docletpath = configurations.doclet.files.asType(List)
+  options.doclet = 'ch.raffael.doclets.pegdown.PegdownDoclet'
+}
+
+// ----------------------------------------------------------------------------
+//    Wrapper script creation
+// ----------------------------------------------------------------------------
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.7'
+}
+
+
+// ----------------------------------------------------------------------------
+//    Findbugs
+// ----------------------------------------------------------------------------
+
+findbugs {
+  ignoreFailures = true
+  reportLevel = 'low'
+  effort = 'max'
+  excludeFilter =
+          file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+}
+
+tasks.withType(FindBugs) {
+  reports {
+    xml.enabled = false
+    html.enabled = true
+  }
+}
