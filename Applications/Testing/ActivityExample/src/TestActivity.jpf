@@ -1,0 +1,21 @@
+target = com.example.com.ActivityTest
+classpath=${jpf-android}/../Examples/ActivityTest/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/ActivityTest/src;
+path=${jpf-android}/../Examples/ActivityTest
+
+#--- which script to run
+android.script=${config_path}/TestActivity.es
+
+# the modeled data acquisition thread needs it
+cg.enumerate_random=true
+
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.NullPointerException
+
+
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
+
+# Windows seem to have a different default
+log.level=info

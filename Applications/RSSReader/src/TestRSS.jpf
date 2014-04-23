@@ -1,0 +1,23 @@
+#--- dependencies on other JPF projects
+@using = jpf-android
+
+target= za.android.vdm.rssreader.TimelineActivity
+classpath=${jpf-android}/../Examples/RSSReader/bin/classes/;${classpath}
+sourcepath=${jpf-android}/../Examples/RSSReader/src;
+
+#--- android setup
+android.script=${config_path}/TestRSS.es
+
+android.checklist_enabled = true
+android.checklist = ${config_path}/Checklists.cl
+android.active_checklists = updateSuccess, updateWifiDown, updateBatteryLow
+
+
+# Turn on Logging
+log.level=info
+
+# turn off instruction trace
+report.console.property_violation=error,snapshot
+
+search.properties=\
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
