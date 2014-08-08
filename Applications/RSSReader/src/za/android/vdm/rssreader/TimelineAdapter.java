@@ -54,7 +54,7 @@ public class TimelineAdapter extends SimpleCursorAdapter {
 		String title = cursor.getString(cursor
 				.getColumnIndex(DatabaseInterface.C_TITLE));
 		TextView text = (TextView) row.findViewById(R.id.textTitle);
-		text.setText(title.substring(0, 30) + "...");
+		text.setText(title.substring(0, 10) + "...");
 	}
 
 }
