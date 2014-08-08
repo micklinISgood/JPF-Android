@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -91,7 +89,7 @@ public class AndroidManifestParser extends DefaultHandler {
   private ArrayList<PermissionInfo> permissions;
 
   /** List of Filters by component */
-  private Map<String, List<IntentFilter>> filterMap;
+  private HashMap<String, ArrayList<IntentFilter>> filterMap;
 
   private AndroidManifestParser() {
     // this is a singleton class
@@ -112,7 +110,8 @@ public class AndroidManifestParser extends DefaultHandler {
     services = new ArrayList<ServiceInfo>();
     providers = new ArrayList<ProviderInfo>();
     receivers = new ArrayList<ActivityInfo>();
-    filterMap = new HashMap<String, List<IntentFilter>>();
+    filterMap = new HashMap<String, ArrayList<IntentFilter>>();
+
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser parser = factory.newSAXParser();
     parser.parse(filename, this);
@@ -129,7 +128,7 @@ public class AndroidManifestParser extends DefaultHandler {
     services = new ArrayList<ServiceInfo>();
     providers = new ArrayList<ProviderInfo>();
     receivers = new ArrayList<ActivityInfo>();
-    filterMap = new HashMap<String, List<IntentFilter>>();
+    filterMap = new HashMap<String, ArrayList<IntentFilter>>();
 
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser parser = factory.newSAXParser();
@@ -216,7 +215,7 @@ public class AndroidManifestParser extends DefaultHandler {
       packageInfo.applicationInfo.packageName = packageInfo.packageName;
     }
     if (element.equalsIgnoreCase("intent-filter")) {
-      List<IntentFilter> filters = filterMap.get(componentTemp.name);
+      ArrayList<IntentFilter> filters = filterMap.get(componentTemp.name);
       if (filters == null) {
         filters = new ArrayList<IntentFilter>();
         filterMap.put(componentTemp.name, filters);
@@ -607,7 +606,7 @@ public class AndroidManifestParser extends DefaultHandler {
    * 
    * @return
    */
-  protected Map<String, List<IntentFilter>> getFilters() {
+  protected HashMap<String, ArrayList<IntentFilter>> getFilters() {
     return filterMap;
   }
 
