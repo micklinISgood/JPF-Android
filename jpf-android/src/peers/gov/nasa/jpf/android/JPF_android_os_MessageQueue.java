@@ -20,7 +20,6 @@ package gov.nasa.jpf.android;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.ListenerAdapter;
 import gov.nasa.jpf.android.checkpoint.ChecklistException;
 import gov.nasa.jpf.android.checkpoint.ChecklistManager;
 import gov.nasa.jpf.android.checkpoint.ParseException;
@@ -36,8 +35,6 @@ import gov.nasa.jpf.vm.DirectCallStackFrame;
 import gov.nasa.jpf.vm.MJIEnv;
 import gov.nasa.jpf.vm.NativePeer;
 import gov.nasa.jpf.vm.ThreadInfo;
-import gov.nasa.jpf.vm.ThreadList;
-import gov.nasa.jpf.vm.VM;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Logger;
