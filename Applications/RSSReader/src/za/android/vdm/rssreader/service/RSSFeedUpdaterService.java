@@ -21,163 +21,159 @@ import android.widget.Toast;
  * 
  */
 public class RSSFeedUpdaterService extends Service {
-	static final String TAG = "RSSFeedUpdaterService";
+  static final String TAG = "RSSFeedUpdaterService";
 
-	/** Intent sent when new status updates are found */
-	public static final String NEW_STATUS_INTENT = "com.vdm.blogger.NEW_STATUS";
-	public static final String NEW_STATUS_EXTRA_COUNT = "com.vdm.blogger.NEW_STATUS_EXTRA";
+  /** Intent sent when new status updates are found */
+  public static final String NEW_STATUS_INTENT = "com.vdm.blogger.NEW_STATUS";
+  public static final String NEW_STATUS_EXTRA_COUNT = "com.vdm.blogger.NEW_STATUS_EXTRA";
 
-	/** This service will be allowed to send timeline notifications */
-	public static final String RECEIVE_TIMELINE_NOTIFICATIONS = "com.vdm.blogger.RECEIVE_TIMELINE_NOTIFICATIONS";
-	private boolean updateRunning = false;
+  /** This service will be allowed to send timeline notifications */
+  public static final String RECEIVE_TIMELINE_NOTIFICATIONS = "com.vdm.blogger.RECEIVE_TIMELINE_NOTIFICATIONS";
+  private boolean updateRunning = false;
 
-	private UpdaterThread updaterThread;
+  private UpdaterThread updaterThread;
 
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    Log.d(TAG, "oncreate method");
+    startAutoUpdating();
+  }
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		Log.d(TAG, "oncreate method");
-		startAutoUpdating();
-	}
+  @Override
+  @Checkpoint("startUpdate")
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    super.onStartCommand(intent, flags, startId);
+    Log.d(TAG, "onStartCommand method");
 
-	@Override
-	@Checkpoint("startUpdate")
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		super.onStartCommand(intent, flags, startId);
-		Log.d(TAG, "onStartCommand method");
+    if (isRunning()) {
+      notifyUserAlreadyRunning();
+    } else if (batteryLow()) {
+      notifyUserBatteryLow();
+    } else if (!WifiConnected()) {
+      notifyUserWifiOff();
+    } else {
+      runUpdate();
+    }
+    return Service.START_STICKY;
+  }
 
-		if (isRunning()) {
-			notifyUserAlreadyRunning();
-		} else if (batteryLow()) {
-			notifyUserBatteryLow();
-		} else if (!WifiConnected()) {
-			notifyUserWifiOff();
-		} else {
-			runUpdate();
-		}
-		return Service.START_STICKY;
-	}
+  @Checkpoint("runUpdate")
+  private synchronized void runUpdate() {
+    setRunning();
 
- @Checkpoint("runUpdate")
-	private synchronized void runUpdate() {
-		setRunning();
-		
-		//create and start new update thread
-		this.updaterThread = new UpdaterThread(this);
-		this.updaterThread.start();
-	}
+    // create and start new update thread
+    this.updaterThread = new UpdaterThread(this);
+    this.updaterThread.start();
+  }
 
-	@Checkpoint("setRunning")
-	private void setRunning() {
-		updateRunning = true;
-	}
+  @Checkpoint("setRunning")
+  private void setRunning() {
+    updateRunning = true;
+  }
 
-	@Checkpoint("checkRunning")
-	private synchronized boolean isRunning() {
-		return updateRunning;
-	}
+  @Checkpoint("checkRunning")
+  private synchronized boolean isRunning() {
+    return updateRunning;
+  }
 
-	@Checkpoint(value = "finishUpdate", threadName = "RSSUpdaterThread")
-	protected synchronized void finishUpdate() {
-		updateRunning = false;
-	}
+  @Checkpoint(value = "finishUpdate", threadName = "RSSUpdaterThread")
+  protected synchronized void finishUpdate() {
+    updateRunning = false;
+  }
 
-	@Checkpoint("alreadyRunning")
-	private void notifyUserAlreadyRunning() {
-		// notify user update already running
-		notifyUser("Error updating, already updating");
-		Log.i(TAG, "Error updating, already updating");
+  @Checkpoint("alreadyRunning")
+  private void notifyUserAlreadyRunning() {
+    // notify user update already running
+    notifyUser("Error updating, already updating");
+    Log.i(TAG, "Error updating, already updating");
 
-	}
+  }
 
-	@Checkpoint("checkWifi")
-	private boolean WifiConnected() {
-		ConnectivityManager cm = (ConnectivityManager) this
-				.getSystemService(Context.CONNECTIVITY_SERVICE);
+  @Checkpoint("checkWifi")
+  private boolean WifiConnected() {
+    ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-		NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-		if (activeNetwork != null) {
-			Log.i("RSSFEED Update Service",
-					"ActiveNetwork: " + activeNetwork.getTypeName());
-			boolean isConnected = activeNetwork.isConnectedOrConnecting();
-			boolean isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
-			if (isConnected) {
-				Log.i("RSSFEED Update Service", "Wifi: " + "connected");
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    if (activeNetwork != null) {
+      Log.i("RSSFEED Update Service", "ActiveNetwork: " + activeNetwork.getTypeName());
+      boolean isConnected = activeNetwork.isConnectedOrConnecting();
+      boolean isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+      if (isConnected) {
+        Log.i("RSSFEED Update Service", "Wifi: " + "connected");
 
-				return true;
-			}
-		}
-		Log.i("RSSFEED Update Service", "Wifi: " + "not connected");
+        return true;
+      }
+    }
+    Log.i("RSSFEED Update Service", "Wifi: " + "not connected");
 
-		return false;
+    return false;
 
-	}
+  }
 
-	@Checkpoint("WifiDown")
-	private void notifyUserWifiOff() {
-	   // runUpdate();
-		notifyUser("Error updating, Wifi down");
-		Log.i(TAG, "Error updating, Wifi down");
+  @Checkpoint("WifiDown")
+  private void notifyUserWifiOff() {
+    // runUpdate();
+    notifyUser("Error updating, Wifi down");
+    Log.i(TAG, "Error updating, Wifi down");
 
-	}
+  }
 
-	@Checkpoint("checkBattery")
-	private boolean batteryLow() {
-		Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-		
-		int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-		int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-		
-		float pers = ((float) level / (float) scale) * 100.0f;
-		
-		Log.i("RSSFEED Update Service", "Battery: " + pers);
+  @Checkpoint("checkBattery")
+  private boolean batteryLow() {
+    Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-		if (pers < 15) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+    int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+    int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-	@Checkpoint("batteryLow")
-	private void notifyUserBatteryLow() {
-		notifyUser("Error updating, battery too low");
-		Log.i(TAG,"Error updating, battery too low");
+    float pers = ((float) level / (float) scale) * 100.0f;
 
-	}
-	
-	@Checkpoint("notifyUser")
-	private void notifyUser(String notification) {
-		Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
-	}
+    Log.i("RSSFEED Update Service", "Battery: " + pers);
 
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		Log.d(TAG, "onDestroy method");
-		// stop current update
-		stopUpdate();
-		// stop auto updating
-		stopAutoUpdating();
-	}
+    if (pers < 15) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
+  @Checkpoint("batteryLow")
+  private void notifyUserBatteryLow() {
+    notifyUser("Error updating, battery too low");
+    Log.i(TAG, "Error updating, battery too low");
 
-	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
-	}
-	
-	private void startAutoUpdating() {
+  }
 
-	}
-	
-	private void stopUpdate() {
+  @Checkpoint("notifyUser")
+  private void notifyUser(String notification) {
+    Toast.makeText(this, notification, Toast.LENGTH_SHORT).show();
+  }
 
-	}
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    Log.d(TAG, "onDestroy method");
+    // stop current update
+    stopUpdate();
+    // stop auto updating
+    stopAutoUpdating();
+  }
 
-	private void stopAutoUpdating() {
+  @Override
+  public IBinder onBind(Intent intent) {
+    return null;
+  }
 
-	}
+  private void startAutoUpdating() {
+
+  }
+
+  private void stopUpdate() {
+
+  }
+
+  private void stopAutoUpdating() {
+
+  }
 
 }
