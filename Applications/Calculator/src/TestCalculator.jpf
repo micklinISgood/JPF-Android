@@ -1,11 +1,11 @@
 #--- dependencies on other JPF projects
 @using = jpf-android
-@using = jpf-shell
+#@using = jpf-shell
 
 #--- target setup
 target = com.example.calculator.SimpleActivity
-classpath+=${jpf-android}/../Examples/Calculator/bin/classes/;
-sourcepath=${jpf-android}/../Examples/Calculator/src;
+classpath+=${jpf-android}/../Applications/Calculator/bin/classes/;
+sourcepath=${jpf-android}/../Applications/Calculator/src;
 
 
 #--- android setup
