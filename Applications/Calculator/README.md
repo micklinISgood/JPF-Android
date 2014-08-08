@@ -40,6 +40,10 @@ Although this project has the old Java application package structure used by the
 
 	`sdk.dir=<path>`
 
+    or run:
+
+    `android update project -p .` in the main directory of the project.
+
  5. Generate the Eclipse project files using gradle:
 
 	```

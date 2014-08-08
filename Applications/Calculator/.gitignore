@@ -2,6 +2,7 @@
 /bin
 /gen
 /build
+project.properties
 
 
 # Package Files #
