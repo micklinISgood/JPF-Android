@@ -70,7 +70,8 @@
     <available property="have_javac" classname="com.sun.tools.javac.Main" />
     <fail unless="have_javac">no javac was found __or__ check
       http://babelfish.arc.nasa.gov/trac/jpf/wiki/install/build for
-      possible solutions
+      possible
+      solutions
     </fail>
 
 
@@ -161,13 +162,12 @@
     <mkdir dir="build/tests" />
     <javac srcdir="src/tests" destdir="build/tests" includeantruntime="false"
       compiler="${compiler}" target="${target}" source="${source}" debug="${debug}"
-      deprecation="${deprecation}" includes="*,gov/nasa/jpf/**,classloader_specific_tests/**">
+      deprecation="${deprecation}">
       <compilerarg value="-XDenableSunApiLintControl" />
       <compilerarg value="-Xlint:all,-sunapi,-serial,-rawtypes,-unchecked" />
       <classpath>
-        <path refid="lib.path" />
-        <pathelement location="build/annotations" />
         <pathelement location="build/classes" />
+        <path refid="lib.path" />
       </classpath>
     </javac>
   </target>
