@@ -5,8 +5,6 @@ import gov.nasa.jpf.util.test.TestJPF;
 
 import java.io.ByteArrayInputStream;
 
-import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -35,9 +33,9 @@ public class AndroidManifestParserTest extends TestJPF {
     } catch (Exception e) {
     }
 
-    Assert.assertEquals(2, parser.getPackageInfo().activities.length);
-    Assert.assertEquals("Activity1", parser.getPackageInfo().activities[0].name);
-    Assert.assertEquals("com.vdm.Activity2", parser.getPackageInfo().activities[1].name);
+    assertEquals(2, parser.getPackageInfo().activities.length);
+    assertEquals("Activity1", parser.getPackageInfo().activities[0].name);
+    assertEquals("com.vdm.Activity2", parser.getPackageInfo().activities[1].name);
   }
 
   @Test
@@ -50,12 +48,12 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       parser.parseStream(new ByteArrayInputStream(s.getBytes("UTF-8")));
     } catch (SAXException e) {
-      Assert.assertTrue(true);
+      assertTrue(true);
       return;
     } catch (Exception e) {
     }
 
-    Assert.fail("Required Activity Name atrtibute not specified.");
+    fail("Required Activity Name atrtibute not specified.");
 
   }
 
@@ -110,10 +108,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       parser.parseStream(new ByteArrayInputStream(s.getBytes("UTF-8")));
     } catch (Exception e) {
-      Assert.fail();
+      fail();
     }
 
-    Assert.assertEquals(pPackageName, parser.getPackageInfo().packageName);
+    assertEquals(pPackageName, parser.getPackageInfo().packageName);
   }
 
   /* *********************** Other tests ******************************* */
@@ -133,10 +131,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       parser.parseName(att);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(parser.getComponent().name, sParam);
-    Assert.assertEquals(parser.getComponent().packageName, sPackage);
+    assertEquals(parser.getComponent().name, sParam);
+    assertEquals(parser.getComponent().packageName, sPackage);
 
   }
 
@@ -155,10 +153,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       parser.parseName(att);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(parser.getComponent().name, sParam);
-    Assert.assertEquals(parser.getComponent().packageName, sPackage);
+    assertEquals(parser.getComponent().name, sParam);
+    assertEquals(parser.getComponent().packageName, sPackage);
 
   }
 
@@ -176,10 +174,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       parser.parseName(att);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(parser.getComponent().name, sParam);
-    Assert.assertEquals(parser.getComponent().packageName, "za.vdm.android");
+    assertEquals(parser.getComponent().name, sParam);
+    assertEquals(parser.getComponent().packageName, "za.vdm.android");
 
   }
 
@@ -196,9 +194,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseString(sParam, "Hallo", false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -212,9 +210,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseString(sParam, "Hallo", true);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -228,9 +226,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseString(sParam, "Hallo", false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(rParam, "Hallo");
+    assertEquals(rParam, "Hallo");
   }
 
   /**
@@ -244,10 +242,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseString(sParam, "Hallo", true);
     } catch (InvalidManifestException e) {
-      Assert.assertTrue(true);
+      assertTrue(true);
       return;
     }
-    Assert.fail("Should throw InvalidManifestException as required String attribute has not been set");
+    fail("Should throw InvalidManifestException as required String attribute has not been set");
   }
 
   /**
@@ -261,16 +259,16 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseString("", null, false);
     } catch (InvalidManifestException e) {
-      Assert.fail("Empty default value is acceptable");
+      fail("Empty default value is acceptable");
     }
 
     try {
       rParam = parser.parseString(null, "", false);
     } catch (InvalidManifestException e) {
-      Assert.fail("Empty default value is acceptable");
+      fail("Empty default value is acceptable");
     }
 
-    Assert.assertTrue(true);
+    assertTrue(true);
 
   }
 
@@ -287,9 +285,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseInt(String.valueOf(sParam), 5, false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -303,9 +301,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseInt(String.valueOf(sParam), 5, true);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -320,9 +318,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseInt(sParam, dParam, false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(rParam, 5);
+    assertEquals(rParam, 5);
   }
 
   /**
@@ -337,10 +335,10 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseInt(sParam, dParam, true);
     } catch (InvalidManifestException e) {
-      Assert.assertTrue(true);
+      assertTrue(true);
       return;
     }
-    Assert.fail("Should throw InvalidManifestException as required integer attribute not set");
+    fail("Should throw InvalidManifestException as required integer attribute not set");
   }
 
   /* **************************** parseBoolean() tests ************************** */
@@ -356,9 +354,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseBoolean(String.valueOf(sParam), false, false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -372,9 +370,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseBoolean(String.valueOf(sParam), false, true);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(sParam, rParam);
+    assertEquals(sParam, rParam);
   }
 
   /**
@@ -389,9 +387,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseBoolean(sParam, dParam, false);
     } catch (InvalidManifestException e) {
-      Assert.fail(e.getLocalizedMessage());
+      fail(e.getLocalizedMessage());
     }
-    Assert.assertEquals(rParam, dParam);
+    assertEquals(rParam, dParam);
   }
 
   /**
@@ -406,9 +404,9 @@ public class AndroidManifestParserTest extends TestJPF {
     try {
       rParam = parser.parseBoolean(sParam, dParam, true);
     } catch (InvalidManifestException e) {
-      Assert.assertTrue(true);
+      assertTrue(true);
       return;
     }
-    Assert.fail("Should throw InvalidManifestException as required boolean attribute not set");
+    fail("Should throw InvalidManifestException as required boolean attribute not set");
   }
 }
