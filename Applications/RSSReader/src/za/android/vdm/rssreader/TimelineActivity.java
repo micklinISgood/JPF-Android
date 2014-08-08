@@ -1,11 +1,7 @@
 package za.android.vdm.rssreader;
 
 import gov.nasa.jpf.annotation.Checkpoint;
-
-import java.util.ArrayList;
-
 import za.android.vdm.rssreader.provider.DatabaseInterface;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,8 +12,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 
