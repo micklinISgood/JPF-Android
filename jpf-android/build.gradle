@@ -1,14 +1,30 @@
+apply plugin: 'java'
 apply plugin: 'eclipse'
 
-// build-ant-targets-and-gradle-tasks.gradle
-//
-// Gradle build script demonstrating Gradle Tasks associated with this project
-// that are not provided by an imported Ant build file.
+// ----------------------------------------------------------------------------
+//    Property management
+// ----------------------------------------------------------------------------
 
-// ant is a DefaultAntBuilder instance
-ant.importBuild 'build.xml'
+// local props have to come first, because Ant properties are immutable 
+// NOTE: this file is local - it is never in the repository! -->
+
+// Create a ZIP file tree using path
+FileTree zip = zipTree('lib/jpf.zip')
 
 
+loadProperties 'build.properties'
+
+
+def loadProperties(String sourceFileName) {
+    def config = new Properties()
+    def propFile = new File(sourceFileName)
+    if (propFile.canRead()) {
+        config.load(new FileInputStream(propFile))
+        for (Map.Entry property in config) {
+            ext[property.key] = property.value;
+        }
+    }
+}
 
 // ----------------------------------------------------------------------------
 //    Dependency management
@@ -65,22 +81,19 @@ repositories {
  * compilation and runtime.
  */
 dependencies {
-  compile fileTree(dir: libDir, includes: jpaDeps)
+  compile fileTree(dir: libDir, includes: ['jpf.jar'])
+  compile fileTree(dir: libDir, includes: ['android.jar'])
+
   compile group: 'com.github.jsqlparser', name: 'jsqlparser', version: '0.9'
 
   testCompile group: 'junit', name: 'junit', version: '4.+'
   
-  doclet 'ch.raffael.pegdown-doclet:pegdown-doclet:1.1'
 }
 
 /**
  * Finally we say to Gradle that the compilation task for Java files depends
  * on the `getSoot` task.
  */
-compileJava.dependsOn('getDeps')
+//importBuild.dependsOn('getDeps')
 
 
-javadoc {
-  options.docletpath = configurations.doclet.files.asType(List)
-  options.doclet = 'ch.raffael.doclets.pegdown.PegdownDoclet'
-}

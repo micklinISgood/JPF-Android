@@ -2,7 +2,10 @@
 
 ### Java ###
 *.class
-
+.version
+dist/*
+build.properties
+nbproject/private/*
 
 # Package Files #
 *.jar

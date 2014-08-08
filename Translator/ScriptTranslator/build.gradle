@@ -25,6 +25,8 @@ repositories {
 }
 
 dependencies {
+  compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
+  testCompile group: 'junit', name: 'junit', version: '4.+'
   doclet 'ch.raffael.pegdown-doclet:pegdown-doclet:1.1'
 }
 
@@ -33,25 +35,15 @@ javadoc {
   options.doclet = 'ch.raffael.doclets.pegdown.PegdownDoclet'
 }
 
-// ----------------------------------------------------------------------------
-//    Wrapper script creation
-// ----------------------------------------------------------------------------
-
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.7'
+  gradleVersion = '1.11'
 }
-
-
-// ----------------------------------------------------------------------------
-//    Findbugs
-// ----------------------------------------------------------------------------
 
 findbugs {
   ignoreFailures = true
   reportLevel = 'low'
   effort = 'max'
-  excludeFilter =
-          file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+  
 }
 
 tasks.withType(FindBugs) {
