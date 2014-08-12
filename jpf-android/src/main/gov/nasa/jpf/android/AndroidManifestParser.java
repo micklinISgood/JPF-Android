@@ -548,7 +548,6 @@ public class AndroidManifestParser extends DefaultHandler {
    * 
    */
   public class InvalidManifestException extends SAXException {
-    private static final long serialVersionUID = 7988578359042835572L;
 
     public InvalidManifestException(String message) {
       super(message);
