@@ -13,6 +13,11 @@ android.checklist = ${config_path}/Checklists.cl
 android.active_checklists = updateSuccess, updateWifiDown, updateBatteryLow
 
 
+listener+=.listener.CoverageAnalyzer
+coverage.include = za.android.vdm.rssreader.*
+coverage.show_methods = true
+
+
 # Turn on Logging
 log.level=info
 

@@ -9,20 +9,20 @@ SECTION default {
 }
 
 SECTION za.android.vdm.rssreader.TimelineActivity {
-	//ANY{ 
-	//	GROUP{
+	ANY{ 
+		GROUP{
 			device.setWifi("ON")
     		device.setBattery("100%")
-		//},
-		//GROUP {
-		//	device.setWifi("OFF")
-		//	device.setBattery("100%")
-		//},
-		//GROUP {
-		//device.setWifi("ON")
-		//device.setBattery("1%")
-		//}
-	//}
+		},
+		GROUP {
+			device.setWifi("OFF")
+			device.setBattery("100%")
+		},
+		GROUP {
+		    device.setWifi("ON")
+			device.setBattery("1%")
+		}
+	}
 	$buttonRefresh.onClick()
 	//$buttonRefresh.onClick()		
 }
