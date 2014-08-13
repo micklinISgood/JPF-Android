@@ -4,6 +4,7 @@ import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.vm.MJIEnv;
 import gov.nasa.jpf.vm.NativePeer;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,8 +39,8 @@ public class JPF_java_net_URL extends NativePeer {
       return env.newByteArray(data);
     }
     try {
-      String projectDir = AndroidPathManager.getProjectDir();
-      Path path = Paths.get(((projectDir != null) ? projectDir + "/" : "") + filename);
+      String projectDir = AndroidProjectInfo.get().getProjectDir();
+      Path path = Paths.get(projectDir + File.separator + filename);
       data = Files.readAllBytes(path);
       return env.newByteArray(data);
     } catch (IOException e) {

@@ -67,13 +67,7 @@ public class PackageManager {
   private native void init0();
 
   public ArrayList<IntentFilter> getFilters(String componentName) {
-    // System.out.println("PackageManager.getFilters() for " +componentName);
-    //
-    // int i = getFiltersNative(componentName);
-    // System.out.println("PackageManager.getFilters() " + i);
     return filters.get(componentName);
-    // return null;
-
   }
 
   /**

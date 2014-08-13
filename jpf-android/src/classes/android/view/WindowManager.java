@@ -29,11 +29,11 @@ public class WindowManager {
    * @param action
    */
   private void handleViewAction(String name, String action, String[] arguments) {
-    //TODO
+    // TODO
     if (name.equals("$backButton")) {
 
       Log.i(TAG, "Back button handled by window manager");
-      //currentWindow.dispatchEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+      // currentWindow.dispatchEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
       currentWindow.dispatchEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK));
     } else if (name.equals("$homeButton")) {
 
@@ -47,6 +47,8 @@ public class WindowManager {
       currentWindow.dispatchEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MENU));
       currentWindow.dispatchEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MENU));
     } else {
+      Log.i(TAG, "Dispatching to currentWindow [" + name + " " + action + " " + arguments + "]");
+
       currentWindow.handleViewAction(name, action, arguments);
     }
   }

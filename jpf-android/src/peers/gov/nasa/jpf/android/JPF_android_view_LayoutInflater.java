@@ -25,13 +25,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * Native peer of the LayoutInflater. Makes use of {@link DocumentBuilder} to
- * parse the layout files.
+ * Native peer of the LayoutInflater. Makes use of {@link DocumentBuilder} to parse the layout files.
  * 
  * @author "Heila van der Merwe"
  * 
  */
-public class JPF_android_view_LayoutInflater  extends NativePeer {
+public class JPF_android_view_LayoutInflater extends NativePeer {
   public final static String TAG = JPF_android_view_LayoutInflater.class.getSimpleName();
   static Logger log = JPF.getLogger("gov.nasa.jpf.android");
 
@@ -51,13 +50,21 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
   @MJI
   public int loadLayout(MJIEnv env, int objref, int resourceID) {
     // retrieve the file name of the layout resource
-    String filename = JPF_android_view_WindowManager.getLayoutFileName(resourceID);
+    String filename;
+    try {
+      AndroidProjectInfo projectInfo = AndroidProjectInfo.get();
+      filename = projectInfo.getLayoutFilename(resourceID);
+    } catch (Exception e1) {
+      e1.printStackTrace();
+      log.severe("LayoutInflator could not find filename for layout id: " + resourceID);
+      throw new RuntimeException("LayoutInflator could not find filename for id: " + resourceID);
+    }
 
     // check if the layout file has been parsed before
     LayoutInfo layoutInfo = layoutMap.get(resourceID);
 
     if (layoutInfo == null) {
-      //if file was not jet loaded, try to load it now.
+      // if file was not jet loaded, try to load it now.
       try {
         layoutInfo = load(resourceID, filename);
         log.info("Loaded layout file " + filename);
@@ -80,14 +87,14 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
 
   private static LayoutInfo load(int resourceID, String filename) throws ParserConfigurationException,
       SAXException, IOException {
-    //parse the document
+    // parse the document
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     InputStream is = new FileInputStream(filename);
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document dom = builder.parse(is, null);
     Element docRoot = dom.getDocumentElement();
 
-    //create new LayoutInfo entry
+    // create new LayoutInfo entry
     LayoutInfo info = new LayoutInfo();
     info.root = docRoot;
     info.filename = filename;
@@ -97,8 +104,7 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
   }
 
   /**
-   * Recursively inserts all child nodes into a hash map of all the views in the
-   * layout.
+   * Recursively inserts all child nodes into a hash map of all the views in the layout.
    * 
    * @param info
    *          the info on the Layout
@@ -109,13 +115,13 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
     if (n == null) {
       return;
     }
-    //put node in hashmap
+    // put node in hashmap
     info.viewMap.put(n.hashCode(), n);
 
-    //get the children
+    // get the children
     NodeList list = n.getChildNodes();
 
-    //if has children, call insert for each child
+    // if has children, call insert for each child
     if (list != null && list.getLength() > 0) {
       for (int i = 0; i < list.getLength(); i++) {
         Node child = list.item(i);
@@ -137,11 +143,11 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
     Node n = info.viewMap.get(hashcode);
     if (n == null) {
       log.warning(TAG + ": Could not find XML node with hashcode " + hashcode);
-      return  MJIEnv.NULL;
+      return MJIEnv.NULL;
     }
 
-    // we have found the node 
-    String[] returnVals = { getType(n), Integer.toString(getID(n)), getName(n), Integer.toString(hashcode),
+    // we have found the node
+    String[] returnVals = { getType(n), Integer.toString(getViewIDFromNode(n)), getName(n), Integer.toString(hashcode),
         getText(n) };
     return env.newStringArray(returnVals);
 
@@ -163,11 +169,11 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
       return MJIEnv.NULL;
     }
 
-    //get the children
+    // get the children
     NodeList list = n.getChildNodes();
 
     ArrayList<Integer> returnList = null;
-    //if has children, return  children
+    // if has children, return children
     if (list != null && list.getLength() > 0) {
       returnList = new ArrayList<Integer>();
       for (int i = 0; i < list.getLength(); i++) {
@@ -213,22 +219,25 @@ public class JPF_android_view_LayoutInflater  extends NativePeer {
     if (n != null) {
       name = n.getNodeValue();
       if (name.startsWith("@string/")) {
-        name = JPF_android_content_res_Resources.getString(name.substring(8));
+        name = AndroidProjectInfo.get().getStringValue(name.substring(8));
       }
     }
 
     return name;
   }
 
-  public static int getID(Node node) {
+  public static int getViewIDFromNode(Node node) {
     int id = -1;
-    String name = "$" + getName(node);
-    log.fine("Getting Id of name: " + name);
-    id = JPF_android_view_WindowManager.getID(name);
-    if (id == -1) {
+    String name = getName(node);
+    log.fine("Getting ViewId for: " + name);
+    try {
+      id = AndroidProjectInfo.get().getRFile().getViewIdForName(name);
+    } catch (Exception e) {
+      log.warning("LayoutInflator could not find ViewID for: " + name);
+      //generating ID
       return node.hashCode();
-    } else
-      return id;
+    }
+    return id;
 
   }
 }

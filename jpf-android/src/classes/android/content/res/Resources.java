@@ -51,7 +51,6 @@ public class Resources {
    */
   public Resources(Configuration config) {
     mConfiguration = config;
-    init0();
     Log.i(TAG, "Resources parsed successfully.");
   }
   
@@ -59,11 +58,9 @@ public class Resources {
 
   public Resources() {
     // only here to be intercepted
-    init0();
 
   }
   
-  private native void init0();
 
   /**
    * Return a global shared Resources object that provides access to only system
