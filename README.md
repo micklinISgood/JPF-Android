@@ -3,9 +3,9 @@ JPF-Android
 
 JPF-Android is a model checker and analysis tool for Android applications built on Java PathFinder.
 
-For more **information** and **instructions** on the tool please go to the tool [website](https://heila.bitbucket.org/jpf-android)
+For more **information** and **instructions** on the tool please go to the tool [website](http://heila.bitbucket.org/jpf-android)
 
-The **system doumentation** of the tool can be found on the JPF-Android [wiki](https://heila.bitbucket.org/jpf-android/wiki/Home).
+The **system doumentation** of the tool can be found on the JPF-Android [wiki](http://heila.bitbucket.org/jpf-android/wiki/Home).
 
 
 License
