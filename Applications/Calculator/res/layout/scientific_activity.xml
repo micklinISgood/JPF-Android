@@ -98,21 +98,25 @@
 
                 <Button
                     android:id="@+id/buttonPI"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/pi" />
 
                 <Button
                     android:id="@+id/buttonRad"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/rad" />
 
                 <Button
                     android:id="@+id/buttonDegree"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/degree" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -122,21 +126,25 @@
 
                 <Button
                     android:id="@+id/buttonOpenParenthesis"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/openParenthesis" />
 
                 <Button
                     android:id="@+id/buttonAbsolute"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/abs" />
 
                 <Button
                     android:id="@+id/buttonCloseParenthesis"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/closeParenthesis" />
+
             </LinearLayout>
         </LinearLayout>
 
