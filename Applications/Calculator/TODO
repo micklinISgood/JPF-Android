@@ -15,3 +15,13 @@ Fix ALL Android lint errors (for clarity)
 Complete README
 
 
+Updates
+=========
+
+There where a few problems that were fixed in the new version:
+- the gradle version **must** be 1.10 to build using Android tools (use ./gradlew when building)
+- jpf did not detect the Eval.jar in the libs folder so it needed to be added to the classpath in *.jpf properties
+- we need a better way of outputting results (especially if there where no errors)
+-  or run:
+
+    `android update project -p .` in the main directory of the project.
