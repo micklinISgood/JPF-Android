@@ -1,7 +1,7 @@
 package gov.nasa.jpf.util.script;
 
 import gov.nasa.jpf.JPF;
-import gov.nasa.jpf.android.ResultPublishListener;
+import gov.nasa.jpf.jvm.ResultPublishListener;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.util.StateExtensionClient;
 import gov.nasa.jpf.util.StateExtensionListener;
