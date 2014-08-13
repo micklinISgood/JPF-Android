@@ -143,8 +143,10 @@ public class CalculatorActivity extends Activity implements OnClickListener {
 		} catch (Exception e) {
 			// the expression had an error, display an error and clear display
 			showError(e);
-			//throw new ArithmeticException(e.getMessage());
-			clearDisplay();
+			
+			/********** injected error (exception thrown & clear display not called) *****************/
+			throw new ArithmeticException(e.getMessage());
+			//clearDisplay();
 		}
 	}
 
