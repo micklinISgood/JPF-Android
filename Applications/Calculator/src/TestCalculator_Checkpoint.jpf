@@ -5,6 +5,7 @@
 #--- target setup
 target = com.example.calculator.SimpleActivity
 classpath+=${jpf-android}/../Applications/Calculator/bin/classes/;${jpf-android}/../Applications/Calculator/libs/EvalEx-1.0.jar;
+#classpath+=${jpf-android}/../Applications/Calculator/build/classes/release;${jpf-android}/../Applications/Calculator/libs/EvalEx-1.0.jar;
 sourcepath=${jpf-android}/../Applications/Calculator/src;
 
 

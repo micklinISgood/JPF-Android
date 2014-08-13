@@ -70,9 +70,18 @@ This project can either be executed as an Android application or it can be verif
 
 Right Click on project and select `Run As`->`Android Application`.
 
-**or from Commandline:**
-Make use the android tools directory in in your path:
+**or from Command line:**
+To run a project built with gradle, we first need to update the `classpath` in all the `*.jpf` property files of the project. Currently the classpath will point to `project/bin/classes` (used by ant) Comment out this line and uncomment the classpath pointing to `build/classes/release`:
 
+```sh
+#classpath+=${jpf-android}/../Applications/Calculator/bin/classes/;${jpf-android}/../Applications/Calculator/libs/EvalEx-1.0.jar;
+
+classpath+=${jpf-android}/../Applications/Calculator/build/classes/release;${jpf-android}/../Applications/Calculator/libs/EvalEx-1.0.jar;
+
+```
+
+
+Make sure the android tools directory is in your path:
 
 ```sh
 # Start the emulator
@@ -111,5 +120,5 @@ Common Issues
 License
 -------
 
-This sowtware is distributed under the terms of the Apache Software License 2.0.
+This software is distributed under the terms of the Apache Software License 2.0.
 See the LICENSE file for further details.
