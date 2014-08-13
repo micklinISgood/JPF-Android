@@ -24,6 +24,7 @@ import gov.nasa.jpf.util.JPFLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -42,6 +43,7 @@ import android.content.pm.ComponentInfo;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.util.Printer;
 
 /**
  * AndroidManifest.xml parser. Implemented as a singleton class. Creates a PackageInfo object containing all
@@ -58,6 +60,8 @@ import android.content.pm.ServiceInfo;
  */
 public class AndroidManifestParser extends DefaultHandler {
   private static final JPFLogger logger = JPF.getLogger("gov.nasa.jpf.android.AndroidManifestParser");
+
+  private static final boolean DEBUG = false;
 
   private static AndroidManifestParser parser = null;
 
@@ -116,7 +120,8 @@ public class AndroidManifestParser extends DefaultHandler {
   @Override
   public void startElement(String s, String s1, String elementName, Attributes attributes)
       throws SAXException {
-
+    if (DEBUG)
+      logger.info("StartElement: " + elementName);
     if (elementName.equalsIgnoreCase("manifest")) {
       androidManifest.packageInfo.packageName = parseString(attributes.getValue("package"), "", true);
       androidManifest.packageName = androidManifest.packageInfo.packageName;
@@ -153,6 +158,9 @@ public class AndroidManifestParser extends DefaultHandler {
 
   @Override
   public void endElement(String s, String s1, String element) throws SAXException {
+    if (DEBUG)
+      logger.info("EndElement: " + element);
+
     if (element.equals("activity")) {
       ((ActivityInfo) componentTemp).applicationInfo = androidManifest.packageInfo.applicationInfo;
       androidManifest.activities.add((ActivityInfo) componentTemp);
@@ -190,6 +198,8 @@ public class AndroidManifestParser extends DefaultHandler {
     androidManifest.packageInfo.applicationInfo.className = name;
     androidManifest.packageInfo.applicationInfo.packageName = androidManifest.packageInfo.packageName;
 
+    if (DEBUG)
+      logger.info("Parsed ApplicationInfo: " + name + "/" + androidManifest.packageInfo.packageName);
   }
 
   /**

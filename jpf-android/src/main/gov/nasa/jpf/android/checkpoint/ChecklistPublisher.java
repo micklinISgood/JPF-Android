@@ -1,7 +1,7 @@
 package gov.nasa.jpf.android.checkpoint;
 
 import gov.nasa.jpf.PropertyListenerAdapter;
-import gov.nasa.jpf.android.ResultPublishListener;
+import gov.nasa.jpf.jvm.ResultPublishListener;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.search.Search;
