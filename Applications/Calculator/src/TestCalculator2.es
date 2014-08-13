@@ -5,7 +5,7 @@ SECTION default {
 
 SECTION com.example.calculator.SimpleActivity {
 	$button[0-9].onClick()
-	$button<Plus|Minus|Mul|Div>.onClick()
+	$button<Minus|Mul|Div>.onClick()
 	$button[0-9].onClick()
 	$buttonEquals.onClick()
 

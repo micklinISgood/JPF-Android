@@ -1,0 +1,34 @@
+#--- dependencies on other JPF projects
+@using = jpf-android
+#@using = jpf-shell
+
+#--- target setup
+target = com.example.calculator.SimpleActivity
+classpath+=${jpf-android}/../Applications/Calculator/bin/classes/;${jpf-android}/../Applications/Calculator/libs/EvalEx-1.0.jar;
+sourcepath=${jpf-android}/../Applications/Calculator/src;
+
+
+#--- android setup
+android.script=${config_path}/TestCalculator2.es
+android.checklist_enabled = false
+
+#--- enable coverage analyzer
+listener+=.listener.CoverageAnalyzer
+coverage.include = com.example.calculator.*
+coverage.show_methods = false
+coverage.show_branches = false
+#--- search class
+search.class = .search.heuristic.BFSHeuristic
+
+
+#--- reporting
+# don't obfuscate things in handlers
+vm.halt_on_throw=java.lang.ArithmeticException
+
+#--- logging
+log.level=info
+
+
+#--- enable jpf-shell
+#shell=.shell.basicshell.BasicShell
+
