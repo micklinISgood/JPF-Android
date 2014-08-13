@@ -16,7 +16,7 @@ android.checklist_enabled = false
 
 #--- enable coverage analyzer
 listener+=.listener.CoverageAnalyzer
-coverage.include = com.example.calculator.SimpleActivity
+coverage.include = com.example.calculator.*
 coverage.show_methods = true
 
 
