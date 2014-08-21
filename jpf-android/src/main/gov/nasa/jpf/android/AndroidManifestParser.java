@@ -339,7 +339,6 @@ public class AndroidManifestParser extends DefaultHandler {
   protected void parseReceiver(Attributes attributes) throws InvalidManifestException {
     componentTemp = new ActivityInfo();
     parseName(attributes);
-    ((ActivityInfo) componentTemp).enabled = parseBoolean(attributes.getValue("android:enabled"), true, false);
     ((ActivityInfo) componentTemp).exported = parseBoolean(attributes.getValue("android:exported"), true,
         false);
     ((ActivityInfo) componentTemp).permission = parseString(attributes.getValue("android:permission"), "",

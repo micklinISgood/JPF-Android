@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +42,7 @@ public class AndroidProjectInfo {
     }
   }
 
-  private String projectDir;
+  public static String projectDir;
   /**
    * The build tool that was used to build the project. This is important since it determines where the
    * compiled files are stored after a build.
@@ -67,6 +65,8 @@ public class AndroidProjectInfo {
   private Map<String, String> stringNameToValueMap;
 
   private static AndroidProjectInfo instance;
+  
+ 
 
   public static AndroidProjectInfo get() {
     if (instance == null) {
@@ -86,8 +86,8 @@ public class AndroidProjectInfo {
     // if none exist, throw error that project has not been not built.
 
     // TODO need to check this
-    projectDir = System.getProperty("user.dir");
-    System.out.println("ProjectDirectory: " + projectDir);
+//    projectDir = System.getProperty("user.dir");
+//    System.out.println("ProjectDirectory: " + projectDir);
 
     antBuildDirectoryPath = projectDir + File.separator + "bin";
     File antBuildDirectory = new File(antBuildDirectoryPath);
