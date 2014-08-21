@@ -28,6 +28,8 @@ public class RParser {
 
   private static final String FOOTER = "}";
 
+  private static final boolean DEBUG = false;
+
   private RParser() {
   }
 
@@ -72,7 +74,7 @@ public class RParser {
         break;
       list = getFields(next);
       rfile.stringIdToNameMap.put(Integer.parseInt(list[1].substring(2), 16), list[0]);
-      System.out.println("RParser parsed String: " + Integer.parseInt(list[1].substring(2), 16) + " "
+     if (DEBUG) System.out.println("RParser parsed String: " + Integer.parseInt(list[1].substring(2), 16) + " "
           + list[0]);
     }
   }
@@ -92,14 +94,15 @@ public class RParser {
       list = getFields(next);
       rfile.viewIdToNameMap.put(Integer.parseInt(list[1].substring(2), 16), list[0]);
       rfile.viewNameToIdMap.put(list[0], Integer.parseInt(list[1].substring(2), 16));
-
-      System.out
-          .println("RParser parsed View: " + Integer.parseInt(list[1].substring(2), 16) + " " + list[0]);
+      if (DEBUG)
+        System.out.println("RParser parsed View: " + Integer.parseInt(list[1].substring(2), 16) + " "
+            + list[0]);
 
     }
     // TODO Add window to the componentMap to catch window events
     rfile.viewIdToNameMap.put(0, "window");
-    System.out.println("RParser parsed View: " + 0 + " " + "window");
+    if (DEBUG)
+      System.out.println("RParser parsed View: " + 0 + " " + "window");
 
   }
 
@@ -117,7 +120,7 @@ public class RParser {
         break;
       list = getFields(next);
       rfile.layoutIdToNameMap.put(Integer.parseInt(list[1].substring(2), 16), list[0]);
-      System.out.println("RParser parsed layout: " + Integer.parseInt(list[1].substring(2), 16) + " "
+      if (DEBUG ) System.out.println("RParser parsed layout: " + Integer.parseInt(list[1].substring(2), 16) + " "
           + list[0]);
 
     }
