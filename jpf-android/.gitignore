@@ -16,8 +16,6 @@ hs_err_pid*
 # temp files
 *~
 
-
-
 ### Eclipse ###
 .metadata
 .gradle
@@ -90,3 +88,6 @@ build/
 ## Gradle java eclipse
 .classpath
 .project
+
+## Markdown
+*.html
