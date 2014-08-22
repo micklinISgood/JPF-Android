@@ -1,5 +1,6 @@
 package gov.nasa.jpf.android;
 
+import gov.nasa.jpf.Config;
 import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.util.script.UIAction;
 import gov.nasa.jpf.vm.MJIEnv;
@@ -13,6 +14,13 @@ public class JPF_android_os_ServiceManager extends NativePeer {
   public void init0(MJIEnv env, int classRef) {
     //this.classRef = classRef;
     //make sure the projectInfo is initialized as soon as possible
+    Config config = env.getConfig();
+    String projectPath = config.getString("projectpath");
+    System.out.println("Project path: " + projectPath);
+
+    // make sure the projectInfo is initialized as soon as possible
+    AndroidProjectInfo.projectDir = projectPath;
+
     AndroidProjectInfo p = AndroidProjectInfo.get();
   }
 
