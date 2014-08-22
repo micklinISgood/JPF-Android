@@ -16,7 +16,7 @@ public final class URL implements Serializable {
   public InputStream openStream() throws IOException {
     boolean b = Verify.getBoolean();
 
-    if (b) {
+    if (!b) {
       throw new IOException("Could not open Url");
     } else {
       return new ByteArrayInputStream(getURLInput());
