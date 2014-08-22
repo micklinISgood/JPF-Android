@@ -8,7 +8,7 @@ This application illustrates JPF-Android input script and how it can be used to 
 
 The application can be used to detect an Arithmetic exception, using jpf-android, that is thrown by the application when we divide by zero or ask for the square root of a negative number. Lastly it can detect a NullPointer dereferencing exception when sending data between Activities.
 
-![logo](calc.png "logo")
+![logo](http://bitbucket.org/heila/jpf-android/raw/master/Applications/Calculator/calc.png "logo")
 
 Dependencies
 -----------
