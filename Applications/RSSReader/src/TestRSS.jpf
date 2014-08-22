@@ -2,6 +2,7 @@
 @using = jpf-android
 
 target= za.android.vdm.rssreader.TimelineActivity
+projectpath=${jpf-android}/../Applications/RSSReader
 classpath=${jpf-android}/../Applications/RSSReader/bin/classes/;${classpath}
 sourcepath=${jpf-android}/../Applications/RSSReader/src;
 
