@@ -3,7 +3,8 @@
 /gen
 /build
 project.properties
-
+build.xml
+proguard-project.txt
 
 # Package Files #
 *.jar
@@ -88,3 +89,6 @@ build/
 ## Gradle java eclipse
 .classpath
 .project
+
+## Markdown
+*.html
