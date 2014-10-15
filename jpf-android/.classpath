@@ -10,5 +10,5 @@
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/android.jar" sourcepath="/Users/heila/Android/sdk/sources/android-17"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsqlparser.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="output" path="build"/>
 </classpath>
