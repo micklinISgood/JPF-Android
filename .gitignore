@@ -16,3 +16,7 @@ activity*.png
 *.ps
 *.aux
 *.backup
+Translator
+EnvironmentGeneration
+GradleCompilation
+GradleExtension
