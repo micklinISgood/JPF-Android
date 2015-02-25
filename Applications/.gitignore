@@ -1,7 +1,7 @@
 # Android
-/bin
-/gen
-/build
+bin/*
+gen/*
+build/*
 
 
 # Package Files #
