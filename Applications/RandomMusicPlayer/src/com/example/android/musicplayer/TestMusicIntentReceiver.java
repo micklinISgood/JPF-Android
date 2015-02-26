@@ -3,7 +3,6 @@ package com.example.android.musicplayer;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.test.AndroidTestCase;
@@ -42,7 +41,6 @@ public class TestMusicIntentReceiver extends AndroidTestCase {
     mContext = new TestContext();
   }
 
-  @SuppressLint("InlinedApi")
   public void testStartActivity() {
     Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
 
