@@ -29,7 +29,7 @@
 <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/Java SE 7 [1.7.0_51]"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="edu.ksu.cis.envgen.EnvGenerator"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-c configs/gen-mediaplayer-br-stubs-unit-se.properties"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-c configs/gen-musicplayer-br-stubs-unit-se.properties"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="RandomMusicPlayer"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx1024M"/>
 </launchConfiguration>
