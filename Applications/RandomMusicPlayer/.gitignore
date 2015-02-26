@@ -2,6 +2,7 @@
 bin/
 gen/
 build/
+models/
 
 
 # Package Files #
