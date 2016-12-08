@@ -1,0 +1,95 @@
+[INFO] not a valid source root: /Users/micklin/Documents/jpf-android/jpf-android/src/examples
+[INFO] watching for autoload annotation @gov.nasa.jpf.Const
+[INFO] watching for autoload annotation @gov.nasa.jpf.NonNull
+[WARNING] unknown classpath element: /Users/micklin/Documents/jpf-android/jpf-android/build/examples
+[WARNING] unknown classpath element: /Users/micklin/Documents/jpf-android/jpf-nhandler/build/jpf-nhandler-classes.jar
+[INFO] collected system classpath: /Users/micklin/Documents/jpf-android/jpf-android/../Applications/Calculator/build/classes/release:/Users/micklin/Documents/jpf-android/jpf-android/../Applications/Calculator/libs/EvalEx-1.0.jar:/Users/micklin/Documents/jpf-android/jpf-android/build/jpf-android-classes.jar:/Users/micklin/Documents/jpf-android/jpf-android/lib/android.jar:/Users/micklin/Documents/jpf-android/jpf-nhandler/build/examples:/Users/micklin/Documents/jpf-android/jpf-core/build/jpf-classes.jar:/Users/micklin/Documents/jpf-android/jpf-core/build/examples:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jfr.jar
+[INFO] BFS Search
+[INFO] VMListener added: gov.nasa.jpf.report.Statistics@72745862
+[INFO] SearchListener added: gov.nasa.jpf.report.Statistics@72745862
+[INFO] VMListener added: gov.nasa.jpf.vm.JVMForwarder@6d649643
+[INFO] SearchListener added: gov.nasa.jpf.vm.JVMForwarder@6d649643
+[INFO] VMListener added: gov.nasa.jpf.jvm.InjectMainListener@66c540d0
+[INFO] SearchListener added: gov.nasa.jpf.jvm.InjectMainListener@66c540d0
+[INFO] VMListener added: gov.nasa.jpf.listener.CoverageAnalyzer@20224c66
+[INFO] SearchListener added: gov.nasa.jpf.listener.CoverageAnalyzer@20224c66
+[INFO] added class candidate: com.example.calculator.CalculatorActivity
+[INFO] used class: com.example.calculator.CalculatorActivity
+[INFO] add method: <init>()V
+[INFO] add method: setupGUI()V
+[INFO] add method: restoreState()V
+[INFO] add method: onClick(Landroid/view/View;)V
+[INFO] add method: clearDisplay()V
+[INFO] add method: calculate(Ljava/lang/String;)V
+[INFO] add method: updateDisplay(Ljava/lang/String;Ljava/lang/String;)V
+[INFO] add method: showError(Ljava/lang/Exception;)V
+[INFO] add method: startNextActivity()V
+[INFO] add method: expressionButtonPressed(Ljava/lang/String;)V
+[INFO] add method: getState()Landroid/os/Bundle;
+[INFO] main() method injected into class: com.example.calculator.SimpleActivity
+[INFO] added class candidate: com.example.calculator.SimpleActivity
+[INFO] used class: com.example.calculator.SimpleActivity
+[INFO] add method: <init>()V
+[INFO] add method: onCreate(Landroid/os/Bundle;)V
+[INFO] add method: startNextActivity()V
+[INFO] add method: main([Ljava/lang/String;)V
+JavaPathfinder v7.0 (rev 1188+) - (C) RIACS/NASA Ames Research Center
+
+
+====================================================== system under test
+com.example.calculator.SimpleActivity.main()
+
+====================================================== search started: 12/8/16 3:37 PM
+[INFO] ServiceManager: Starting up the Android ServiceManager...0
+Project path: /Users/micklin/Documents/jpf-android/jpf-android/../Applications/Calculator
+Detected ANT Project
+[INFO] AndroidManifestParser: Manifest parsed successfully
+[INFO] PackageManager: Ready!
+[INFO] Context: Creating new Context.
+[INFO] ActivityManager: Ready!
+[INFO] WindowManager: Ready!
+[INFO] ConnectivityManager: Ready!
+[INFO] Context: sendStickyBroadcast(intent=Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000000 (has extras) })
+[INFO] ActivityManager: Broadcast Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000000 (has extras) } ordered=false sticky=true permission=null
+
+====================================================== error 1
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
+java.lang.NullPointerException: array length of null object
+	at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:215)
+	at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:208)
+	at java.util.ArrayList.add(ArrayList.java:440)
+	at com.android.server.am.ActivityManagerService.performBroadcastIntent(ActivityManagerService.java:1023)
+	at android.app.IActivityManager.broadcastIntent(IActivityManager.java:127)
+	at android.app.ContextImpl.sendStickyBroadcast(ContextImpl.java:558)
+	at com.android.server.BatteryService.sendIntent(BatteryService.java:160)
+	at com.android.server.BatteryService.<init>(BatteryService.java:74)
+	at android.os.ServiceManager.<init>(ServiceManager.java:68)
+	at android.os.ServiceManager.start(ServiceManager.java:72)
+	at com.example.calculator.SimpleActivity.main(SimpleActivity.java:0)
+
+
+====================================================== coverage statistics
+
+-------------------------------------------- class coverage ------------------------------------------------
+bytecode            line                basic-block         branch              methods             location
+------------------------------------------------------------------------------------------------------------
+0.00 (0/459)        0.00 (0/71)         0.00 (0/127)        0.00 (0/9)          0.00 (0/11)         com.example.calculator.CalculatorActivity
+0.03 (1/31)         0.00 (0/10)         0.08 (1/13)          -                  0.25 (1/4)          com.example.calculator.SimpleActivity
+
+------------------------------------------------------------------------------------------------------------
+0.00 (1/490)        0.00 (0/81)         0.01 (1/140)        0.00 (0/9)          0.07 (1/15)         1.00 (2/2)         total
+
+====================================================== results
+error #1: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.NullPointerException: array length of nu..."
+
+====================================================== statistics
+elapsed time:       00:00:00
+states:             new=1,visited=0,backtracked=0,end=0
+search:             maxDepth=1,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=0
+heap:               new=2083,released=0,maxLive=0,gcCycles=0
+instructions:       23585
+max memory:         123MB
+loaded code:        classes=138,methods=2941
+
+====================================================== search finished: 12/8/16 3:37 PM

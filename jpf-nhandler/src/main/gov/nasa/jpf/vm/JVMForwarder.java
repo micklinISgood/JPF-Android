@@ -233,8 +233,8 @@ public class JVMForwarder extends PropertyListenerAdapter {
     if(reset) {
       String path = config.getPath("jpf-nhandler") + "/onthefly";
       File onthefly = new File(path);
-      String[] peers = onthefly.list();
 
+      String[] peers = onthefly.list();
       for(String name: peers) {
     	if((reset && name.startsWith("OTF_JPF_") && (name.endsWith(".class") || name.endsWith(".java")))) {
           File peer = new File(onthefly, name);
