@@ -1,0 +1,52 @@
+apply plugin: 'android'
+apply plugin: 'eclipse'
+
+version = '1.2'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.2'
+    }
+}
+
+android {
+    buildToolsVersion "19.0.2"
+    compileSdkVersion 19
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 19
+    }
+
+
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            resources.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+
+        androidTest.setRoot('tests')
+        instrumentTest.setRoot('tests')
+
+    }
+}
+
+dependencies {
+    compile files('libs/jpf-android-annotations.jar')
+    compile files('libs/EvalEx-1.0.jar')
+
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.10'
+}

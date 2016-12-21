@@ -1,0 +1,115 @@
+[INFO] not a valid source root: /Users/micklin/Documents/jpf-android/jpf-android/src/examples
+[INFO] watching for autoload annotation @gov.nasa.jpf.Const
+[INFO] watching for autoload annotation @gov.nasa.jpf.NonNull
+[WARNING] unknown classpath element: /Users/micklin/Documents/jpf-android/jpf-android/build/examples
+[WARNING] unknown classpath element: /Users/micklin/Documents/jpf-android/jpf-nhandler/build/jpf-nhandler-classes.jar
+[INFO] collected system classpath: /Users/micklin/Documents/jpf-android/jpf-android/../Applications/RSSReader/bin/classes:/Users/micklin/Documents/jpf-android/jpf-android/build/jpf-android-classes.jar:/Users/micklin/Documents/jpf-android/jpf-android/lib/android.jar:/Users/micklin/Documents/jpf-android/jpf-nhandler/build/examples:/Users/micklin/Documents/jpf-android/jpf-core/build/jpf-classes.jar:/Users/micklin/Documents/jpf-android/jpf-core/build/examples:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre/lib/jfr.jar
+[INFO] VMListener added: gov.nasa.jpf.report.Statistics@361de2b1
+[INFO] SearchListener added: gov.nasa.jpf.report.Statistics@361de2b1
+[INFO] VMListener added: gov.nasa.jpf.vm.JVMForwarder@4f6f76a8
+[INFO] SearchListener added: gov.nasa.jpf.vm.JVMForwarder@4f6f76a8
+[INFO] VMListener added: gov.nasa.jpf.jvm.InjectMainListener@1ed73856
+[INFO] SearchListener added: gov.nasa.jpf.jvm.InjectMainListener@1ed73856
+[INFO] VMListener added: gov.nasa.jpf.listener.CoverageAnalyzer@43b3a5eb
+[INFO] SearchListener added: gov.nasa.jpf.listener.CoverageAnalyzer@43b3a5eb
+[INFO] main() method injected into class: za.android.vdm.rssreader.TimelineActivity
+[INFO] added class candidate: za.android.vdm.rssreader.TimelineActivity
+[INFO] used class: za.android.vdm.rssreader.TimelineActivity
+[INFO] add method: <init>()V
+[INFO] add method: onCreate(Landroid/os/Bundle;)V
+[INFO] add method: onStart()V
+[INFO] add method: onResume()V
+[INFO] add method: onPause()V
+[INFO] add method: onStop()V
+[INFO] add method: stopUpdatingService()V
+[INFO] add method: onDestroy()V
+[INFO] add method: updateListView(Landroid/database/Cursor;)V
+[INFO] add method: loadRSSItemsFromDB()Landroid/database/Cursor;
+[INFO] add method: main([Ljava/lang/String;)V
+JavaPathfinder v7.0 (rev 1188+) - (C) RIACS/NASA Ames Research Center
+
+
+====================================================== system under test
+za.android.vdm.rssreader.TimelineActivity.main()
+
+====================================================== search started: 12/8/16 9:28 PM
+[INFO] ServiceManager: Starting up the Android ServiceManager...0
+Project path: /Users/micklin/Documents/jpf-android/jpf-android/../Applications/RSSReader
+Detected ANT Project
+[INFO] AndroidManifestParser: Manifest parsed successfully
+[INFO] PackageManager: Ready!
+[INFO] Context: Creating new Context.
+[INFO] ActivityManager: Ready!
+[INFO] WindowManager: Ready!
+[INFO] ConnectivityManager: Ready!
+[INFO] Context: sendStickyBroadcast(intent=Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000000 (has extras) })
+[INFO] ActivityManager: Broadcast Intent { act=android.intent.action.BATTERY_CHANGED flg=0x60000000 (has extras) } ordered=false sticky=true permission=null
+
+====================================================== error 1
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
+java.lang.NullPointerException: array length of null object
+	at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:215)
+	at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:208)
+	at java.util.ArrayList.add(ArrayList.java:440)
+	at com.android.server.am.ActivityManagerService.performBroadcastIntent(ActivityManagerService.java:1023)
+	at android.app.IActivityManager.broadcastIntent(IActivityManager.java:127)
+	at android.app.ContextImpl.sendStickyBroadcast(ContextImpl.java:558)
+	at com.android.server.BatteryService.sendIntent(BatteryService.java:160)
+	at com.android.server.BatteryService.<init>(BatteryService.java:74)
+	at android.os.ServiceManager.<init>(ServiceManager.java:68)
+	at android.os.ServiceManager.start(ServiceManager.java:72)
+	at za.android.vdm.rssreader.TimelineActivity.main(TimelineActivity.java:0)
+
+
+====================================================== snapshot #1
+thread java.lang.Thread:{id:0,name:main,status:RUNNING,priority:5,isDaemon:false,lockCount:0,suspendCount:0}
+  owned locks:com.android.server.am.ActivityManagerService@407
+  call stack:
+	at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:215)
+	at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:208)
+	at java.util.ArrayList.add(ArrayList.java:440)
+	at com.android.server.am.ActivityManagerService.performBroadcastIntent(ActivityManagerService.java:1023)
+	at android.app.IActivityManager.broadcastIntent(IActivityManager.java:127)
+	at android.app.ContextImpl.sendStickyBroadcast(ContextImpl.java:558)
+	at com.android.server.BatteryService.sendIntent(BatteryService.java:160)
+	at com.android.server.BatteryService.<init>(BatteryService.java:74)
+	at android.os.ServiceManager.<init>(ServiceManager.java:68)
+	at android.os.ServiceManager.start(ServiceManager.java:72)
+	at za.android.vdm.rssreader.TimelineActivity.main(TimelineActivity.java:0)
+
+
+====================================================== coverage statistics
+
+-------------------------------------------- class coverage ------------------------------------------------
+bytecode            line                basic-block         branch              methods             location
+------------------------------------------------------------------------------------------------------------
+0.01 (1/170)        0.00 (0/47)         0.02 (1/55)         0.00 (0/2)          0.09 (1/11)         za.android.vdm.rssreader.TimelineActivity
+  0.00 (0/6)          0.00 (0/2)          0.00 (0/2)           -                   -                  <init>()
+  0.00 (0/21)         0.00 (0/4)          0.00 (0/9)           -                   -                  loadRSSItemsFromDB()
+  0.00 (0/11)         0.00 (0/4)          0.00 (0/4)           -                   -                  onCreate(Bundle)
+  0.00 (0/7)          0.00 (0/3)          0.00 (0/3)           -                   -                  onDestroy()
+  0.00 (0/7)          0.00 (0/3)          0.00 (0/3)           -                   -                  onPause()
+  0.00 (0/7)          0.00 (0/3)          0.00 (0/3)           -                   -                  onResume()
+  0.00 (0/53)         0.00 (0/10)         0.00 (0/12)          -                   -                  onStart()
+  0.00 (0/13)         0.00 (0/5)          0.00 (0/5)           -                   -                  onStop()
+  0.00 (0/9)          0.00 (0/3)          0.00 (0/3)           -                   -                  stopUpdatingService()
+  0.00 (0/34)         0.00 (0/10)         0.00 (0/10)         0.00 (0/2)           -                  updateListView(Cursor)
+  0.50 (1/2)           -                  1.00 (1/1)           -                   -                  main(String[])
+
+------------------------------------------------------------------------------------------------------------
+0.01 (1/170)        0.00 (0/47)         0.02 (1/55)         0.00 (0/2)          0.09 (1/11)         1.00 (1/1)         total
+
+====================================================== results
+error #1: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.NullPointerException: array length of nu..."
+
+====================================================== statistics
+elapsed time:       00:00:01
+states:             new=1,visited=0,backtracked=0,end=0
+search:             maxDepth=1,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=0
+heap:               new=2112,released=0,maxLive=0,gcCycles=0
+instructions:       23585
+max memory:         123MB
+loaded code:        classes=136,methods=2936
+
+====================================================== search finished: 12/8/16 9:28 PM
